@@ -17,12 +17,14 @@ async function enviarFormulario() {
   elementoStatus.style.display = 'none'
 
   try {
-    const respostaServidor = await fetch('/api/processar', {
+    // Rota alinhada com as rotas do backend (/api/chamados)
+    const respostaServidor = await fetch('/api/chamados', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ textoManual: conteudoTexto })
+      // Chave alinhada com a validação do Zod/Controller (textoBruto)
+      body: JSON.stringify({ textoBruto: conteudoTexto })
     })
 
     const dadosResposta = await respostaServidor.json()
@@ -30,7 +32,7 @@ async function enviarFormulario() {
     if (!respostaServidor.ok) {
       const mensagemErroRetornada = dadosResposta.listaErros
         ? dadosResposta.listaErros.join(', ')
-        : dadosResposta.erro
+        : (dadosResposta.erro || dadosResposta.mensagem || 'Falha ao processar chamado.')
 
       throw new Error(mensagemErroRetornada)
     }
