@@ -17,14 +17,12 @@ async function enviarFormulario() {
   elementoStatus.style.display = 'none'
 
   try {
-    // Rota alinhada com as rotas do backend (/api/chamados)
-    const respostaServidor = await fetch('/api/chamados', {
+    const respostaServidor = await fetch('/api/processar', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      // Chave alinhada com a validação do Zod/Controller (textoBruto)
-      body: JSON.stringify({ textoBruto: conteudoTexto })
+      body: JSON.stringify({ textoManual: conteudoTexto })
     })
 
     const dadosResposta = await respostaServidor.json()

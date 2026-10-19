@@ -7,9 +7,9 @@ import { limitadorRequisicoes } from '../middlewares/rateLimiter.js'
 const roteador = Router()
 
 roteador.post(
-  '/processar', 
-  limitadorRequisicoes, 
-  validarRequisicao(esquemaTextoEntrada), 
+  '/processar',
+  limitadorRequisicoes,
+  validarRequisicao(esquemaTextoEntrada),
   processarChamado
 )
 
