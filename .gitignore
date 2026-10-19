@@ -1,0 +1,14 @@
+# Dependências
+node_modules/
+
+# Arquivos de variáveis de ambiente e chaves privadas
+.env
+.env.local
+credentials.json
+
+# Logs e arquivos de sistema
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+.vercel

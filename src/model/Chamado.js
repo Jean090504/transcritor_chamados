@@ -1,5 +1,5 @@
 import { google } from 'googleapis'
-import { configuracaoAmbiente } from '../config/environment.js'
+import { configuracaoAmbiente } from '../config/env.js'
 
 // Cria a autenticação lendo do arquivo local ou da variável de ambiente da nuvem
 const credenciaisObjeto = process.env.GOOGLE_CREDENTIALS_JSON
