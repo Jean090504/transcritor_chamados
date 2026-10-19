@@ -25,7 +25,16 @@ async function enviarFormulario() {
       body: JSON.stringify({ textoManual: conteudoTexto })
     })
 
-    const dadosResposta = await respostaServidor.json()
+    // Verifica se a resposta é realmente JSON antes de parsear
+    const contentType = respostaServidor.headers.get('content-type')
+    let dadosResposta
+
+    if (contentType && contentType.includes('application/json')) {
+      dadosResposta = await respostaServidor.json()
+    } else {
+      const textoErro = await respostaServidor.text()
+      throw new Error(`Servidor respondeu com status ${respostaServidor.status} (não-JSON)`)
+    }
 
     if (!respostaServidor.ok) {
       const mensagemErroRetornada = dadosResposta.listaErros

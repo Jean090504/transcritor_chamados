@@ -14,7 +14,7 @@ export async function extrairDadosChamado(textoBruto) {
 - localidade: nome da cidade e nome do estado por extenso (exemplo: Fernandopolis - Sao Paulo, nao use siglas como SP)
 - dataHoraEnvioRede: data e horario de envio na rede, ou "Nao informado" se ausente
 - dataHoraRetorno: data e horario do retorno ou conclusao, ou "Nao informado" se ausente
-- baseIndicada: nome da base e distancia por extenso (exemplo: LGI Refrigeracao - 214 Quilometros, nunca use KM)
+- baseIndicada: nome da base e distancia por extenso (exemplo: LGI Refrigeracao - 214 KM)
 - acionadaComIndicacao: "Sim", "Nao" ou "Em andamento"
 - resumoTentativas: descreva as tentativas por extenso. Substitua termos como "SEM CTT" por "Sem Contato", "CX POSTAL" por "Caixa Postal", "T1" por "Tentativa 1", "T2" por "Tentativa 2".
 
