@@ -52,7 +52,6 @@ export const gravarChamado = async (requisicao, resposta) => {
   }
 }
 
-// Desfazer (Undo)
 export const desfazerGravacao = async (requisicao, resposta) => {
   try {
     const { linha } = requisicao.body
@@ -71,6 +70,32 @@ export const desfazerGravacao = async (requisicao, resposta) => {
     return resposta.status(500).json({
       sucesso: false,
       erro: erro.message || 'Falha ao excluir linha da folha.'
+    })
+  }
+}
+
+export const sincronizarPlanilha = async (requisicao, resposta) => {
+  try {
+    const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
+    const res = await servicoPlanilhas.spreadsheets.values.get({
+      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
+      range: 'A2:A' // Pula o cabeçalho
+    })
+
+    const linhas = res.data.values || []
+    // Pega todos os protocolos válidos que existem de verdade na planilha
+    const protocolosAtivos = linhas.map(l => l[0] ? String(l[0]).trim() : '').filter(Boolean)
+
+    return resposta.status(200).json({
+      sucesso: true,
+      protocolosAtivos,
+      totalNaPlanilha: protocolosAtivos.length
+    })
+  } catch (erro) {
+    console.error('Falha ao sincronizar:', erro)
+    return resposta.status(500).json({
+      sucesso: false,
+      erro: 'Falha ao sincronizar com a planilha.'
     })
   }
 }
