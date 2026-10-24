@@ -38,20 +38,20 @@ export class Chamado {
     this.resumoTentativas = resumoTentativas
   }
 
-  converterParaLinhaPlanilha() {
-    return [
-      this.protocolo,
-      this.seguradora,
-      this.servico,
-      this.previaServico,
-      this.localidade,
-      this.baseAcionada,
-      this.dataMarcada,
-      this.horarioMarcado,
-      this.retratacaoInicial,
-      this.resumoTentativas
-    ]
-  }
+ converterParaLinhaPlanilha() {
+  return [
+    this.protocolo,
+    this.seguradora,
+    this.servico,
+    this.previaServico,
+    this.localidade,
+    this.baseAcionada,
+    this.dataMarcada,
+    this.horarioMarcado,
+    this.retratacaoInicial,
+    this.resumoTentativas
+  ]
+}
 
   async salvarNaPlanilha() {
     const servicoPlanilhasGoogle = google.sheets({ 
