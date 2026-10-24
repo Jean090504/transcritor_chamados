@@ -14,12 +14,9 @@ export async function extrairDadosChamado(textoBruto) {
 - previaServico: previa original do servico informada nos dados do chamado (exemplo: "90 MIN", "21/10 - 08H AS 12H", etc.)
 - localidade: nome da cidade e sigla do estado por extenso (exemplo: Presidente Epitacio - SP)
 - baseAcionada: nome da base/prestador que foi efetivamente acionado (se nao houver, "Nao acionada")
-- dataMarcada: data confirmada de atendimento da base acionada (exemplo: "26/10", "21/10/2026"). Se nao houver data especifica ou for imediato, informe "Imediato" ou "Nao informado".
+- dataMarcada: data confirmada de atendimento da base acionada (exemplo: "26/10", "21/10/2026"). Se for imediato ou sem data especifica, informe "Imediato" ou "Nao informado".
 - horarioMarcado: horario confirmado de atendimento da base acionada (exemplo: "QQ HORARIO", "14H", "13H AS 17H"). Se nao houver, "Nao informado".
-- baseIndicada: nome da base indicada pelo sistema e distancia por extenso (se nao houver distancia, apenas o nome da base ou "Nao informado")
-- acionadaComIndicacao: "Sim", "Nao" ou "Em andamento"
 - retratacaoInicial: texto exato da retratacao inicial. Se estiver em branco, ausente ou se for apenas agendamento sem retratacao, preencha estritamente como "AGENDAMENTO".
-- retratacaoFinal: texto exato da retratacao final. Se estiver em branco, ausente ou se for apenas agendamento sem retratacao, preencha estritamente como "AGENDAMENTO".
 - resumoTentativas: descreva as tentativas separadas por base.
   REGRA OBRIGATORIA DE FORMATACAO:
   1. Cada base DEVE ficar obrigatoriamente em uma nova linha usando quebra de linha real (\\n).
