@@ -753,3 +753,67 @@ textarea:focus {
   font-size: 0.72rem;
   color: var(--cor-texto-secundario);
 }
+.cabecalho-historico {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titulo-toggle-historico {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cor-texto-secundario);
+}
+
+.acoes-historico-topo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.botao-acao-historico {
+  background: transparent;
+  border: 1px solid var(--cor-borda);
+  color: var(--cor-texto-secundario);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.botao-acao-historico:hover {
+  background: var(--cor-borda);
+  color: var(--cor-texto-principal);
+}
+
+.item-historico-direita {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.botao-remover-item-historico {
+  background: transparent;
+  border: none;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.botao-remover-item-historico:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+}
