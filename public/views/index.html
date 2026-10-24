@@ -126,13 +126,26 @@
         </div>
       </button>
 
-      <!-- Histórico Recente -->
-      <div class="container-historico">
-        <div class="cabecalho-historico" id="toggleHistorico">
-          <span>Últimos Envios Locais (<span id="totalHistorico">0</span>)</span>
-          <svg id="setaHistorico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
+     <div class="container-historico">
+        <div class="cabecalho-historico">
+          <div class="titulo-toggle-historico" id="toggleHistorico">
+            <span>Últimos Envios Locais (<span id="totalHistorico">0</span>)</span>
+            <svg id="setaHistorico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          
+          <div class="acoes-historico-topo">
+            <button type="button" id="botaoSincronizar" class="botao-acao-historico" title="Sincronizar com a Planilha">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              Sincronizar
+            </button>
+            <button type="button" id="botaoLimparHistorico" class="botao-acao-historico" title="Limpar todo o histórico local">
+              Limpar
+            </button>
+          </div>
         </div>
         
         <div id="painelHistorico" class="painel-historico oculto">
