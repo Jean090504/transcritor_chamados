@@ -12,10 +12,11 @@ export const esquemaChamadoEstruturado = zodValidacao.object({
   protocolo: zodValidacao.string(),
   seguradora: zodValidacao.string(),
   servico: zodValidacao.string(),
+  previaServico: zodValidacao.string().default('Nao informado'),
   localidade: zodValidacao.string(),
-  dataHoraEnvioRede: zodValidacao.string().default('Nao informado'),
-  dataHoraRetorno: zodValidacao.string().default('Nao informado'),
-  baseIndicada: zodValidacao.string().default('Nao informado'),
-  acionadaComIndicacao: zodValidacao.enum(['Sim', 'Nao', 'Em andamento']).default('Nao'),
+  baseAcionada: zodValidacao.string().default('Nao acionada'),
+  dataMarcada: zodValidacao.string().default('Nao informado'),
+  horarioMarcado: zodValidacao.string().default('Nao informado'),
+  retratacaoInicial: zodValidacao.string().default('AGENDAMENTO'),
   resumoTentativas: zodValidacao.string().default('Nao informado')
 })
