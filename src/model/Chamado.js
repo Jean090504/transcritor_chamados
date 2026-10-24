@@ -14,44 +14,33 @@ const autenticacaoGoogle = new google.auth.GoogleAuth({
 })
 
 export class Chamado {
-  constructor({
-    protocolo,
-    seguradora,
-    servico,
-    previaServico = 'Nao informado',
-    localidade,
-    baseAcionada = 'Nao acionada',
-    dataMarcada = 'Nao informado',
-    horarioMarcado = 'Nao informado',
-    retratacaoInicial = 'AGENDAMENTO',
-    resumoTentativas = 'Nao informado'
-  }) {
-    this.protocolo = protocolo
-    this.seguradora = seguradora
-    this.servico = servico
-    this.previaServico = previaServico
-    this.localidade = localidade
-    this.baseAcionada = baseAcionada
-    this.dataMarcada = dataMarcada
-    this.horarioMarcado = horarioMarcado
-    this.retratacaoInicial = retratacaoInicial
-    this.resumoTentativas = resumoTentativas
+  constructor(dados = {}) {
+    this.protocolo = dados.protocolo || 'Nao informado'
+    this.seguradora = dados.seguradora || 'Nao informado'
+    this.servico = dados.servico || 'Nao informado'
+    this.previaServico = dados.previaServico || dados.previa_servico || dados.previa || 'Nao informado'
+    this.localidade = dados.localidade || 'Nao informado'
+    this.baseAcionada = dados.baseAcionada || dados.base_acionada || dados.base || 'Nao acionada'
+    this.dataMarcada = dados.dataMarcada || dados.data_marcada || dados.data || 'Nao informado'
+    this.horarioMarcado = dados.horarioMarcado || dados.horario_marcado || dados.horario || 'Nao informado'
+    this.retratacaoInicial = dados.retratacaoInicial || dados.retratacao_inicial || 'AGENDAMENTO'
+    this.resumoTentativas = dados.resumoTentativas || dados.resumo_tentativas || 'Nao informado'
   }
 
- converterParaLinhaPlanilha() {
-  return [
-    this.protocolo,
-    this.seguradora,
-    this.servico,
-    this.previaServico,
-    this.localidade,
-    this.baseAcionada,
-    this.dataMarcada,
-    this.horarioMarcado,
-    this.retratacaoInicial,
-    this.resumoTentativas
-  ]
-}
+  converterParaLinhaPlanilha() {
+    return [
+      this.protocolo,
+      this.seguradora,
+      this.servico,
+      this.previaServico,
+      this.localidade,
+      this.baseAcionada,
+      this.dataMarcada,
+      this.horarioMarcado,
+      this.retratacaoInicial,
+      this.resumoTentativas
+    ]
+  }
 
   async salvarNaPlanilha() {
     const servicoPlanilhasGoogle = google.sheets({ 
