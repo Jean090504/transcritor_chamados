@@ -34,12 +34,13 @@ export const gravarChamado = async (requisicao, resposta) => {
     const dadosValidados = esquemaChamadoEstruturado.parse(dadosRecebidos)
 
     const novoChamado = new Chamado(dadosValidados)
-    await novoChamado.salvarNaPlanilha()
+    const resultado = await novoChamado.salvarNaPlanilha()
 
     return resposta.status(200).json({
       sucesso: true,
-      mensagem: 'Registo inserido com sucesso na folha de cálculo.',
-      dados: novoChamado,
+      mensagem: 'Registo formatado e inserido na folha com sucesso.',
+      dados: resultado.chamado,
+      linhaCriada: resultado.linhaCriada,
       sheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA
     })
   } catch (erro) {
@@ -47,6 +48,29 @@ export const gravarChamado = async (requisicao, resposta) => {
     return resposta.status(500).json({
       sucesso: false,
       erro: erro.message || 'Falha ao gravar na folha de cálculo.'
+    })
+  }
+}
+
+// Desfazer (Undo)
+export const desfazerGravacao = async (requisicao, resposta) => {
+  try {
+    const { linha } = requisicao.body
+    if (!linha) {
+      return resposta.status(400).json({ sucesso: false, erro: 'Linha não informada.' })
+    }
+
+    await Chamado.apagarLinhaPlanilha(Number(linha))
+
+    return resposta.status(200).json({
+      sucesso: true,
+      mensagem: `Registo da linha ${linha} removido com sucesso.`
+    })
+  } catch (erro) {
+    console.error('Falha ao desfazer:', erro)
+    return resposta.status(500).json({
+      sucesso: false,
+      erro: erro.message || 'Falha ao excluir linha da folha.'
     })
   }
 }
