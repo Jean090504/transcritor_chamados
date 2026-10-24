@@ -4,9 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const botaoColar = document.getElementById('botaoColar')
   const botaoLimpar = document.getElementById('botaoLimpar')
   const contadorCaracteres = document.getElementById('contadorCaracteres')
-  const painelAlerta = document.getElementById('alertaFeedback')
   const conteudoBotao = botaoProcessar.querySelector('.conteudo-botao')
   const indicadorCarregamento = document.getElementById('indicadorCarregamento')
+  const containerToasts = document.getElementById('containerToasts')
 
   // Elementos do Modal
   const modalConfirmacao = document.getElementById('modalConfirmacao')
@@ -40,7 +40,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let idPlanilhaAtual = ''
 
-  // 1. Alternador de Tema Escuro / Claro
+  // 1. Sistema de Toasts Flutuantes (100% DOM seguro sem innerHTML)
+  function dispararToast(titulo, mensagem, tipo = 'sucesso', duracao = 3000, linkUrl = null) {
+    if (!containerToasts) return
+
+    const toast = document.createElement('div')
+    toast.className = `toast-item toast-${tipo}`
+
+    const corpo = document.createElement('div')
+    corpo.className = 'toast-corpo'
+
+    const elTitulo = document.createElement('div')
+    elTitulo.className = 'toast-titulo'
+    elTitulo.textContent = titulo
+
+    const elMensagem = document.createElement('div')
+    elMensagem.className = 'toast-mensagem'
+    elMensagem.textContent = mensagem
+
+    corpo.append(elTitulo, elMensagem)
+
+    if (linkUrl) {
+      const elLink = document.createElement('a')
+      elLink.href = linkUrl
+      elLink.target = '_blank'
+      elLink.rel = 'noopener noreferrer'
+      elLink.style.display = 'inline-block'
+      elLink.style.marginTop = '6px'
+      elLink.style.fontSize = '0.75rem'
+      elLink.style.fontWeight = '700'
+      elLink.style.color = 'var(--cor-primaria)'
+      elLink.style.textDecoration = 'none'
+      elLink.textContent = 'Abrir no Sheets ↗'
+      corpo.appendChild(elLink)
+    }
+
+    const botaoFechar = document.createElement('button')
+    botaoFechar.type = 'button'
+    botaoFechar.className = 'toast-fechar'
+    botaoFechar.textContent = '×'
+
+    const trilhaProgresso = document.createElement('div')
+    trilhaProgresso.className = 'toast-progresso'
+    const barraProgresso = document.createElement('div')
+    barraProgresso.className = 'toast-progresso-barra'
+    trilhaProgresso.appendChild(barraProgresso)
+
+    toast.append(corpo, botaoFechar, trilhaProgresso)
+    containerToasts.appendChild(toast)
+
+    requestAnimationFrame(() => {
+      toast.classList.add('toast-visivel')
+    })
+
+    let temporizador = null
+
+    function removerToast() {
+      if (temporizador) clearTimeout(temporizador)
+      toast.classList.remove('toast-visivel')
+      toast.classList.add('toast-saindo')
+      toast.addEventListener('transitionend', () => {
+        toast.remove()
+      }, { once: true })
+    }
+
+    temporizador = setTimeout(removerToast, duracao)
+    botaoFechar.addEventListener('click', removerToast)
+  }
+
+  // 2. Alternador de Tema Escuro / Claro
   const temaSalvo = localStorage.getItem('tema_transcritor') || 'light'
   if (temaSalvo === 'dark') {
     document.body.classList.add('dark-mode')
@@ -55,13 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
     iconeLua.classList.toggle('oculto', !isDark)
   })
 
-  // 2. Contador de Caracteres
+  // 3. Contador de Caracteres
   function atualizarContador() {
     contadorCaracteres.textContent = `${campoTexto.value.length} caracteres`
   }
   campoTexto.addEventListener('input', atualizarContador)
 
-  // 3. Atalho de Envio Rápido
+  // 4. Atalho de Envio Rápido (Ctrl+Enter / Cmd+Enter)
   campoTexto.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault()
@@ -69,15 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  function limparAlerta() {
-    painelAlerta.className = 'painel-alerta oculto'
-    painelAlerta.replaceChildren()
-  }
-
   botaoLimpar.addEventListener('click', () => {
     campoTexto.value = ''
     atualizarContador()
-    limparAlerta()
     campoTexto.focus()
   })
 
@@ -100,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     indicadorCarregamento.classList.toggle('oculto', !estaCarregando)
   }
 
-  // 4. Gestão do Histórico no LocalStorage
+  // 5. Histórico Local (localStorage)
   function carregarHistorico() {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
     totalHistorico.textContent = historico.length
@@ -150,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
   })
   carregarHistorico()
 
-  // 5. Modal de Confirmação e Edição
+  // 6. Modal de Confirmação e Edição
   function abrirModalComDados(dados, duplicado, linha) {
     campoProtocolo.value = dados.protocolo || ''
     campoSeguradora.value = dados.seguradora || ''
@@ -167,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (duplicado) {
       avisoDuplicadoModal.textContent = `Atenção: O protocolo "${dados.protocolo}" já existe na folha de cálculo (Linha ${linha})!`
       avisoDuplicadoModal.classList.remove('oculto')
+      dispararToast('Duplicado Identificado', `Protocolo ${dados.protocolo} já está na linha ${linha}.`, 'aviso', 4000)
     } else {
       avisoDuplicadoModal.classList.add('oculto')
     }
@@ -181,16 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
   fecharModal.addEventListener('click', fecharModalEdicao)
   botaoCancelarModal.addEventListener('click', fecharModalEdicao)
 
-  // 6. Passo 1: Disparo da Análise (Pré-visualização)
+  // 7. Passo 1: Pré-visualização com IA
   botaoProcessar.addEventListener('click', async () => {
     const texto = campoTexto.value.trim()
     if (!texto || texto.length < 20) {
-      exibirErro('Insira o texto completo do chamado antes de processar.')
+      dispararToast('Validação', 'Insira o texto completo do chamado antes de processar (mínimo de 20 caracteres).', 'aviso')
       return
     }
 
     alternarCarregamento(true)
-    limparAlerta()
 
     try {
       const res = await fetch('/api/previsualizar', {
@@ -205,13 +267,13 @@ document.addEventListener('DOMContentLoaded', () => {
       idPlanilhaAtual = resposta.sheetId
       abrirModalComDados(resposta.dados, resposta.duplicado, resposta.linhaDuplicada)
     } catch (erro) {
-      exibirErro(erro.message)
+      dispararToast('Erro na Análise', erro.message || 'Falha ao processar texto com a IA.', 'erro')
     } finally {
       alternarCarregamento(false)
     }
   })
 
-  // 7. Passo 2: Gravação Definitiva na Folha
+  // 8. Passo 2: Gravação Definitiva na Planilha
   botaoConfirmarGravacao.addEventListener('click', async () => {
     const dadosParaGravar = {
       protocolo: campoProtocolo.value,
@@ -241,141 +303,27 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error(resposta.erro || 'Falha ao gravar na folha.')
 
       fecharModalEdicao()
-      exibirSucesso(resposta.mensagem, resposta.dados, idPlanilhaAtual)
+      
+      const urlPlanilha = idPlanilhaAtual 
+        ? `https://docs.google.com/spreadsheets/d/${idPlanilhaAtual}/edit` 
+        : null
+
+      dispararToast(
+        'Gravação Concluída',
+        `Protocolo ${dadosParaGravar.protocolo} inserido na folha de cálculo com sucesso.`,
+        'sucesso',
+        3000,
+        urlPlanilha
+      )
+
       adicionarAoHistorico(dadosParaGravar)
       campoTexto.value = ''
       atualizarContador()
     } catch (erro) {
-      alert(`Erro: ${erro.message}`)
+      dispararToast('Erro na Gravação', erro.message || 'Falha ao gravar registro na folha.', 'erro')
     } finally {
       botaoConfirmarGravacao.disabled = false
       botaoConfirmarGravacao.textContent = 'Gravar na Folha'
     }
   })
-
-  function criarChip(chave, valor) {
-    const chip = document.createElement('span')
-    chip.className = 'chip-info'
-
-    const rotuloChave = document.createElement('span')
-    rotuloChave.className = 'chip-chave'
-    rotuloChave.textContent = `${chave}: `
-
-    const rotuloValor = document.createElement('span')
-    rotuloValor.className = 'chip-valor'
-    rotuloValor.textContent = valor
-
-    chip.append(rotuloChave, rotuloValor)
-    return chip
-  }
-
-  function exibirSucesso(mensagem, dados, sheetId) {
-    limparAlerta()
-    painelAlerta.className = 'painel-alerta alerta-sucesso'
-
-    const cabecalhoMensagem = document.createElement('div')
-    const rotuloDestaque = document.createElement('strong')
-    rotuloDestaque.textContent = 'Sucesso: '
-    cabecalhoMensagem.append(rotuloDestaque, document.createTextNode(mensagem))
-    painelAlerta.appendChild(cabecalhoMensagem)
-
-    if (dados) {
-      const containerDetalhes = document.createElement('div')
-      containerDetalhes.className = 'detalhes-extracao'
-
-      const itens = [
-        { chave: 'PROTOCOLO', valor: dados.protocolo || 'N/D' },
-        { chave: 'SEGURADORA', valor: dados.seguradora || 'N/D' },
-        { chave: 'SERVIÇO', valor: dados.servico || 'N/D' },
-        { chave: 'PRÉVIA', valor: dados.previaServico || 'N/D' },
-        { chave: 'LOCALIDADE', valor: dados.localidade || 'N/D' },
-        { chave: 'BASE ACIONADA', valor: dados.baseAcionada || 'N/D' },
-        { chave: 'DATA MARCADA', valor: dados.dataMarcada || 'N/D' },
-        { chave: 'HORÁRIO MARCADO', valor: dados.horarioMarcado || 'N/D' }
-      ]
-
-      itens.forEach((item) => {
-        containerDetalhes.appendChild(criarChip(item.chave, item.valor))
-      })
-
-      painelAlerta.appendChild(containerDetalhes)
-    }
-
-    // Botão de acesso direto à folha de cálculo
-    if (sheetId) {
-      const linkPlanilha = document.createElement('a')
-      linkPlanilha.className = 'link-planilha'
-      linkPlanilha.href = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`
-      linkPlanilha.target = '_blank'
-      linkPlanilha.rel = 'noopener noreferrer'
-      linkPlanilha.textContent = 'Abrir no Google Sheets ↗'
-      painelAlerta.appendChild(linkPlanilha)
-    }
-  }
-
-  function exibirErro(mensagem) {
-    limparAlerta()
-    painelAlerta.className = 'painel-alerta alerta-erro'
-
-    const rotuloErro = document.createElement('strong')
-    rotuloErro.textContent = 'Erro de Processamento: '
-    painelAlerta.append(rotuloErro, document.createTextNode(mensagem))
-  }
 })
-
-// Substitua ou adicione no escopo do seu DOMContentLoaded:
-const containerToasts = document.getElementById('containerToasts')
-
-function dispararToast(titulo, mensagem, tipo = 'sucesso', duracao = 3000) {
-  const toast = document.createElement('div')
-  toast.className = `toast-item toast-${tipo}`
-
-  // Corpo do texto
-  const corpo = document.createElement('div')
-  corpo.className = 'toast-corpo'
-
-  const elTitulo = document.createElement('div')
-  elTitulo.className = 'toast-titulo'
-  elTitulo.textContent = titulo
-
-  const elMensagem = document.createElement('div')
-  elMensagem.className = 'toast-mensagem'
-  elMensagem.textContent = mensagem
-
-  corpo.append(elTitulo, elMensagem)
-
-  // Botão de fechar manual (X)
-  const botaoFechar = document.createElement('button')
-  botaoFechar.type = 'button'
-  botaoFechar.className = 'toast-fechar'
-  botaoFechar.textContent = '×'
-
-  // Barra de progresso
-  const trilhaProgresso = document.createElement('div')
-  trilhaProgresso.className = 'toast-progresso'
-  const barraProgresso = document.createElement('div')
-  barraProgresso.className = 'toast-progresso-barra'
-  trilhaProgresso.appendChild(barraProgresso)
-
-  toast.append(corpo, botaoFechar, trilhaProgresso)
-  containerToasts.appendChild(toast)
-
-  // Dispara animação de entrada
-  requestAnimationFrame(() => {
-    toast.classList.add('toast-visivel')
-  })
-
-  let temporizador = null
-
-  function removerToast() {
-    if (temporizador) clearTimeout(temporizador)
-    toast.classList.remove('toast-visivel')
-    toast.classList.add('toast-saindo')
-    toast.addEventListener('transitionend', () => {
-      toast.remove()
-    }, { once: true })
-  }
-
-  temporizador = setTimeout(removerToast, duracao)
-  botaoFechar.addEventListener('click', removerToast)
-}
