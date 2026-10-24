@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const listaHistorico = document.getElementById('listaHistorico')
   const totalHistorico = document.getElementById('totalHistorico')
   const campoPesquisaHistorico = document.getElementById('campoPesquisaHistorico')
+  const botaoSincronizar = document.getElementById('botaoSincronizar')
+  const botaoLimparHistorico = document.getElementById('botaoLimparHistorico')
 
   let idPlanilhaAtual = ''
 
@@ -146,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const resposta = await res.json()
       if (!res.ok) throw new Error(resposta.erro || 'Falha ao desfazer gravação.')
 
-      // Remove do histórico local
       removerDoHistorico(protocolo)
       dispararToast('Desfeito', `O registo ${protocolo} foi removido da folha com sucesso.`, 'aviso', 3000)
     } catch (erro) {
@@ -154,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 3. Sanitização
+  // 3. Sanitização de Textos
   function sanitizarProtocolo(str = '') {
     return str.trim().replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ')
   }
@@ -207,7 +208,33 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
-  // 5. Histórico e Consulta Rápida (Filtro Dinâmico)
+  // 5. Sincronização em tempo real com a Planilha
+  async function sincronizarComPlanilhaReal() {
+    try {
+      const res = await fetch('/api/sincronizar')
+      const dados = await res.json()
+      if (!res.ok) return
+
+      let historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+      const protocolosAtivos = new Set(dados.protocolosAtivos || [])
+
+      // Se a planilha estiver vazia, zera o histórico local
+      if (!dados.totalNaPlanilha || dados.totalNaPlanilha === 0) {
+        localStorage.removeItem('historico_chamados')
+        carregarHistorico()
+        return
+      }
+
+      // Mantém apenas os itens que realmente existem na planilha
+      const historicoAtualizado = historico.filter(item => protocolosAtivos.has(item.protocolo))
+      localStorage.setItem('historico_chamados', JSON.stringify(historicoAtualizado))
+      carregarHistorico()
+    } catch {
+      // Ignora falhas de conexão de background
+    }
+  }
+
+  // 6. Histórico e Consulta Rápida (Filtro Dinâmico + Botão Excluir)
   function renderizarListaHistorico(filtro = '') {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
     totalHistorico.textContent = historico.length
@@ -249,12 +276,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
       detalhes.append(linhaPrincipal, subLinha)
 
+      const containerDireita = document.createElement('div')
+      containerDireita.className = 'item-historico-direita'
+
       const hora = document.createElement('span')
       hora.style.color = 'var(--cor-texto-secundario)'
       hora.style.fontSize = '0.75rem'
       hora.textContent = item.dataHora
 
-      card.append(detalhes, hora)
+      const botaoExcluirItem = document.createElement('button')
+      botaoExcluirItem.type = 'button'
+      botaoExcluirItem.className = 'botao-remover-item-historico'
+      botaoExcluirItem.title = 'Remover do histórico local'
+      botaoExcluirItem.textContent = '✕'
+      botaoExcluirItem.addEventListener('click', (e) => {
+        e.stopPropagation()
+        removerDoHistorico(item.protocolo)
+      })
+
+      containerDireita.append(hora, botaoExcluirItem)
+      card.append(detalhes, containerDireita)
       listaHistorico.appendChild(card)
     })
   }
@@ -294,14 +335,38 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
-  toggleHistorico.addEventListener('click', () => {
-    painelHistorico.classList.toggle('oculto')
-  })
-  carregarHistorico()
+  if (toggleHistorico) {
+    toggleHistorico.addEventListener('click', () => {
+      painelHistorico.classList.toggle('oculto')
+    })
+  }
 
-  // 6. Reconhecimento Automático (Auto-Paste)
+  if (botaoSincronizar) {
+    botaoSincronizar.addEventListener('click', async () => {
+      botaoSincronizar.disabled = true
+      await sincronizarComPlanilhaReal()
+      dispararToast('Sincronização', 'Histórico sincronizado com a planilha.', 'sucesso', 2000)
+      botaoSincronizar.disabled = false
+    })
+  }
+
+  if (botaoLimparHistorico) {
+    botaoLimparHistorico.addEventListener('click', () => {
+      localStorage.removeItem('historico_chamados')
+      carregarHistorico()
+      dispararToast('Histórico Limpo', 'Todos os envios locais foram zerados.', 'aviso', 2000)
+    })
+  }
+
+  // Inicializa e sincroniza
+  carregarHistorico()
+  sincronizarComPlanilhaReal()
+
+  // Sincroniza e faz Auto-Paste ao focar na janela
   let ultimoTextoAutoColado = ''
   window.addEventListener('focus', async () => {
+    sincronizarComPlanilhaReal()
+
     try {
       if (campoTexto.value.trim().length > 0) return
 
@@ -317,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dispararToast('Reconhecimento Automático', 'Texto de chamado identificado e colado.', 'aviso', 2500)
       }
     } catch {
-      // Ignora restrições silenciosamente
+      // Ignora restrições de permissão silenciosamente
     }
   })
 
@@ -471,7 +536,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const linhaGerada = resposta.linhaCriada
 
-      // Toast com duração de 30 segundos oferecendo botão de Undo
       dispararToast(
         'Gravação Concluída',
         `Protocolo ${dadosParaGravar.protocolo} gravado e formatado (Linha ${linhaGerada || 'N/D'}).`,
