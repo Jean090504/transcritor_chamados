@@ -5,18 +5,28 @@ const clienteInteligenciaArtificial = new GoogleGenerativeAI(configuracaoAmbient
 
 export async function extrairDadosChamado(textoBruto) {
   const instrucaoExtracao = `
-    Analise o texto do chamado operacional e extraia todas as informacoes.
+    Analise o texto do chamado operacional e extraia todas as informacoes em formato JSON valido.
     
     Regras estritas de preenchimento:
 - protocolo: codigo ou numero identificador completo
 - seguradora: nome da empresa por extenso
-- servico: tipo de servico por extenso 
+- servico: tipo de servico por extenso
 - localidade: nome da cidade e nome do estado por extenso (exemplo: Fernandopolis - SP)
 - dataHoraEnvioRede: data e horario de envio na rede, ou "Nao informado" se ausente
 - dataHoraRetorno: data e horario do retorno ou conclusao, ou "Nao informado" se ausente
 - baseIndicada: nome da base e distancia por extenso (exemplo: LGI Refrigeracao - 214 KM) - nunca utilize quilometragem ou quilometros, sempre escreva por extenso (exemplo: 214 KM)
 - acionadaComIndicacao: "Sim", "Nao" ou "Em andamento"
-- resumoTentativas: descreva as tentativas por extenso.
+- resumoTentativas: descreva as tentativas separadas por base.
+  REGRA OBRIGATORIA DE FORMATACAO:
+  1. Cada base DEVE ficar obrigatoriamente em uma nova linha usando quebra de linha real (\\n).
+  2. Nao junte bases diferentes na mesma linha.
+  3. Formato exato por linha:
+     NOME DA BASE: T1 STATUS, T2 STATUS
+  4. Exemplos de padronizacao:
+     CLIMA MS: T1 SEM CTT, T2 CX POSTAL, T3 OCUPADO
+     MS REFRIGERACAO: T1 SEM AGENDA
+     PANTANAL CLIMATIZACAO: T1 FORA DO RAIO
+     SOS AR CONDICIONADO: T1 AGENDAMENTO CONFIRMADO
 
     Texto bruto:
     ${textoBruto}
