@@ -17,6 +17,8 @@ export async function extrairDadosChamado(textoBruto) {
     - dataMarcada: Data agendada com a base acionada (ex: se na prévia da base acionada constar "24/10 - 18H00", a data é "24/10"). Se for imediato ou sem data futura, coloca "Imediato". Se não houver, "Nao informado".
     - horarioMarcado: Horário agendado com a base acionada (ex: se constar "24/10 - 18H00", o horário é "18H00"; se constar "QQ HORARIO", coloca "QQ HORARIO"). Se não houver, "Nao informado".
     - retratacaoInicial: Texto exato presente em "RETRATACAO -> INICIAL". Se estiver vazio, sem preenchimento ou ausente, preenche obrigatoriamente como "AGENDAMENTO".
+    - retratacaoInicial: Texto presente em "[ RETRATACAO ] -> INICIAL :". Se vazio ou ausente, retorne "AGENDAMENTO".
+    - retratacaoFinal: Texto presente em "[ RETRATACAO ] -> FINAL :". Se vazio ou ausente, retorne "AGENDAMENTO".
     - resumoTentativas: Resumo de todas as bases contactadas. Cada base DEVE começar obrigatoriamente numa nova linha usando quebra de linha real (\\n). Formato por linha:
       NOME DA BASE: T1 STATUS, T2 STATUS
 
@@ -38,6 +40,7 @@ export async function extrairDadosChamado(textoBruto) {
         dataMarcada: { type: SchemaType.STRING },
         horarioMarcado: { type: SchemaType.STRING },
         retratacaoInicial: { type: SchemaType.STRING },
+        retratacaoFinal: { type: SchemaType.STRING },
         resumoTentativas: { type: SchemaType.STRING }
       },
       required: [
@@ -50,6 +53,7 @@ export async function extrairDadosChamado(textoBruto) {
         'dataMarcada',
         'horarioMarcado',
         'retratacaoInicial',
+        'retratacaoFinal',
         'resumoTentativas'
       ]
     }
