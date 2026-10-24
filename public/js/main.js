@@ -15,11 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   campoTexto.addEventListener('input', atualizarContador)
 
+  campoTexto.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault()
+      botaoProcessar.click()
+    }
+  })
+
+  function limparAlerta() {
+    painelAlerta.className = 'painel-alerta oculto'
+    painelAlerta.replaceChildren()
+  }
+
   botaoLimpar.addEventListener('click', () => {
     campoTexto.value = ''
     atualizarContador()
-    painelAlerta.className = 'painel-alerta oculto'
-    painelAlerta.innerHTML = ''
+    limparAlerta()
     campoTexto.focus()
   })
 
@@ -47,30 +58,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function criarChip(chave, valor) {
+    const chip = document.createElement('span')
+    chip.className = 'chip-info'
+
+    const rotuloChave = document.createElement('span')
+    rotuloChave.className = 'chip-chave'
+    rotuloChave.textContent = `${chave}: `
+
+    const rotuloValor = document.createElement('span')
+    rotuloValor.className = 'chip-valor'
+    rotuloValor.textContent = valor
+
+    chip.append(rotuloChave, rotuloValor)
+    return chip
+  }
+
   function exibirSucesso(mensagem, dados) {
+    limparAlerta()
     painelAlerta.className = 'painel-alerta alerta-sucesso'
 
-    let detalhesHtml = ''
-    if (dados) {
-      detalhesHtml = `
-        <div class="detalhes-extracao">
-          <span class="chip-info">Protocolo: ${dados.protocolo || 'N/D'}</span>
-          <span class="chip-info">Seguradora: ${dados.seguradora || 'N/D'}</span>
-          <span class="chip-info">Serviço: ${dados.servico || 'N/D'}</span>
-          <span class="chip-info">Acionada: ${dados.acionadaComIndicacao || 'N/D'}</span>
-        </div>
-      `
-    }
+    const cabecalhoMensagem = document.createElement('div')
+    cabecalhoMensagem.className = 'alerta-titulo'
 
-    painelAlerta.innerHTML = `
-      <strong>✔ Sucesso!</strong> ${mensagem}
-      ${detalhesHtml}
-    `
+    const rotuloDestaque = document.createElement('strong')
+    rotuloDestaque.textContent = 'Sucesso: '
+
+    const textoMensagem = document.createTextNode(mensagem)
+    cabecalhoMensagem.append(rotuloDestaque, textoMensagem)
+
+    painelAlerta.appendChild(cabecalhoMensagem)
+
+    if (dados) {
+      const containerDetalhes = document.createElement('div')
+      containerDetalhes.className = 'detalhes-extracao'
+
+      const itens = [
+        { chave: 'PROTOCOLO', valor: dados.protocolo || 'N/D' },
+        { chave: 'SEGURADORA', valor: dados.seguradora || 'N/D' },
+        { chave: 'SERVIÇO', valor: dados.servico || 'N/D' },
+        { chave: 'PRÉVIA', valor: dados.previaServico || 'N/D' },
+        { chave: 'LOCALIDADE', valor: dados.localidade || 'N/D' },
+        { chave: 'BASE ACIONADA', valor: dados.baseAcionada || 'N/D' },
+        { 
+          chave: 'AGENDAMENTO', 
+          valor: `${dados.dataMarcada || 'Imediato'}${dados.horarioMarcado ? ` (${dados.horarioMarcado})` : ''}` 
+        }
+      ]
+
+      itens.forEach((item) => {
+        containerDetalhes.appendChild(criarChip(item.chave, item.valor))
+      })
+
+      painelAlerta.appendChild(containerDetalhes)
+    }
   }
 
   function exibirErro(mensagem) {
+    limparAlerta()
     painelAlerta.className = 'painel-alerta alerta-erro'
-    painelAlerta.innerHTML = `<strong>✖ Atenção:</strong> ${mensagem}`
+
+    const rotuloErro = document.createElement('strong')
+    rotuloErro.textContent = 'Erro de Processamento: '
+
+    const textoMensagem = document.createTextNode(mensagem)
+
+    painelAlerta.append(rotuloErro, textoMensagem)
   }
 
   botaoProcessar.addEventListener('click', async () => {
@@ -82,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     alternarCarregamento(true)
-    painelAlerta.className = 'painel-alerta oculto'
+    limparAlerta()
 
     try {
       const respostaServidor = await fetch('/api/processar', {
@@ -111,13 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       exibirSucesso(
-        dadosResposta.mensagem || 'Chamado gravado com sucesso no Google Sheets.',
-        dadosResposta.dadosProcessados
+        dadosResposta.mensagem || 'Registro inserido na planilha com sucesso.',
+        dadosResposta.dados || dadosResposta.dadosProcessados
       )
       campoTexto.value = ''
       atualizarContador()
     } catch (erro) {
-      exibirErro(erro.message || 'Erro ao conectar ao servidor. Tente novamente.')
+      exibirErro(erro.message || 'Erro de comunicação com a API. Tente novamente.')
     } finally {
       alternarCarregamento(false)
     }
