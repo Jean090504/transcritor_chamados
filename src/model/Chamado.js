@@ -23,10 +23,7 @@ export class Chamado {
     baseAcionada = 'Nao acionada',
     dataMarcada = 'Nao informado',
     horarioMarcado = 'Nao informado',
-    baseIndicada = 'Nao informado',
-    acionadaComIndicacao = 'Nao',
     retratacaoInicial = 'AGENDAMENTO',
-    retratacaoFinal = 'AGENDAMENTO',
     resumoTentativas = 'Nao informado'
   }) {
     this.protocolo = protocolo
@@ -37,10 +34,7 @@ export class Chamado {
     this.baseAcionada = baseAcionada
     this.dataMarcada = dataMarcada
     this.horarioMarcado = horarioMarcado
-    this.baseIndicada = baseIndicada
-    this.acionadaComIndicacao = acionadaComIndicacao
     this.retratacaoInicial = retratacaoInicial
-    this.retratacaoFinal = retratacaoFinal
     this.resumoTentativas = resumoTentativas
   }
 
@@ -54,10 +48,7 @@ export class Chamado {
       this.baseAcionada,
       this.dataMarcada,
       this.horarioMarcado,
-      this.baseIndicada,
-      this.acionadaComIndicacao,
       this.retratacaoInicial,
-      this.retratacaoFinal,
       this.resumoTentativas
     ]
   }
