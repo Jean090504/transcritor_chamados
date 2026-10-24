@@ -13,19 +13,32 @@ const autenticacaoGoogle = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets']
 })
 
+// Funções utilitárias de higienização de dados
+function limparEspacos(texto = '') {
+  return String(texto).trim().replace(/\s+/g, ' ')
+}
+
+function padronizarProtocolo(protocolo = '') {
+  return String(protocolo).trim().replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ')
+}
+
+function padronizarTextoGeral(texto = '') {
+  return limparEspacos(texto).toUpperCase()
+}
+
 export class Chamado {
   constructor(dados = {}) {
-    this.protocolo = dados.protocolo || 'Nao informado'
-    this.seguradora = dados.seguradora || 'Nao informado'
-    this.servico = dados.servico || 'Nao informado'
-    this.previaServico = dados.previaServico || dados.previa_servico || dados.previa || 'Nao informado'
-    this.localidade = dados.localidade || 'Nao informado'
-    this.baseAcionada = dados.baseAcionada || dados.base_acionada || dados.base || 'Nao acionada'
-    this.dataMarcada = dados.dataMarcada || dados.data_marcada || dados.data || 'Nao informado'
-    this.horarioMarcado = dados.horarioMarcado || dados.horario_marcado || dados.horario || 'Nao informado'
-    this.retratacaoInicial = dados.retratacaoInicial || dados.retratacao_inicial || 'AGENDAMENTO'
-    this.retratacaoFinal = dados.retratacaoFinal || dados.retratacao_final || 'AGENDAMENTO'
-    this.resumoTentativas = dados.resumoTentativas || dados.resumo_tentativas || 'Nao informado'
+    this.protocolo = padronizarProtocolo(dados.protocolo || 'Nao informado')
+    this.seguradora = padronizarTextoGeral(dados.seguradora || 'Nao informado')
+    this.servico = padronizarTextoGeral(dados.servico || 'Nao informado')
+    this.previaServico = padronizarTextoGeral(dados.previaServico || dados.previa_servico || dados.previa || 'Nao informado')
+    this.localidade = padronizarTextoGeral(dados.localidade || 'Nao informado')
+    this.baseAcionada = padronizarTextoGeral(dados.baseAcionada || dados.base_acionada || dados.base || 'Nao acionada')
+    this.dataMarcada = limparEspacos(dados.dataMarcada || dados.data_marcada || dados.data || 'Nao informado')
+    this.horarioMarcado = padronizarTextoGeral(dados.horarioMarcado || dados.horario_marcado || dados.horario || 'Nao informado')
+    this.retratacaoInicial = limparEspacos(dados.retratacaoInicial || dados.retratacao_inicial || 'AGENDAMENTO')
+    this.retratacaoFinal = limparEspacos(dados.retratacaoFinal || dados.retratacao_final || 'AGENDAMENTO')
+    this.resumoTentativas = String(dados.resumoTentativas || dados.resumo_tentativas || 'Nao informado').trim()
   }
 
   converterParaLinhaPlanilha() {
@@ -44,10 +57,10 @@ export class Chamado {
     ]
   }
 
-  // Verifica se o protocolo já existe na coluna A
   static async verificarDuplicado(protocolo) {
     if (!protocolo || protocolo === 'Nao informado') return null
 
+    const protocoloNormalizado = padronizarProtocolo(protocolo)
     const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
     const resposta = await servicoPlanilhas.spreadsheets.values.get({
       spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
@@ -55,10 +68,13 @@ export class Chamado {
     })
 
     const linhas = resposta.data.values || []
-    const indice = linhas.findIndex((linha) => linha[0] && linha[0].toString().trim() === protocolo.trim())
+    const indice = linhas.findIndex((linha) => {
+      if (!linha[0]) return false
+      return padronizarProtocolo(linha[0]) === protocoloNormalizado
+    })
 
     if (indice !== -1) {
-      return indice + 1 // Retorna o número da linha na folha
+      return indice + 1
     }
     return null
   }
