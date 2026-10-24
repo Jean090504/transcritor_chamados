@@ -5,26 +5,22 @@ const clienteInteligenciaArtificial = new GoogleGenerativeAI(configuracaoAmbient
 
 export async function extrairDadosChamado(textoBruto) {
   const instrucaoExtracao = `
-    Analise o texto do chamado operacional e extraia todas as informacoes estritamente em formato JSON valido.
-    
-    Regras estritas de preenchimento dos campos:
-- protocolo: codigo ou numero identificador completo do chamado
-- seguradora: nome da empresa por extenso
-- servico: tipo de servico por extenso
-- previaServico: previa original do servico informada nos dados do chamado (exemplo: "90 MIN", "21/10 - 08H AS 12H", etc.)
-- localidade: nome da cidade e sigla do estado por extenso (exemplo: Presidente Epitacio - SP)
-- baseAcionada: nome da base/prestador que foi efetivamente acionado (se nao houver, "Nao acionada")
-- dataMarcada: data confirmada de atendimento da base acionada (exemplo: "26/10", "21/10/2026"). Se for imediato ou sem data especifica, informe "Imediato" ou "Nao informado".
-- horarioMarcado: horario confirmado de atendimento da base acionada (exemplo: "QQ HORARIO", "14H", "13H AS 17H"). Se nao houver, "Nao informado".
-- retratacaoInicial: texto exato da retratacao inicial. Se estiver em branco, ausente ou se for apenas agendamento sem retratacao, preencha estritamente como "AGENDAMENTO".
-- resumoTentativas: descreva as tentativas separadas por base.
-  REGRA OBRIGATORIA DE FORMATACAO:
-  1. Cada base DEVE ficar obrigatoriamente em uma nova linha usando quebra de linha real (\\n).
-  2. Nao junte bases diferentes na mesma linha.
-  3. Formato exato por linha:
-     NOME DA BASE: T1 STATUS, T2 STATUS
+    És um assistente operacional. Analisa o texto do chamado fornecido e extrai as informações solicitadas estritamente em formato JSON válido.
 
-    Texto bruto:
+    CAMPOS OBRIGATÓRIOS DO JSON:
+    - protocolo: Código ou número identificador completo do protocolo (ex: "88301924/ 2").
+    - seguradora: Nome da seguradora/produto (ex: "PORTO SEGURO", "BB SEGUROS").
+    - servico: Tipo de serviço solicitado (ex: "DESENTUPIMENTO DE ESGOTO").
+    - previaServico: Valor informado no campo PREVIA dentro dos dados do chamado (ex: "120 MIN", "90 MIN", "21/10 - 08H AS 12H"). Não confundir com a prévia da base acionada.
+    - localidade: Cidade e sigla do estado (ex: "Salto - SP").
+    - baseAcionada: Nome da base que aceitou ou confirmou o agendamento (indicada na seção "BASE ACIONADA"). Se não houver base confirmada, coloca "Nao acionada".
+    - dataMarcada: Data agendada com a base acionada (ex: se na prévia da base acionada constar "24/10 - 18H00", a data é "24/10"). Se for imediato ou sem data futura, coloca "Imediato". Se não houver, "Nao informado".
+    - horarioMarcado: Horário agendado com a base acionada (ex: se constar "24/10 - 18H00", o horário é "18H00"; se constar "QQ HORARIO", coloca "QQ HORARIO"). Se não houver, "Nao informado".
+    - retratacaoInicial: Texto exato presente em "RETRATACAO -> INICIAL". Se estiver vazio, sem preenchimento ou ausente, preenche obrigatoriamente como "AGENDAMENTO".
+    - resumoTentativas: Resumo de todas as bases contactadas. Cada base DEVE começar obrigatoriamente numa nova linha usando quebra de linha real (\\n). Formato por linha:
+      NOME DA BASE: T1 STATUS, T2 STATUS
+
+    Texto do chamado:
     ${textoBruto}
   `
 
