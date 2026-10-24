@@ -24,6 +24,7 @@ export class Chamado {
     this.dataMarcada = dados.dataMarcada || dados.data_marcada || dados.data || 'Nao informado'
     this.horarioMarcado = dados.horarioMarcado || dados.horario_marcado || dados.horario || 'Nao informado'
     this.retratacaoInicial = dados.retratacaoInicial || dados.retratacao_inicial || 'AGENDAMENTO'
+    this.retratacaoFinal = dados.retratacaoFinal || dados.retratacao_final || 'AGENDAMENTO'
     this.resumoTentativas = dados.resumoTentativas || dados.resumo_tentativas || 'Nao informado'
   }
 
@@ -38,6 +39,7 @@ export class Chamado {
       this.dataMarcada,
       this.horarioMarcado,
       this.retratacaoInicial,
+      this.retratacaoFinal,
       this.resumoTentativas
     ]
   }
