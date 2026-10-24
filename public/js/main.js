@@ -8,6 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const indicadorCarregamento = document.getElementById('indicadorCarregamento')
   const containerToasts = document.getElementById('containerToasts')
 
+  // Elementos das Métricas
+  const metricaTotal = document.getElementById('metricaTotal')
+  const metricaMediaPrevia = document.getElementById('metricaMediaPrevia')
+  const metricaSeguradoras = document.getElementById('metricaSeguradoras')
+
   // Elementos do Modal
   const modalConfirmacao = document.getElementById('modalConfirmacao')
   const fecharModal = document.getElementById('fecharModal')
@@ -28,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const campoRetratacaoFinal = document.getElementById('campoRetratacaoFinal')
   const campoResumoTentativas = document.getElementById('campoResumoTentativas')
 
-  // Tema Escuro
+  // Tema
   const botaoTema = document.getElementById('botaoTema')
   const iconeSol = document.getElementById('iconeSol')
   const iconeLua = document.getElementById('iconeLua')
@@ -40,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let idPlanilhaAtual = ''
 
-  // 1. Sistema de Toasts Flutuantes (100% DOM seguro sem innerHTML)
+  // 1. Toasts Flutuantes Seguros (Zero innerHTML)
   function dispararToast(titulo, mensagem, tipo = 'sucesso', duracao = 3000, linkUrl = null) {
     if (!containerToasts) return
 
@@ -108,7 +113,86 @@ document.addEventListener('DOMContentLoaded', () => {
     botaoFechar.addEventListener('click', removerToast)
   }
 
-  // 2. Alternador de Tema Escuro / Claro
+  // 2. Formatação e Higienização de Strings no Cliente
+  function sanitizarProtocolo(str = '') {
+    return str.trim().replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ')
+  }
+
+  function sanitizarTexto(str = '') {
+    return str.trim().replace(/\s+/g, ' ')
+  }
+
+  // 3. Atualizar Painel de Métricas do Turno
+  function atualizarPainelMetricas() {
+    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+    metricaTotal.textContent = historico.length
+
+    if (historico.length === 0) {
+      metricaMediaPrevia.textContent = '--'
+      metricaSeguradoras.textContent = 'Nenhum registo'
+      return
+    }
+
+    // Cálculo da média de prévia em minutos
+    let minutosTotal = 0
+    let contagemMinutos = 0
+    const contagemSeguradoras = {}
+
+    historico.forEach((item) => {
+      // Agrupamento de Seguradoras
+      const seg = item.seguradora || 'OUTROS'
+      contagemSeguradoras[seg] = (contagemSeguradoras[seg] || 0) + 1
+
+      // Cálculo de minutos
+      if (item.previaServico) {
+        const extraido = item.previaServico.match(/\d+/)
+        if (extraido) {
+          minutosTotal += parseInt(extraido[0], 10)
+          contagemMinutos++
+        }
+      }
+    })
+
+    if (contagemMinutos > 0) {
+      const media = Math.round(minutosTotal / contagemMinutos)
+      metricaMediaPrevia.textContent = `${media} min`
+    } else {
+      metricaMediaPrevia.textContent = '--'
+    }
+
+    // Renderiza tags de seguradoras
+    metricaSeguradoras.replaceChildren()
+    Object.entries(contagemSeguradoras).slice(0, 3).forEach(([seg, total]) => {
+      const tag = document.createElement('span')
+      tag.className = 'tag-seguradora'
+      tag.textContent = `${seg}: ${total}`
+      metricaSeguradoras.appendChild(tag)
+    })
+  }
+
+  // 4. Reconhecimento Automático de Chamado ao Focar na Janela
+  let ultimoTextoAutoColado = ''
+  window.addEventListener('focus', async () => {
+    try {
+      if (campoTexto.value.trim().length > 0) return // Não sobrepõe se já estiver preenchido
+
+      const conteudoClipboard = await navigator.clipboard.readText()
+      if (
+        conteudoClipboard &&
+        conteudoClipboard !== ultimoTextoAutoColado &&
+        (conteudoClipboard.includes('PROTOCOLO') || conteudoClipboard.includes('[ DADOS DO CHAMADO ]'))
+      ) {
+        campoTexto.value = conteudoClipboard
+        ultimoTextoAutoColado = conteudoClipboard
+        atualizarContador()
+        dispararToast('Reconhecimento Automático', 'Texto de chamado identificado e colado.', 'aviso', 2500)
+      }
+    } catch {
+      // Ignora silenciosamente permissões bloqueadas da área de transferência
+    }
+  })
+
+  // 5. Alternador de Tema Escuro / Claro
   const temaSalvo = localStorage.getItem('tema_transcritor') || 'light'
   if (temaSalvo === 'dark') {
     document.body.classList.add('dark-mode')
@@ -123,13 +207,12 @@ document.addEventListener('DOMContentLoaded', () => {
     iconeLua.classList.toggle('oculto', !isDark)
   })
 
-  // 3. Contador de Caracteres
+  // 6. Contador de Caracteres e Atalhos
   function atualizarContador() {
     contadorCaracteres.textContent = `${campoTexto.value.length} caracteres`
   }
   campoTexto.addEventListener('input', atualizarContador)
 
-  // 4. Atalho de Envio Rápido (Ctrl+Enter / Cmd+Enter)
   campoTexto.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault()
@@ -162,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     indicadorCarregamento.classList.toggle('oculto', !estaCarregando)
   }
 
-  // 5. Histórico Local (localStorage)
+  // 7. Gestão do Histórico
   function carregarHistorico() {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
     totalHistorico.textContent = historico.length
@@ -174,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
       vazio.style.color = 'var(--cor-texto-secundario)'
       vazio.textContent = 'Nenhum envio recente guardado neste navegador.'
       listaHistorico.appendChild(vazio)
+      atualizarPainelMetricas()
       return
     }
 
@@ -191,6 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
       card.append(info, data)
       listaHistorico.appendChild(card)
     })
+
+    atualizarPainelMetricas()
   }
 
   function adicionarAoHistorico(dados) {
@@ -199,10 +285,11 @@ document.addEventListener('DOMContentLoaded', () => {
       protocolo: dados.protocolo,
       seguradora: dados.seguradora,
       servico: dados.servico,
+      previaServico: dados.previaServico,
       dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     })
 
-    if (historico.length > 8) historico.pop()
+    if (historico.length > 20) historico.pop()
     localStorage.setItem('historico_chamados', JSON.stringify(historico))
     carregarHistorico()
   }
@@ -212,24 +299,24 @@ document.addEventListener('DOMContentLoaded', () => {
   })
   carregarHistorico()
 
-  // 6. Modal de Confirmação e Edição
+  // 8. Modal de Revisão com Sanitização
   function abrirModalComDados(dados, duplicado, linha) {
-    campoProtocolo.value = dados.protocolo || ''
-    campoSeguradora.value = dados.seguradora || ''
-    campoServico.value = dados.servico || ''
-    campoPreviaServico.value = dados.previaServico || ''
-    campoLocalidade.value = dados.localidade || ''
-    campoBaseAcionada.value = dados.baseAcionada || ''
-    campoDataMarcada.value = dados.dataMarcada || ''
-    campoHorarioMarcado.value = dados.horarioMarcado || ''
-    campoRetratacaoInicial.value = dados.retratacaoInicial || ''
-    campoRetratacaoFinal.value = dados.retratacaoFinal || ''
-    campoResumoTentativas.value = dados.resumoTentativas || ''
+    campoProtocolo.value = sanitizarProtocolo(dados.protocolo || '')
+    campoSeguradora.value = sanitizarTexto(dados.seguradora || '').toUpperCase()
+    campoServico.value = sanitizarTexto(dados.servico || '').toUpperCase()
+    campoPreviaServico.value = sanitizarTexto(dados.previaServico || '').toUpperCase()
+    campoLocalidade.value = sanitizarTexto(dados.localidade || '').toUpperCase()
+    campoBaseAcionada.value = sanitizarTexto(dados.baseAcionada || '').toUpperCase()
+    campoDataMarcada.value = sanitizarTexto(dados.dataMarcada || '')
+    campoHorarioMarcado.value = sanitizarTexto(dados.horarioMarcado || '').toUpperCase()
+    campoRetratacaoInicial.value = sanitizarTexto(dados.retratacaoInicial || '')
+    campoRetratacaoFinal.value = sanitizarTexto(dados.retratacaoFinal || '')
+    campoResumoTentativas.value = String(dados.resumoTentativas || '').trim()
 
     if (duplicado) {
-      avisoDuplicadoModal.textContent = `Atenção: O protocolo "${dados.protocolo}" já existe na folha de cálculo (Linha ${linha})!`
+      avisoDuplicadoModal.textContent = `Atenção: O protocolo "${campoProtocolo.value}" já existe na folha de cálculo (Linha ${linha})!`
       avisoDuplicadoModal.classList.remove('oculto')
-      dispararToast('Duplicado Identificado', `Protocolo ${dados.protocolo} já está na linha ${linha}.`, 'aviso', 4000)
+      dispararToast('Duplicado Identificado', `Protocolo ${campoProtocolo.value} já está na linha ${linha}.`, 'aviso', 4000)
     } else {
       avisoDuplicadoModal.classList.add('oculto')
     }
@@ -244,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fecharModal.addEventListener('click', fecharModalEdicao)
   botaoCancelarModal.addEventListener('click', fecharModalEdicao)
 
-  // 7. Passo 1: Pré-visualização com IA
+  // 9. Extração com IA
   botaoProcessar.addEventListener('click', async () => {
     const texto = campoTexto.value.trim()
     if (!texto || texto.length < 20) {
@@ -273,20 +360,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 
-  // 8. Passo 2: Gravação Definitiva na Planilha
+  // 10. Gravação Definitiva na Planilha
   botaoConfirmarGravacao.addEventListener('click', async () => {
     const dadosParaGravar = {
-      protocolo: campoProtocolo.value,
-      seguradora: campoSeguradora.value,
-      servico: campoServico.value,
-      previaServico: campoPreviaServico.value,
-      localidade: campoLocalidade.value,
-      baseAcionada: campoBaseAcionada.value,
-      dataMarcada: campoDataMarcada.value,
-      horarioMarcado: campoHorarioMarcado.value,
-      retratacaoInicial: campoRetratacaoInicial.value,
-      retratacaoFinal: campoRetratacaoFinal.value,
-      resumoTentativas: campoResumoTentativas.value
+      protocolo: sanitizarProtocolo(campoProtocolo.value),
+      seguradora: sanitizarTexto(campoSeguradora.value).toUpperCase(),
+      servico: sanitizarTexto(campoServico.value).toUpperCase(),
+      previaServico: sanitizarTexto(campoPreviaServico.value).toUpperCase(),
+      localidade: sanitizarTexto(campoLocalidade.value).toUpperCase(),
+      baseAcionada: sanitizarTexto(campoBaseAcionada.value).toUpperCase(),
+      dataMarcada: sanitizarTexto(campoDataMarcada.value),
+      horarioMarcado: sanitizarTexto(campoHorarioMarcado.value).toUpperCase(),
+      retratacaoInicial: sanitizarTexto(campoRetratacaoInicial.value),
+      retratacaoFinal: sanitizarTexto(campoRetratacaoFinal.value),
+      resumoTentativas: campoResumoTentativas.value.trim()
     }
 
     botaoConfirmarGravacao.disabled = true
@@ -310,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       dispararToast(
         'Gravação Concluída',
-        `Protocolo ${dadosParaGravar.protocolo} inserido na folha de cálculo com sucesso.`,
+        `Protocolo ${dadosParaGravar.protocolo} inserido na folha com sucesso.`,
         'sucesso',
         3000,
         urlPlanilha
