@@ -32,23 +32,24 @@ export async function extrairDadosChamado(textoBruto) {
         protocolo: { type: SchemaType.STRING },
         seguradora: { type: SchemaType.STRING },
         servico: { type: SchemaType.STRING },
+        previaServico: { type: SchemaType.STRING },
         localidade: { type: SchemaType.STRING },
-        dataHoraEnvioRede: { type: SchemaType.STRING },
-        dataHoraRetorno: { type: SchemaType.STRING },
-        baseIndicada: { type: SchemaType.STRING },
-        acionadaComIndicacao: { 
-          type: SchemaType.STRING,
-          enum: ['Sim', 'Nao', 'Em andamento']
-        },
+        baseAcionada: { type: SchemaType.STRING },
+        dataMarcada: { type: SchemaType.STRING },
+        horarioMarcado: { type: SchemaType.STRING },
+        retratacaoInicial: { type: SchemaType.STRING },
         resumoTentativas: { type: SchemaType.STRING }
       },
       required: [
         'protocolo',
         'seguradora',
         'servico',
+        'previaServico',
         'localidade',
-        'baseIndicada',
-        'acionadaComIndicacao',
+        'baseAcionada',
+        'dataMarcada',
+        'horarioMarcado',
+        'retratacaoInicial',
         'resumoTentativas'
       ]
     }
