@@ -5,28 +5,27 @@ const clienteInteligenciaArtificial = new GoogleGenerativeAI(configuracaoAmbient
 
 export async function extrairDadosChamado(textoBruto) {
   const instrucaoExtracao = `
-    Analise o texto do chamado operacional e extraia todas as informacoes em formato JSON valido.
+    Analise o texto do chamado operacional e extraia todas as informacoes estritamente em formato JSON valido.
     
-    Regras estritas de preenchimento:
-- protocolo: codigo ou numero identificador completo
+    Regras estritas de preenchimento dos campos:
+- protocolo: codigo ou numero identificador completo do chamado
 - seguradora: nome da empresa por extenso
 - servico: tipo de servico por extenso
-- localidade: nome da cidade e nome do estado por extenso (exemplo: Fernandopolis - SP)
-- dataHoraEnvioRede: data e horario de envio na rede, ou "Nao informado" se ausente
-- dataHoraRetorno: data e horario do retorno ou conclusao, ou "Nao informado" se ausente
-- baseIndicada: nome da base e distancia por extenso (exemplo: LGI Refrigeracao - 214 KM) - nunca utilize quilometragem ou quilometros, sempre escreva por extenso (exemplo: 214 KM)
+- previaServico: previa original do servico informada nos dados do chamado (exemplo: "90 MIN", "21/10 - 08H AS 12H", etc.)
+- localidade: nome da cidade e sigla do estado por extenso (exemplo: Presidente Epitacio - SP)
+- baseAcionada: nome da base/prestador que foi efetivamente acionado (se nao houver, "Nao acionada")
+- dataMarcada: data confirmada de atendimento da base acionada (exemplo: "26/10", "21/10/2026"). Se nao houver data especifica ou for imediato, informe "Imediato" ou "Nao informado".
+- horarioMarcado: horario confirmado de atendimento da base acionada (exemplo: "QQ HORARIO", "14H", "13H AS 17H"). Se nao houver, "Nao informado".
+- baseIndicada: nome da base indicada pelo sistema e distancia por extenso (se nao houver distancia, apenas o nome da base ou "Nao informado")
 - acionadaComIndicacao: "Sim", "Nao" ou "Em andamento"
+- retratacaoInicial: texto exato da retratacao inicial. Se estiver em branco, ausente ou se for apenas agendamento sem retratacao, preencha estritamente como "AGENDAMENTO".
+- retratacaoFinal: texto exato da retratacao final. Se estiver em branco, ausente ou se for apenas agendamento sem retratacao, preencha estritamente como "AGENDAMENTO".
 - resumoTentativas: descreva as tentativas separadas por base.
   REGRA OBRIGATORIA DE FORMATACAO:
   1. Cada base DEVE ficar obrigatoriamente em uma nova linha usando quebra de linha real (\\n).
   2. Nao junte bases diferentes na mesma linha.
   3. Formato exato por linha:
      NOME DA BASE: T1 STATUS, T2 STATUS
-  4. Exemplos de padronizacao:
-     CLIMA MS: T1 SEM CTT, T2 CX POSTAL, T3 OCUPADO
-     MS REFRIGERACAO: T1 SEM AGENDA
-     PANTANAL CLIMATIZACAO: T1 FORA DO RAIO
-     SOS AR CONDICIONADO: T1 AGENDAMENTO CONFIRMADO
 
     Texto bruto:
     ${textoBruto}
