@@ -44,6 +44,25 @@ export class Chamado {
     ]
   }
 
+  // Verifica se o protocolo já existe na coluna A
+  static async verificarDuplicado(protocolo) {
+    if (!protocolo || protocolo === 'Nao informado') return null
+
+    const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
+    const resposta = await servicoPlanilhas.spreadsheets.values.get({
+      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
+      range: 'A:A'
+    })
+
+    const linhas = resposta.data.values || []
+    const indice = linhas.findIndex((linha) => linha[0] && linha[0].toString().trim() === protocolo.trim())
+
+    if (indice !== -1) {
+      return indice + 1 // Retorna o número da linha na folha
+    }
+    return null
+  }
+
   async salvarNaPlanilha() {
     const servicoPlanilhasGoogle = google.sheets({ 
       version: 'v4', 
