@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Transcritor Operacional | Automação</title>
+  <title>Transcritor de Chamados | Operacional</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,38 +11,32 @@
   
   <link rel="stylesheet" href="/css/style.css" />
   
-  <!-- Favicon SVG moderno -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2225%22 fill=%22%231d4ed8%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 font-family=%22sans-serif%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>T</text></svg>">
+  <!-- Favicon SVG baseado exatamente na sua logo -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23eff6ff'/><path d='M22 16h14l8 8v20a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4V20a4 4 0 0 1 4-4z' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/><polyline points='36 16 36 24 44 24' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/><path d='M32 29v13' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round'/><path d='M26 36l6 6 6-6' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 </head>
 <body>
-  <!-- Fundos com iluminação dinâmica suave -->
+  <!-- Iluminação dinâmica suave no fundo -->
   <div class="circulo-luz luz-1"></div>
   <div class="circulo-luz luz-2"></div>
 
   <main class="container-aplicacao">
-    <!-- Cabeçalho do Card -->
+    <!-- Cabeçalho do Card (Sem Operação Online) -->
     <header class="cabecalho-cartao">
       <div class="icone-cabecalho">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14 2 14 8 20 8"></polyline>
-          <path d="M12 18v-6"></path>
-          <path d="m9 15 3 3 3-3"></path>
+          <line x1="12" y1="12" x2="12" y2="18"></line>
+          <polyline points="9 15 12 18 15 15"></polyline>
         </svg>
       </div>
       <div class="info-cabecalho">
-        <div class="linha-titulo">
-          <h1>Transcritor de Chamados</h1>
-          <span class="badge-status">
-            <span class="ponto-pulsante"></span>
-            Operacional Online
-          </span>
-        </div>
-        <p>Extração e estruturação automática para o Google Sheets</p>
+        <h1>Transcritor de Chamados</h1>
+        <p>Extração e estruturação automática de dados operacionais</p>
       </div>
     </header>
 
-    <!-- Seção do Formulário -->
+    <!-- Formulário -->
     <section class="area-formulario">
       <div class="cabecalho-texto">
         <label for="textoChamado">
@@ -52,7 +46,7 @@
             <line x1="10" y1="3" x2="8" y2="21"></line>
             <line x1="16" y1="3" x2="14" y2="21"></line>
           </svg>
-          Texto Bruto do Chamado
+          Texto do Chamado
         </label>
         <div class="acoes-texto">
           <button type="button" id="botaoColar" class="botao-secundario" title="Colar da área de transferência">
@@ -78,11 +72,11 @@
         <textarea
           id="textoChamado"
           rows="10"
-          placeholder="Cole aqui o texto completo com dados do chamado, retratação, base acionada e tentativas..."
+          placeholder="Cola aqui o bloco de texto bruto do chamado operacional..."
           spellcheck="false"
         ></textarea>
         <div class="barra-inferior-textarea">
-          <span class="dica-teclado">Pressione <kbd>Ctrl</kbd> + <kbd>Enter</kbd> para enviar rápido</span>
+          <span class="dica-teclado">Pressione <kbd>Ctrl</kbd> + <kbd>Enter</kbd> para envio rápido</span>
           <span id="contadorCaracteres" class="contador-caracteres">0 caracteres</span>
         </div>
       </div>
@@ -93,11 +87,11 @@
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
             <polyline points="9 11 12 14 22 4"></polyline>
           </svg>
-          <span id="textoBotao">Processar e Gravar na Planilha</span>
+          <span id="textoBotao">Processar e Gravar</span>
         </span>
         <div id="indicadorCarregamento" class="indicador-carregamento oculto">
           <div class="spinner"></div>
-          <span>Extraindo dados com IA...</span>
+          <span>A processar chamado...</span>
         </div>
       </button>
 
