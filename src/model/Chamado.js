@@ -18,21 +18,29 @@ export class Chamado {
     protocolo,
     seguradora,
     servico,
+    previaServico = 'Nao informado',
     localidade,
-    dataHoraEnvioRede = 'Nao informado',
-    dataHoraRetorno = 'Nao informado',
+    baseAcionada = 'Nao acionada',
+    dataMarcada = 'Nao informado',
+    horarioMarcado = 'Nao informado',
     baseIndicada = 'Nao informado',
     acionadaComIndicacao = 'Nao',
+    retratacaoInicial = 'AGENDAMENTO',
+    retratacaoFinal = 'AGENDAMENTO',
     resumoTentativas = 'Nao informado'
   }) {
     this.protocolo = protocolo
     this.seguradora = seguradora
     this.servico = servico
+    this.previaServico = previaServico
     this.localidade = localidade
-    this.dataHoraEnvioRede = dataHoraEnvioRede
-    this.dataHoraRetorno = dataHoraRetorno
+    this.baseAcionada = baseAcionada
+    this.dataMarcada = dataMarcada
+    this.horarioMarcado = horarioMarcado
     this.baseIndicada = baseIndicada
     this.acionadaComIndicacao = acionadaComIndicacao
+    this.retratacaoInicial = retratacaoInicial
+    this.retratacaoFinal = retratacaoFinal
     this.resumoTentativas = resumoTentativas
   }
 
@@ -41,11 +49,15 @@ export class Chamado {
       this.protocolo,
       this.seguradora,
       this.servico,
+      this.previaServico,
       this.localidade,
-      this.dataHoraEnvioRede,
-      this.dataHoraRetorno,
+      this.baseAcionada,
+      this.dataMarcada,
+      this.horarioMarcado,
       this.baseIndicada,
       this.acionadaComIndicacao,
+      this.retratacaoInicial,
+      this.retratacaoFinal,
       this.resumoTentativas
     ]
   }
