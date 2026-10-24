@@ -1,83 +1,52 @@
-import { google } from 'googleapis'
+import { extrairDadosChamado } from '../services/aiService.js'
+import { Chamado } from '../model/Chamado.js'
+import { esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
 import { configuracaoAmbiente } from '../config/env.js'
 
-const credenciaisObjeto = process.env.GOOGLE_CREDENTIALS_JSON
-  ? JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON)
-  : undefined
+export const preVisualizarChamado = async (requisicao, resposta) => {
+  try {
+    const { textoManual } = requisicao.body
 
-const autenticacaoGoogle = new google.auth.GoogleAuth({
-  ...(credenciaisObjeto 
-    ? { credentials: credenciaisObjeto } 
-    : { keyFile: 'credentials.json' }
-  ),
-  scopes: ['https://www.googleapis.com/auth/spreadsheets']
-})
+    const dadosExtraidos = await extrairDadosChamado(textoManual)
+    const dadosValidados = esquemaChamadoEstruturado.parse(dadosExtraidos)
 
-export class Chamado {
-  constructor(dados = {}) {
-    this.protocolo = dados.protocolo || 'Nao informado'
-    this.seguradora = dados.seguradora || 'Nao informado'
-    this.servico = dados.servico || 'Nao informado'
-    this.previaServico = dados.previaServico || dados.previa_servico || dados.previa || 'Nao informado'
-    this.localidade = dados.localidade || 'Nao informado'
-    this.baseAcionada = dados.baseAcionada || dados.base_acionada || dados.base || 'Nao acionada'
-    this.dataMarcada = dados.dataMarcada || dados.data_marcada || dados.data || 'Nao informado'
-    this.horarioMarcado = dados.horarioMarcado || dados.horario_marcado || dados.horario || 'Nao informado'
-    this.retratacaoInicial = dados.retratacaoInicial || dados.retratacao_inicial || 'AGENDAMENTO'
-    this.retratacaoFinal = dados.retratacaoFinal || dados.retratacao_final || 'AGENDAMENTO'
-    this.resumoTentativas = dados.resumoTentativas || dados.resumo_tentativas || 'Nao informado'
-  }
+    const linhaExistente = await Chamado.verificarDuplicado(dadosValidados.protocolo)
 
-  converterParaLinhaPlanilha() {
-    return [
-      this.protocolo,
-      this.seguradora,
-      this.servico,
-      this.previaServico,
-      this.localidade,
-      this.baseAcionada,
-      this.dataMarcada,
-      this.horarioMarcado,
-      this.retratacaoInicial,
-      this.retratacaoFinal,
-      this.resumoTentativas
-    ]
-  }
-
-  // Verifica se o protocolo já existe na coluna A
-  static async verificarDuplicado(protocolo) {
-    if (!protocolo || protocolo === 'Nao informado') return null
-
-    const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
-    const resposta = await servicoPlanilhas.spreadsheets.values.get({
-      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
-      range: 'A:A'
+    return resposta.status(200).json({
+      sucesso: true,
+      dados: dadosValidados,
+      duplicado: !!linhaExistente,
+      linhaDuplicada: linhaExistente,
+      sheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA
     })
-
-    const linhas = resposta.data.values || []
-    const indice = linhas.findIndex((linha) => linha[0] && linha[0].toString().trim() === protocolo.trim())
-
-    if (indice !== -1) {
-      return indice + 1 // Retorna o número da linha na folha
-    }
-    return null
+  } catch (erro) {
+    console.error('Falha na pré-visualização:', erro)
+    return resposta.status(500).json({
+      sucesso: false,
+      erro: erro.message || 'Falha ao extrair dados do chamado.'
+    })
   }
+}
 
-  async salvarNaPlanilha() {
-    const servicoPlanilhasGoogle = google.sheets({ 
-      version: 'v4', 
-      auth: autenticacaoGoogle 
+export const gravarChamado = async (requisicao, resposta) => {
+  try {
+    const dadosRecebidos = requisicao.body.dados
+    const dadosValidados = esquemaChamadoEstruturado.parse(dadosRecebidos)
+
+    const novoChamado = new Chamado(dadosValidados)
+    await novoChamado.salvarNaPlanilha()
+
+    return resposta.status(200).json({
+      sucesso: true,
+      mensagem: 'Registo inserido com sucesso na folha de cálculo.',
+      dados: novoChamado,
+      sheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA
     })
-
-    await servicoPlanilhasGoogle.spreadsheets.values.append({
-      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
-      range: 'A1',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [this.converterParaLinhaPlanilha()]
-      }
+  } catch (erro) {
+    console.error('Falha ao gravar:', erro)
+    return resposta.status(500).json({
+      sucesso: false,
+      erro: erro.message || 'Falha ao gravar na folha de cálculo.'
     })
-
-    return this
   }
 }
