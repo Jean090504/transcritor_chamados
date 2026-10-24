@@ -322,3 +322,60 @@ document.addEventListener('DOMContentLoaded', () => {
     painelAlerta.append(rotuloErro, document.createTextNode(mensagem))
   }
 })
+
+// Substitua ou adicione no escopo do seu DOMContentLoaded:
+const containerToasts = document.getElementById('containerToasts')
+
+function dispararToast(titulo, mensagem, tipo = 'sucesso', duracao = 3000) {
+  const toast = document.createElement('div')
+  toast.className = `toast-item toast-${tipo}`
+
+  // Corpo do texto
+  const corpo = document.createElement('div')
+  corpo.className = 'toast-corpo'
+
+  const elTitulo = document.createElement('div')
+  elTitulo.className = 'toast-titulo'
+  elTitulo.textContent = titulo
+
+  const elMensagem = document.createElement('div')
+  elMensagem.className = 'toast-mensagem'
+  elMensagem.textContent = mensagem
+
+  corpo.append(elTitulo, elMensagem)
+
+  // Botão de fechar manual (X)
+  const botaoFechar = document.createElement('button')
+  botaoFechar.type = 'button'
+  botaoFechar.className = 'toast-fechar'
+  botaoFechar.textContent = '×'
+
+  // Barra de progresso
+  const trilhaProgresso = document.createElement('div')
+  trilhaProgresso.className = 'toast-progresso'
+  const barraProgresso = document.createElement('div')
+  barraProgresso.className = 'toast-progresso-barra'
+  trilhaProgresso.appendChild(barraProgresso)
+
+  toast.append(corpo, botaoFechar, trilhaProgresso)
+  containerToasts.appendChild(toast)
+
+  // Dispara animação de entrada
+  requestAnimationFrame(() => {
+    toast.classList.add('toast-visivel')
+  })
+
+  let temporizador = null
+
+  function removerToast() {
+    if (temporizador) clearTimeout(temporizador)
+    toast.classList.remove('toast-visivel')
+    toast.classList.add('toast-saindo')
+    toast.addEventListener('transitionend', () => {
+      toast.remove()
+    }, { once: true })
+  }
+
+  temporizador = setTimeout(removerToast, duracao)
+  botaoFechar.addEventListener('click', removerToast)
+}
