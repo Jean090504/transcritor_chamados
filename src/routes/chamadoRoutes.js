@@ -3,6 +3,7 @@ import { preVisualizarChamado, gravarChamado, desfazerGravacao } from '../contro
 import { validarRequisicao } from '../middlewares/validateRequest.js'
 import { esquemaTextoEntrada, esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
 import { limitadorRequisicoes } from '../middlewares/rateLimiter.js'
+import { sincronizarPlanilha } from '../controllers/chamadoController.js'
 import { z } from 'zod'
 
 const roteador = Router()
@@ -25,7 +26,7 @@ roteador.post(
   gravarChamado
 )
 
-// Rota de Desfazer
 roteador.post('/desfazer', desfazerGravacao)
+roteador.get('/sincronizar', sincronizarPlanilha)
 
 export default roteador
