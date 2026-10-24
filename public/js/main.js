@@ -38,15 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const iconeSol = document.getElementById('iconeSol')
   const iconeLua = document.getElementById('iconeLua')
 
-  // Histórico
+  // Histórico e Pesquisa
   const toggleHistorico = document.getElementById('toggleHistorico')
+  const painelHistorico = document.getElementById('painelHistorico')
   const listaHistorico = document.getElementById('listaHistorico')
   const totalHistorico = document.getElementById('totalHistorico')
+  const campoPesquisaHistorico = document.getElementById('campoPesquisaHistorico')
 
   let idPlanilhaAtual = ''
 
-  // 1. Toasts Flutuantes Seguros (Zero innerHTML)
-  function dispararToast(titulo, mensagem, tipo = 'sucesso', duracao = 3000, linkUrl = null) {
+  // 1. Disparar Toast Flutuante com Suporte a Undo e Link
+  function dispararToast(titulo, mensagem, tipo = 'sucesso', duracao = 3000, opcoes = {}) {
     if (!containerToasts) return
 
     const toast = document.createElement('div')
@@ -65,19 +67,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     corpo.append(elTitulo, elMensagem)
 
-    if (linkUrl) {
-      const elLink = document.createElement('a')
-      elLink.href = linkUrl
-      elLink.target = '_blank'
-      elLink.rel = 'noopener noreferrer'
-      elLink.style.display = 'inline-block'
-      elLink.style.marginTop = '6px'
-      elLink.style.fontSize = '0.75rem'
-      elLink.style.fontWeight = '700'
-      elLink.style.color = 'var(--cor-primaria)'
-      elLink.style.textDecoration = 'none'
-      elLink.textContent = 'Abrir no Sheets ↗'
-      corpo.appendChild(elLink)
+    // Ações inline (Link Sheets ou Botão Desfazer)
+    if (opcoes.linkUrl || opcoes.onDesfazer) {
+      const containerAcoes = document.createElement('div')
+      containerAcoes.className = 'acoes-toast'
+
+      if (opcoes.linkUrl) {
+        const elLink = document.createElement('a')
+        elLink.href = opcoes.linkUrl
+        elLink.target = '_blank'
+        elLink.rel = 'noopener noreferrer'
+        elLink.style.fontSize = '0.72rem'
+        elLink.style.fontWeight = '700'
+        elLink.style.color = 'var(--cor-primaria)'
+        elLink.style.textDecoration = 'none'
+        elLink.textContent = 'Abrir no Sheets ↗'
+        containerAcoes.appendChild(elLink)
+      }
+
+      if (opcoes.onDesfazer) {
+        const botaoUndo = document.createElement('button')
+        botaoUndo.type = 'button'
+        botaoUndo.className = 'botao-desfazer-toast'
+        botaoUndo.textContent = 'Desfazer (Undo)'
+        botaoUndo.addEventListener('click', () => {
+          removerToast()
+          opcoes.onDesfazer()
+        })
+        containerAcoes.appendChild(botaoUndo)
+      }
+
+      corpo.appendChild(containerAcoes)
     }
 
     const botaoFechar = document.createElement('button')
@@ -89,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     trilhaProgresso.className = 'toast-progresso'
     const barraProgresso = document.createElement('div')
     barraProgresso.className = 'toast-progresso-barra'
+    barraProgresso.style.animationDuration = `${duracao}ms`
     trilhaProgresso.appendChild(barraProgresso)
 
     toast.append(corpo, botaoFechar, trilhaProgresso)
@@ -113,7 +134,27 @@ document.addEventListener('DOMContentLoaded', () => {
     botaoFechar.addEventListener('click', removerToast)
   }
 
-  // 2. Formatação e Higienização de Strings no Cliente
+  // 2. Desfazer Última Gravação (Undo)
+  async function executarDesfazer(linha, protocolo) {
+    try {
+      const res = await fetch('/api/desfazer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linha })
+      })
+
+      const resposta = await res.json()
+      if (!res.ok) throw new Error(resposta.erro || 'Falha ao desfazer gravação.')
+
+      // Remove do histórico local
+      removerDoHistorico(protocolo)
+      dispararToast('Desfeito', `O registo ${protocolo} foi removido da folha com sucesso.`, 'aviso', 3000)
+    } catch (erro) {
+      dispararToast('Falha no Undo', erro.message, 'erro')
+    }
+  }
+
+  // 3. Sanitização
   function sanitizarProtocolo(str = '') {
     return str.trim().replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ')
   }
@@ -122,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return str.trim().replace(/\s+/g, ' ')
   }
 
-  // 3. Atualizar Painel de Métricas do Turno
+  // 4. Métricas do Turno
   function atualizarPainelMetricas() {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
     metricaTotal.textContent = historico.length
@@ -133,17 +174,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return
     }
 
-    // Cálculo da média de prévia em minutos
     let minutosTotal = 0
     let contagemMinutos = 0
     const contagemSeguradoras = {}
 
     historico.forEach((item) => {
-      // Agrupamento de Seguradoras
       const seg = item.seguradora || 'OUTROS'
       contagemSeguradoras[seg] = (contagemSeguradoras[seg] || 0) + 1
 
-      // Cálculo de minutos
       if (item.previaServico) {
         const extraido = item.previaServico.match(/\d+/)
         if (extraido) {
@@ -160,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
       metricaMediaPrevia.textContent = '--'
     }
 
-    // Renderiza tags de seguradoras
     metricaSeguradoras.replaceChildren()
     Object.entries(contagemSeguradoras).slice(0, 3).forEach(([seg, total]) => {
       const tag = document.createElement('span')
@@ -170,11 +207,103 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
-  // 4. Reconhecimento Automático de Chamado ao Focar na Janela
+  // 5. Histórico e Consulta Rápida (Filtro Dinâmico)
+  function renderizarListaHistorico(filtro = '') {
+    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+    totalHistorico.textContent = historico.length
+    listaHistorico.replaceChildren()
+
+    const termo = filtro.trim().toLowerCase()
+    const filtrados = historico.filter((item) => {
+      if (!termo) return true
+      return (
+        item.protocolo.toLowerCase().includes(termo) ||
+        item.seguradora.toLowerCase().includes(termo) ||
+        item.servico.toLowerCase().includes(termo) ||
+        (item.baseAcionada && item.baseAcionada.toLowerCase().includes(termo))
+      )
+    })
+
+    if (filtrados.length === 0) {
+      const vazio = document.createElement('div')
+      vazio.style.padding = '8px'
+      vazio.style.color = 'var(--cor-texto-secundario)'
+      vazio.textContent = termo ? 'Nenhum resultado encontrado.' : 'Nenhum envio recente guardado.'
+      listaHistorico.appendChild(vazio)
+      return
+    }
+
+    filtrados.forEach((item) => {
+      const card = document.createElement('div')
+      card.className = 'item-historico'
+
+      const detalhes = document.createElement('div')
+      detalhes.className = 'item-historico-detalhes'
+
+      const linhaPrincipal = document.createElement('strong')
+      linhaPrincipal.textContent = `${item.protocolo} - ${item.seguradora}`
+
+      const subLinha = document.createElement('span')
+      subLinha.className = 'item-historico-sub'
+      subLinha.textContent = `${item.servico} | Base: ${item.baseAcionada || 'N/D'}`
+
+      detalhes.append(linhaPrincipal, subLinha)
+
+      const hora = document.createElement('span')
+      hora.style.color = 'var(--cor-texto-secundario)'
+      hora.style.fontSize = '0.75rem'
+      hora.textContent = item.dataHora
+
+      card.append(detalhes, hora)
+      listaHistorico.appendChild(card)
+    })
+  }
+
+  function carregarHistorico() {
+    renderizarListaHistorico(campoPesquisaHistorico ? campoPesquisaHistorico.value : '')
+    atualizarPainelMetricas()
+  }
+
+  function adicionarAoHistorico(dados, linhaCriada) {
+    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+    historico.unshift({
+      protocolo: dados.protocolo,
+      seguradora: dados.seguradora,
+      servico: dados.servico,
+      baseAcionada: dados.baseAcionada,
+      previaServico: dados.previaServico,
+      linha: linhaCriada,
+      dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    })
+
+    if (historico.length > 25) historico.pop()
+    localStorage.setItem('historico_chamados', JSON.stringify(historico))
+    carregarHistorico()
+  }
+
+  function removerDoHistorico(protocolo) {
+    let historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+    historico = historico.filter((item) => item.protocolo !== protocolo)
+    localStorage.setItem('historico_chamados', JSON.stringify(historico))
+    carregarHistorico()
+  }
+
+  if (campoPesquisaHistorico) {
+    campoPesquisaHistorico.addEventListener('input', (e) => {
+      renderizarListaHistorico(e.target.value)
+    })
+  }
+
+  toggleHistorico.addEventListener('click', () => {
+    painelHistorico.classList.toggle('oculto')
+  })
+  carregarHistorico()
+
+  // 6. Reconhecimento Automático (Auto-Paste)
   let ultimoTextoAutoColado = ''
   window.addEventListener('focus', async () => {
     try {
-      if (campoTexto.value.trim().length > 0) return // Não sobrepõe se já estiver preenchido
+      if (campoTexto.value.trim().length > 0) return
 
       const conteudoClipboard = await navigator.clipboard.readText()
       if (
@@ -188,11 +317,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dispararToast('Reconhecimento Automático', 'Texto de chamado identificado e colado.', 'aviso', 2500)
       }
     } catch {
-      // Ignora silenciosamente permissões bloqueadas da área de transferência
+      // Ignora restrições silenciosamente
     }
   })
 
-  // 5. Alternador de Tema Escuro / Claro
+  // 7. Tema Escuro / Claro
   const temaSalvo = localStorage.getItem('tema_transcritor') || 'light'
   if (temaSalvo === 'dark') {
     document.body.classList.add('dark-mode')
@@ -207,7 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
     iconeLua.classList.toggle('oculto', !isDark)
   })
 
-  // 6. Contador de Caracteres e Atalhos
   function atualizarContador() {
     contadorCaracteres.textContent = `${campoTexto.value.length} caracteres`
   }
@@ -245,61 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
     indicadorCarregamento.classList.toggle('oculto', !estaCarregando)
   }
 
-  // 7. Gestão do Histórico
-  function carregarHistorico() {
-    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-    totalHistorico.textContent = historico.length
-    listaHistorico.replaceChildren()
-
-    if (historico.length === 0) {
-      const vazio = document.createElement('div')
-      vazio.style.padding = '8px'
-      vazio.style.color = 'var(--cor-texto-secundario)'
-      vazio.textContent = 'Nenhum envio recente guardado neste navegador.'
-      listaHistorico.appendChild(vazio)
-      atualizarPainelMetricas()
-      return
-    }
-
-    historico.forEach((item) => {
-      const card = document.createElement('div')
-      card.className = 'item-historico'
-
-      const info = document.createElement('div')
-      info.textContent = `${item.protocolo} - ${item.seguradora} (${item.servico})`
-
-      const data = document.createElement('span')
-      data.style.color = 'var(--cor-texto-secundario)'
-      data.textContent = item.dataHora
-
-      card.append(info, data)
-      listaHistorico.appendChild(card)
-    })
-
-    atualizarPainelMetricas()
-  }
-
-  function adicionarAoHistorico(dados) {
-    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-    historico.unshift({
-      protocolo: dados.protocolo,
-      seguradora: dados.seguradora,
-      servico: dados.servico,
-      previaServico: dados.previaServico,
-      dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    })
-
-    if (historico.length > 20) historico.pop()
-    localStorage.setItem('historico_chamados', JSON.stringify(historico))
-    carregarHistorico()
-  }
-
-  toggleHistorico.addEventListener('click', () => {
-    listaHistorico.classList.toggle('oculto')
-  })
-  carregarHistorico()
-
-  // 8. Modal de Revisão com Sanitização
+  // 8. Modal de Confirmação
   function abrirModalComDados(dados, duplicado, linha) {
     campoProtocolo.value = sanitizarProtocolo(dados.protocolo || '')
     campoSeguradora.value = sanitizarTexto(dados.seguradora || '').toUpperCase()
@@ -335,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
   botaoProcessar.addEventListener('click', async () => {
     const texto = campoTexto.value.trim()
     if (!texto || texto.length < 20) {
-      dispararToast('Validação', 'Insira o texto completo do chamado antes de processar (mínimo de 20 caracteres).', 'aviso')
+      dispararToast('Validação', 'Insira o texto completo do chamado antes de processar.', 'aviso')
       return
     }
 
@@ -354,13 +428,13 @@ document.addEventListener('DOMContentLoaded', () => {
       idPlanilhaAtual = resposta.sheetId
       abrirModalComDados(resposta.dados, resposta.duplicado, resposta.linhaDuplicada)
     } catch (erro) {
-      dispararToast('Erro na Análise', erro.message || 'Falha ao processar texto com a IA.', 'erro')
+      dispararToast('Erro na Análise', erro.message, 'erro')
     } finally {
       alternarCarregamento(false)
     }
   })
 
-  // 10. Gravação Definitiva na Planilha
+  // 10. Gravação com Opção de Undo (30s)
   botaoConfirmarGravacao.addEventListener('click', async () => {
     const dadosParaGravar = {
       protocolo: sanitizarProtocolo(campoProtocolo.value),
@@ -377,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     botaoConfirmarGravacao.disabled = true
-    botaoConfirmarGravacao.textContent = 'A gravar...'
+    botaoConfirmarGravacao.textContent = 'A formatar e gravar...'
 
     try {
       const res = await fetch('/api/gravar', {
@@ -395,19 +469,25 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `https://docs.google.com/spreadsheets/d/${idPlanilhaAtual}/edit` 
         : null
 
+      const linhaGerada = resposta.linhaCriada
+
+      // Toast com duração de 30 segundos oferecendo botão de Undo
       dispararToast(
         'Gravação Concluída',
-        `Protocolo ${dadosParaGravar.protocolo} inserido na folha com sucesso.`,
+        `Protocolo ${dadosParaGravar.protocolo} gravado e formatado (Linha ${linhaGerada || 'N/D'}).`,
         'sucesso',
-        3000,
-        urlPlanilha
+        30000,
+        {
+          linkUrl: urlPlanilha,
+          onDesfazer: linhaGerada ? () => executarDesfazer(linhaGerada, dadosParaGravar.protocolo) : null
+        }
       )
 
-      adicionarAoHistorico(dadosParaGravar)
+      adicionarAoHistorico(dadosParaGravar, linhaGerada)
       campoTexto.value = ''
       atualizarContador()
     } catch (erro) {
-      dispararToast('Erro na Gravação', erro.message || 'Falha ao gravar registro na folha.', 'erro')
+      dispararToast('Erro na Gravação', erro.message, 'erro')
     } finally {
       botaoConfirmarGravacao.disabled = false
       botaoConfirmarGravacao.textContent = 'Gravar na Folha'
