@@ -686,3 +686,70 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 }
+
+/* Barra de Pesquisa no Histórico */
+.painel-historico {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.barra-pesquisa-historico {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cor-cartao);
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.barra-pesquisa-historico svg {
+  color: var(--cor-texto-secundario);
+  flex-shrink: 0;
+}
+
+.barra-pesquisa-historico input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--cor-texto-principal);
+  outline: none;
+}
+
+.acoes-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.botao-desfazer-toast {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botao-desfazer-toast:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.item-historico-detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-historico-sub {
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+}
