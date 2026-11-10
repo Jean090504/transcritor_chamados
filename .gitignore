@@ -5,6 +5,9 @@ node_modules/
 .env
 .env.local
 credentials.json
+data/users.json
+data/chamados.json
+senhas-iniciais.txt
 
 # Logs e arquivos de sistema
 npm-debug.log*

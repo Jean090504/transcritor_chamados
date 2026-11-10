@@ -1,4 +1,214 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  const telaLogin = document.getElementById('telaLogin')
+  const telaTrocaSenha = document.getElementById('telaTrocaSenha')
+  const formularioLogin = document.getElementById('formularioLogin')
+  const erroLogin = document.getElementById('erroLogin')
+  const formularioTrocaSenha = document.getElementById('formularioTrocaSenha')
+  const erroTrocaSenha = document.getElementById('erroTrocaSenha')
+  const usuarioTrocaSenha = document.getElementById('usuarioTrocaSenha')
+  const botaoSairTrocaSenha = document.getElementById('botaoSairTrocaSenha')
+  const modalMensagemSistema = document.getElementById('modalMensagemSistema')
+  const tituloMensagemSistema = document.getElementById('tituloMensagemSistema')
+  const textoMensagemSistema = document.getElementById('textoMensagemSistema')
+  const botaoFecharMensagemSistema = document.getElementById('botaoFecharMensagemSistema')
+  const seletorAba = document.getElementById('seletorAba')
+  const botaoSair = document.getElementById('botaoSair')
+  const iconeOlhoAberto = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>'
+  const iconeOlhoFechado = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 3.9"></path><path d="M6.1 6.1C3.4 8.1 2 12 2 12s3.5 7 10 7c1.1 0 2.1-.2 3-.5"></path></svg>'
+  document.querySelectorAll('[data-toggle-password]').forEach((botao) => {
+    botao.innerHTML = iconeOlhoFechado
+    botao.addEventListener('click', () => {
+      const campo = document.getElementById(botao.dataset.togglePassword)
+      const vaiFicarVisivel = campo.type === 'password'
+      campo.type = vaiFicarVisivel ? 'text' : 'password'
+      botao.innerHTML = vaiFicarVisivel ? iconeOlhoAberto : iconeOlhoFechado
+      botao.setAttribute('aria-label', vaiFicarVisivel ? 'Esconder senha' : 'Mostrar senha')
+      botao.title = vaiFicarVisivel ? 'Esconder senha' : 'Mostrar senha'
+    })
+  })
+  localStorage.removeItem('token_jwt')
+  let token = sessionStorage.getItem('token_jwt')
+  let usuarioAtual = null
+
+  function mostrarModalMensagem(titulo, mensagem) {
+    tituloMensagemSistema.textContent = titulo
+    textoMensagemSistema.textContent = mensagem
+    modalMensagemSistema.classList.remove('oculto')
+    botaoFecharMensagemSistema.focus()
+  }
+
+  function fecharModalMensagem() { modalMensagemSistema.classList.add('oculto') }
+  botaoFecharMensagemSistema.addEventListener('click', fecharModalMensagem)
+  modalMensagemSistema.addEventListener('click', (evento) => { if (evento.target === modalMensagemSistema) fecharModalMensagem() })
+  document.addEventListener('keydown', (evento) => { if (evento.key === 'Escape') fecharModalMensagem() })
+
+  async function requisicaoAutenticada(url, opcoes = {}) {
+    const headers = new Headers(opcoes.headers || {})
+    if (token) headers.set('Authorization', `Bearer ${token}`)
+    const resposta = await fetch(url, { ...opcoes, headers })
+    if (resposta.status === 401) {
+      sessionStorage.removeItem('token_jwt')
+      window.location.reload()
+    }
+    return resposta
+  }
+
+  async function iniciarSessao() {
+    if (!token) return false
+    try {
+      const resposta = await requisicaoAutenticada('/api/auth/me')
+      if (!resposta.ok) return false
+      usuarioAtual = (await resposta.json()).usuario
+      if (usuarioAtual.acessoGlobal) {
+        telaLogin.classList.add('oculto')
+        return true
+      }
+      const abasResposta = await requisicaoAutenticada('/api/abas')
+      if (!abasResposta.ok) return false
+      const { abas } = await abasResposta.json()
+      seletorAba.innerHTML = abas.map((aba) => `<option value="${aba.nome}">${aba.nome}</option>`).join('')
+      seletorAba.disabled = abas.length <= 1
+      seletorAba.value = abas[0]?.nome || ''
+      telaLogin.classList.add('oculto')
+      return Boolean(seletorAba.value)
+    } catch {
+      sessionStorage.removeItem('token_jwt')
+      token = null
+      usuarioAtual = null
+      return false
+    }
+  }
+
+  if (!token || !(await iniciarSessao())) {
+    telaLogin.classList.remove('oculto')
+    formularioLogin.addEventListener('submit', async (evento) => {
+      evento.preventDefault()
+      erroLogin.classList.add('oculto')
+      const username = document.getElementById('loginUsuario').value.trim().toLowerCase()
+      const senha = document.getElementById('loginSenha').value
+      if (!username || !senha) { mostrarModalMensagem('Campos obrigatórios', 'Informe seu usuário e sua senha para entrar.'); return }
+      try {
+        const resposta = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, senha }) })
+      const dados = await resposta.json()
+      if (!resposta.ok) { mostrarModalMensagem('Não foi possível entrar', dados.erro || 'Confira seus dados e tente novamente.'); return }
+      sessionStorage.setItem('token_jwt', dados.token)
+        window.location.reload()
+      } catch {
+        mostrarModalMensagem('Sistema indisponível', 'A API não está respondendo. Inicie o servidor e tente novamente.')
+      }
+    })
+    return
+  }
+
+  if (usuarioAtual.precisaTrocarSenha) {
+    usuarioTrocaSenha.textContent = `Usuário autenticado: ${usuarioAtual.nome} (${usuarioAtual.sub})`
+    telaTrocaSenha.classList.remove('oculto')
+    botaoSairTrocaSenha.addEventListener('click', () => { sessionStorage.removeItem('token_jwt'); window.location.reload() })
+    formularioTrocaSenha.addEventListener('submit', async (evento) => {
+      evento.preventDefault()
+      const novaSenha = document.getElementById('novaSenha').value
+      const confirmacao = document.getElementById('confirmacaoSenha').value
+      if (novaSenha.length < 8) { mostrarModalMensagem('Senha muito curta', 'Escolha uma senha com pelo menos 8 caracteres.'); return }
+      if (novaSenha !== confirmacao) { mostrarModalMensagem('As senhas não conferem', 'Digite a mesma senha nos dois campos para continuar.'); return }
+      const resposta = await requisicaoAutenticada('/api/auth/alterar-senha', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ novaSenha }) })
+      const dados = await resposta.json()
+      if (!resposta.ok) { mostrarModalMensagem('Não foi possível alterar', dados.erro || 'Tente novamente em instantes.'); return }
+      sessionStorage.setItem('token_jwt', dados.token)
+      window.location.reload()
+    })
+    return
+  }
+
+  botaoSair.addEventListener('click', () => { sessionStorage.removeItem('token_jwt'); window.location.reload() })
+  seletorAba.addEventListener('change', () => sincronizarComPlanilhaReal())
+
+  if (usuarioAtual.acessoGlobal) {
+    const painelSarah = document.getElementById('painelSarah')
+    const listaAnalistas = document.getElementById('listaAnalistasDashboard')
+    const carregarDashboard = async () => {
+      const resposta = await requisicaoAutenticada('/api/dashboard')
+      if (!resposta.ok) return
+      const dados = await resposta.json()
+      document.body.classList.add('modo-dashboard')
+      painelSarah.classList.remove('oculto')
+      document.getElementById('dataDashboard').textContent = ''
+      document.getElementById('subtituloDashboard').textContent = ''
+      document.getElementById('totalAtendimentosHoje').textContent = dados.totalHoje
+      document.getElementById('totalChamadosGeral').textContent = dados.totalGeral
+      document.getElementById('totalAnalistasAtivos').textContent = dados.analistasAtivos
+      document.getElementById('mediaPorAnalista').textContent = dados.mediaPorAnalista
+      const maiorTotal = Math.max(...dados.ultimosSeteDias.map((dia) => dia.total), 1)
+      document.getElementById('graficoUltimosSeteDias').innerHTML = dados.ultimosSeteDias.map((dia) => `<div class="barra-dia-dashboard" title="${dia.data}"><strong>${dia.total}</strong><i style="height:${Math.max((dia.total / maiorTotal) * 100, 4)}%"></i><span>${dia.data.slice(8)}</span></div>`).join('')
+      listaAnalistas.innerHTML = dados.analistas.map((analista) => {
+        const iniciais = analista.nome.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
+        const ativo = analista.status.toLowerCase().startsWith('ativo')
+        return `<article class="card-analista" tabindex="0" role="button" data-username="${analista.username}"><div class="card-analista-topo"><span class="avatar-analista">${iniciais}</span><span class="status-analista ${ativo ? 'status-ativo' : ''}"><i></i>${analista.status}</span></div><strong>${analista.nome}</strong><div class="card-analista-rodape"><span>Hoje</span><b>${analista.atendimentosHoje}</b></div></article>`
+      }).join('')
+      listaAnalistas.querySelectorAll('.card-analista').forEach((card) => {
+        const abrir = () => abrirDetalhesAnalista(card.dataset.username)
+        card.addEventListener('click', abrir)
+        card.addEventListener('keydown', (evento) => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrir() } })
+      })
+    }
+    const modalDetalhes = document.getElementById('modalDetalhesAnalista')
+    const listaDetalhes = document.getElementById('listaDetalhesAnalista')
+    const resumoDetalhes = document.getElementById('resumoDetalhesAnalista')
+    const modalDetalhesChamado = document.getElementById('modalDetalhesChamado')
+    const camposDetalhesChamado = document.getElementById('camposDetalhesChamado')
+    const statusDetalhesChamado = document.getElementById('statusDetalhesChamado')
+    const fecharDetalhes = () => modalDetalhes.classList.add('oculto')
+    const fecharDetalhesChamado = () => modalDetalhesChamado.classList.add('oculto')
+    document.getElementById('fecharDetalhesAnalista').addEventListener('click', fecharDetalhes)
+    document.getElementById('fecharDetalhesChamado').addEventListener('click', fecharDetalhesChamado)
+    modalDetalhes.addEventListener('click', (evento) => { if (evento.target === modalDetalhes) fecharDetalhes() })
+    modalDetalhesChamado.addEventListener('click', (evento) => { if (evento.target === modalDetalhesChamado) fecharDetalhesChamado() })
+    const escaparHtml = (valor) => String(valor ?? '').replace(/[&<>'"]/g, (caractere) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[caractere])
+    function classificarChamado(chamado) {
+      const normalizar = (valor) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      const base = normalizar(chamado.baseAcionada)
+      const estado = normalizar([chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
+      const baseAcionada = base && !base.includes('nao acionad') && !base.includes('nao informado')
+      if (estado.includes('cancelad') || estado.includes('nao acionad') || estado.includes('sem acionamento')) return { classe: 'status-vermelho', texto: 'Não acionado ou cancelado' }
+      if (baseAcionada || estado.includes('acionad')) return { classe: 'status-verde', texto: 'Acionado' }
+      if (estado.includes('agend')) return { classe: 'status-laranja', texto: 'Agendamento' }
+      if (base.includes('nao acionad')) return { classe: 'status-vermelho', texto: 'Não acionado ou cancelado' }
+      return { classe: 'status-laranja', texto: 'Agendamento' }
+    }
+    function abrirDetalhesChamado(chamado) {
+      const status = classificarChamado(chamado)
+      const campos = [
+        ['PROTOCOLO', chamado.protocolo], ['SEGURADORA', chamado.seguradora], ['SERVIÇO', chamado.servico],
+        ['PRÉVIA DO SERVIÇO', chamado.previaServico], ['LOCALIDADE', chamado.localidade], ['BASE ACIONADA', chamado.baseAcionada],
+        ['DATA MARCADA', chamado.dataMarcada], ['HORÁRIO MARCADO', chamado.horarioMarcado],
+        ['RETRATAÇÃO INICIAL', chamado.retratacaoInicial], ['RETRATAÇÃO FINAL', chamado.retratacaoFinal],
+        ['RESUMO TENTATIVAS', chamado.resumoTentativas]
+      ]
+      statusDetalhesChamado.className = `status-detalhe-chamado ${status.classe}`
+      statusDetalhesChamado.textContent = status.texto
+      camposDetalhesChamado.innerHTML = campos.map(([rotulo, valor]) => `<div class="campo-detalhe-chamado"><span>${rotulo}</span><strong>${escaparHtml(valor || 'Não informado')}</strong></div>`).join('')
+      modalDetalhesChamado.classList.remove('oculto')
+    }
+    async function abrirDetalhesAnalista(username) {
+      const resposta = await requisicaoAutenticada(`/api/dashboard/analistas/${encodeURIComponent(username)}`)
+      if (!resposta.ok) { mostrarModalMensagem('Não foi possível carregar', 'Tente novamente em instantes.'); return }
+      const dados = await resposta.json()
+      document.getElementById('tituloDetalhesAnalista').textContent = dados.analista.nome
+      resumoDetalhes.innerHTML = `<div class="resumo-detalhes-item">Total de chamados<strong>${dados.total}</strong></div><div class="resumo-detalhes-item">Atendidos hoje<strong>${dados.atendimentosHoje}</strong></div>`
+      listaDetalhes.innerHTML = dados.chamados.length ? dados.chamados.map((chamado, indice) => { const status = classificarChamado(chamado); return `<article class="item-detalhe-chamado ${status.classe}" tabindex="0" role="button" data-chamado-indice="${indice}"><div class="item-detalhe-cabecalho"><span>Protocolo ${escaparHtml(chamado.protocolo)}</span><time>${escaparHtml(chamado.dataAtendimento)}</time></div><div class="item-detalhe-campos"><span>Seguradora: ${escaparHtml(chamado.seguradora)}</span><span>Serviço: ${escaparHtml(chamado.servico)}</span><span>Localidade: ${escaparHtml(chamado.localidade)}</span><span>Base: ${escaparHtml(chamado.baseAcionada)}</span></div></article>` }).join('') : '<p>Nenhum chamado registrado para este analista.</p>'
+      listaDetalhes.querySelectorAll('.item-detalhe-chamado').forEach((item) => {
+        const abrir = () => abrirDetalhesChamado(dados.chamados[Number(item.dataset.chamadoIndice)])
+        item.addEventListener('click', abrir)
+        item.addEventListener('keydown', (evento) => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrir() } })
+      })
+      modalDetalhes.classList.remove('oculto')
+    }
+    const sairSarah = () => { sessionStorage.removeItem('token_jwt'); window.location.reload() }
+    document.getElementById('botaoSairDashboard').addEventListener('click', sairSarah)
+    document.getElementById('botaoAtualizarDashboard').addEventListener('click', carregarDashboard)
+    await carregarDashboard()
+    return
+  }
+
   const campoTexto = document.getElementById('textoChamado')
   const botaoProcessar = document.getElementById('botaoProcessar')
   const botaoColar = document.getElementById('botaoColar')
@@ -47,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const botaoSincronizar = document.getElementById('botaoSincronizar')
   const botaoLimparHistorico = document.getElementById('botaoLimparHistorico')
 
-  let idPlanilhaAtual = ''
+  const abaAtual = () => seletorAba.value
 
   // 1. Disparar Toast Flutuante com Suporte a Undo e Link
   function dispararToast(titulo, mensagem, tipo = 'sucesso', duracao = 3000, opcoes = {}) {
@@ -137,19 +347,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 2. Desfazer Última Gravação (Undo)
-  async function executarDesfazer(linha, protocolo) {
+  async function executarDesfazer(id, protocolo) {
     try {
-      const res = await fetch('/api/desfazer', {
+      const res = await requisicaoAutenticada('/api/desfazer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ linha })
+        body: JSON.stringify({ id, username: abaAtual() })
       })
 
       const resposta = await res.json()
       if (!res.ok) throw new Error(resposta.erro || 'Falha ao desfazer gravação.')
 
       removerDoHistorico(protocolo)
-      dispararToast('Desfeito', `O registo ${protocolo} foi removido da folha com sucesso.`, 'aviso', 3000)
+      dispararToast('Chamado removido', `O registro ${protocolo} foi removido do sistema.`, 'aviso', 3000)
     } catch (erro) {
       dispararToast('Falha no Undo', erro.message, 'erro')
     }
@@ -211,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Sincronização em tempo real com a Planilha
   async function sincronizarComPlanilhaReal() {
     try {
-      const res = await fetch('/api/sincronizar')
+      const res = await requisicaoAutenticada(`/api/sincronizar?username=${encodeURIComponent(abaAtual())}`)
       const dados = await res.json()
       if (!res.ok) return
 
@@ -345,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
     botaoSincronizar.addEventListener('click', async () => {
       botaoSincronizar.disabled = true
       await sincronizarComPlanilhaReal()
-      dispararToast('Sincronização', 'Histórico sincronizado com a planilha.', 'sucesso', 2000)
+      dispararToast('Histórico atualizado', 'Os dados do sistema foram atualizados.', 'sucesso', 2000)
       botaoSincronizar.disabled = false
     })
   }
@@ -453,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
     campoResumoTentativas.value = String(dados.resumoTentativas || '').trim()
 
     if (duplicado) {
-      avisoDuplicadoModal.textContent = `Atenção: O protocolo "${campoProtocolo.value}" já existe na folha de cálculo (Linha ${linha})!`
+      avisoDuplicadoModal.textContent = `Atenção: O protocolo "${campoProtocolo.value}" já existe no histórico do sistema (registro ${linha})!`
       avisoDuplicadoModal.classList.remove('oculto')
       dispararToast('Duplicado Identificado', `Protocolo ${campoProtocolo.value} já está na linha ${linha}.`, 'aviso', 4000)
     } else {
@@ -469,6 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   fecharModal.addEventListener('click', fecharModalEdicao)
   botaoCancelarModal.addEventListener('click', fecharModalEdicao)
+  modalConfirmacao.addEventListener('click', (evento) => { if (evento.target === modalConfirmacao) fecharModalEdicao() })
 
   // 9. Extração com IA
   botaoProcessar.addEventListener('click', async () => {
@@ -481,17 +692,16 @@ document.addEventListener('DOMContentLoaded', () => {
     alternarCarregamento(true)
 
     try {
-      const res = await fetch('/api/previsualizar', {
+      const res = await requisicaoAutenticada('/api/previsualizar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ textoManual: texto })
+        body: JSON.stringify({ textoManual: texto, username: abaAtual() })
       })
 
       const resposta = await res.json()
       if (!res.ok) throw new Error(resposta.erro || 'Falha ao analisar chamado.')
 
-      idPlanilhaAtual = resposta.sheetId
-      abrirModalComDados(resposta.dados, resposta.duplicado, resposta.linhaDuplicada)
+      abrirModalComDados(resposta.dados, resposta.duplicado, resposta.chamadoDuplicado)
     } catch (erro) {
       dispararToast('Erro na Análise', erro.message, 'erro')
     } finally {
@@ -519,42 +729,37 @@ document.addEventListener('DOMContentLoaded', () => {
     botaoConfirmarGravacao.textContent = 'A formatar e gravar...'
 
     try {
-      const res = await fetch('/api/gravar', {
+      const res = await requisicaoAutenticada('/api/gravar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dados: dadosParaGravar })
+        body: JSON.stringify({ dados: dadosParaGravar, username: abaAtual() })
       })
 
       const resposta = await res.json()
-      if (!res.ok) throw new Error(resposta.erro || 'Falha ao gravar na folha.')
+      if (!res.ok) throw new Error(resposta.erro || 'Falha ao gravar o chamado.')
 
       fecharModalEdicao()
       
-      const urlPlanilha = idPlanilhaAtual 
-        ? `https://docs.google.com/spreadsheets/d/${idPlanilhaAtual}/edit` 
-        : null
-
-      const linhaGerada = resposta.linhaCriada
+      const idChamado = resposta.id
 
       dispararToast(
         'Gravação Concluída',
-        `Protocolo ${dadosParaGravar.protocolo} gravado e formatado (Linha ${linhaGerada || 'N/D'}).`,
+        `Protocolo ${dadosParaGravar.protocolo} salvo no sistema em ${resposta.dataAtendimento}.`,
         'sucesso',
         30000,
         {
-          linkUrl: urlPlanilha,
-          onDesfazer: linhaGerada ? () => executarDesfazer(linhaGerada, dadosParaGravar.protocolo) : null
+          onDesfazer: idChamado ? () => executarDesfazer(idChamado, dadosParaGravar.protocolo) : null
         }
       )
 
-      adicionarAoHistorico(dadosParaGravar, linhaGerada)
+      adicionarAoHistorico(dadosParaGravar, idChamado)
       campoTexto.value = ''
       atualizarContador()
     } catch (erro) {
       dispararToast('Erro na Gravação', erro.message, 'erro')
     } finally {
       botaoConfirmarGravacao.disabled = false
-      botaoConfirmarGravacao.textContent = 'Gravar na Folha'
+      botaoConfirmarGravacao.textContent = 'Salvar chamado'
     }
   })
 })

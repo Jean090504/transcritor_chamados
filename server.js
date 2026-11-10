@@ -28,12 +28,12 @@ aplicacaoServidor.use(express.json({ limit: '50kb' }))
 // Servir arquivos estáticos (CSS, JS)
 aplicacaoServidor.use(express.static(path.join(diretorioAtual, 'public')))
 
-// Rotas da API
-aplicacaoServidor.use('/api', rotasChamado)
-
 aplicacaoServidor.get('/api/status', (requisicao, resposta) => {
   resposta.json({ status: 'API operacional' })
 })
+
+// Rotas da API
+aplicacaoServidor.use('/api', rotasChamado)
 
 // Rota coringa para entregar a interface principal
 aplicacaoServidor.get('*', (requisicao, resposta) => {

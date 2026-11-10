@@ -5,24 +5,67 @@ const credenciaisObjeto = process.env.GOOGLE_CREDENTIALS_JSON
   ? JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON)
   : undefined
 
-const autenticacaoGoogle = new google.auth.GoogleAuth({
-  ...(credenciaisObjeto 
-    ? { credentials: credenciaisObjeto } 
-    : { keyFile: 'credentials.json' }
-  ),
+export const autenticacaoGoogle = new google.auth.GoogleAuth({
+  ...(credenciaisObjeto ? { credentials: credenciaisObjeto } : { keyFile: 'credentials.json' }),
   scopes: ['https://www.googleapis.com/auth/spreadsheets']
 })
 
-function limparEspacos(texto = '') {
-  return String(texto).trim().replace(/\s+/g, ' ')
+function nomeAbaSeguro(nomeAba = 'Sheet1') { return String(nomeAba).replace(/'/g, "''") }
+function limparEspacos(texto = '') { return String(texto).trim().replace(/\s+/g, ' ') }
+function padronizarProtocolo(protocolo = '') { return String(protocolo).trim().replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ') }
+function padronizarTextoGeral(texto = '') { return limparEspacos(texto).toUpperCase() }
+
+function dataAtualSaoPaulo() {
+  const partes = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
+  const valores = Object.fromEntries(partes.map((parte) => [parte.type, parte.value]))
+  return `${valores.year}-${valores.month}-${valores.day}`
 }
 
-function padronizarProtocolo(protocolo = '') {
-  return String(protocolo).trim().replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ')
+export async function obterAbasPlanilha() {
+  const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
+  const resposta = await servicoPlanilhas.spreadsheets.get({
+    spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
+    fields: 'sheets(properties(sheetId,title,index))'
+  })
+  return (resposta.data.sheets || []).map((aba) => aba.properties)
 }
 
-function padronizarTextoGeral(texto = '') {
-  return limparEspacos(texto).toUpperCase()
+export async function garantirAbasPlanilha(nomesAbas, cabecalho) {
+  const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
+  const atuais = await obterAbasPlanilha()
+  const faltantes = nomesAbas.filter((nome) => !atuais.some((aba) => aba.title === nome))
+  if (faltantes.length) {
+    await servicoPlanilhas.spreadsheets.batchUpdate({
+      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
+      requestBody: { requests: faltantes.map((title) => ({ addSheet: { properties: { title } } })) }
+    })
+  }
+  const abas = await obterAbasPlanilha()
+  if (cabecalho) {
+    await Promise.all(nomesAbas.map(async (nome) => {
+      if (!abas.some((aba) => aba.title === nome)) return
+      await servicoPlanilhas.spreadsheets.values.update({
+        spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
+        range: `'${nomeAbaSeguro(nome)}'!A1:L1`, valueInputOption: 'USER_ENTERED', requestBody: { values: [cabecalho] }
+      })
+    }))
+  }
+  return abas
+}
+
+export async function contarAtendimentosPorData(nomeAba, data) {
+  const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
+  const resposta = await servicoPlanilhas.spreadsheets.values.get({
+    spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
+    range: `'${nomeAbaSeguro(nomeAba)}'!L2:L`
+  })
+  return (resposta.data.values || []).filter((linha) => linha[0] === data).length
+}
+
+async function obterAba(nomeAba) {
+  const aba = (await obterAbasPlanilha()).find((item) => item.title === nomeAba)
+  if (!aba) throw new Error(`Aba "${nomeAba}" não encontrada.`)
+  return aba
 }
 
 export class Chamado {
@@ -41,166 +84,52 @@ export class Chamado {
   }
 
   converterParaLinhaPlanilha() {
-    return [
-      this.protocolo,
-      this.seguradora,
-      this.servico,
-      this.previaServico,
-      this.localidade,
-      this.baseAcionada,
-      this.dataMarcada,
-      this.horarioMarcado,
-      this.retratacaoInicial,
-      this.retratacaoFinal,
-      this.resumoTentativas
-    ]
+    return [this.protocolo, this.seguradora, this.servico, this.previaServico, this.localidade, this.baseAcionada,
+      this.dataMarcada, this.horarioMarcado, this.retratacaoInicial, this.retratacaoFinal, this.resumoTentativas, this.dataAtendimento]
   }
 
-  static async verificarDuplicado(protocolo) {
+  static async verificarDuplicado(protocolo, nomeAba) {
     if (!protocolo || protocolo === 'Nao informado') return null
-
-    const protocoloNormalizado = padronizarProtocolo(protocolo)
     const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
-    const resposta = await servicoPlanilhas.spreadsheets.values.get({
-      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
-      range: 'A:A'
-    })
-
-    const linhas = resposta.data.values || []
-    const indice = linhas.findIndex((linha) => {
-      if (!linha[0]) return false
-      return padronizarProtocolo(linha[0]) === protocoloNormalizado
-    })
-
-    if (indice !== -1) {
-      return indice + 1
-    }
-    return null
+    const resposta = await servicoPlanilhas.spreadsheets.values.get({ spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA, range: `'${nomeAbaSeguro(nomeAba)}'!A:A` })
+    const normalizado = padronizarProtocolo(protocolo)
+    const indice = (resposta.data.values || []).findIndex((linha) => linha[0] && padronizarProtocolo(linha[0]) === normalizado)
+    return indice === -1 ? null : indice + 1
   }
 
-  // 1. Salvar na planilha e formatar automaticamente a linha recém-criada
-  async salvarNaPlanilha() {
-    const servicoPlanilhas = google.sheets({ 
-      version: 'v4', 
-      auth: autenticacaoGoogle 
+  async salvarNaPlanilha(nomeAba) {
+    this.dataAtendimento = dataAtualSaoPaulo()
+    const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
+    const resposta = await servicoPlanilhas.spreadsheets.values.append({
+      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA, range: `'${nomeAbaSeguro(nomeAba)}'!A1`, valueInputOption: 'USER_ENTERED', requestBody: { values: [this.converterParaLinhaPlanilha()] }
     })
-
-    const respostaAppend = await servicoPlanilhas.spreadsheets.values.append({
-      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
-      range: 'A1',
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [this.converterParaLinhaPlanilha()]
-      }
-    })
-
-    // Extrai o índice numérico da linha criada (ex: "Página1!A10:K10" -> 10)
-    let numeroLinha = null
-    const faixaAtualizada = respostaAppend.data.updates?.updatedRange
-    if (faixaAtualizada) {
-      const match = faixaAtualizada.match(/A(\d+):/)
-      if (match) numeroLinha = parseInt(match[1], 10)
-    }
-
-    if (numeroLinha) {
-      await this.formatarLinhaPlanilha(servicoPlanilhas, numeroLinha)
-    }
-
+    const match = resposta.data.updates?.updatedRange?.match(/!A(\d+):/)
+    const numeroLinha = match ? parseInt(match[1], 10) : null
+    if (numeroLinha) await this.formatarLinhaPlanilha(servicoPlanilhas, numeroLinha, nomeAba)
     return { chamado: this, linhaCriada: numeroLinha }
   }
 
-  // 2. Aplica formatação via batchUpdate (Bordas, Wrap Text, Alinhamento Topo e Alerta de Base Não Acionada)
-  async formatarLinhaPlanilha(servicoPlanilhas, numeroLinha) {
+  async formatarLinhaPlanilha(servicoPlanilhas, numeroLinha, nomeAba) {
     try {
-      const indiceLinha = numeroLinha - 1 // Índice base zero da API
-      const ehLinhaPar = numeroLinha % 2 === 0
-      const baseNaoAcionada = this.baseAcionada.includes('NAO ACIONADA')
-
-      // Cor de fundo: Avermelhado suave se não acionada, senão efeito zebra (branco / cinza claríssimo)
-      let corFundo = ehLinhaPar 
-        ? { red: 0.97, green: 0.98, blue: 0.99 } 
-        : { red: 1.0, green: 1.0, blue: 1.0 }
-
-      if (baseNaoAcionada) {
-        corFundo = { red: 0.99, green: 0.92, blue: 0.92 } // Tom suave de erro/alerta
-      }
-
+      const aba = await obterAba(nomeAba)
+      const indice = numeroLinha - 1
+      const cor = this.baseAcionada.includes('NAO ACIONADA') ? { red: 0.99, green: 0.92, blue: 0.92 } : (numeroLinha % 2 === 0 ? { red: 0.97, green: 0.98, blue: 0.99 } : { red: 1, green: 1, blue: 1 })
       await servicoPlanilhas.spreadsheets.batchUpdate({
         spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
-        requestBody: {
-          requests: [
-            {
-              repeatCell: {
-                range: {
-                  startRowIndex: indiceLinha,
-                  endRowIndex: indiceLinha + 1,
-                  startColumnIndex: 0,
-                  endColumnIndex: 11
-                },
-                cell: {
-                  userEnteredFormat: {
-                    backgroundColor: corFundo,
-                    verticalAlignment: 'TOP',
-                    wrapStrategy: 'WRAP',
-                    textFormat: {
-                      fontFamily: 'Arial',
-                      fontSize: 10
-                    }
-                  }
-                },
-                fields: 'userEnteredFormat(backgroundColor,verticalAlignment,wrapStrategy,textFormat)'
-              }
-            },
-            {
-              updateBorders: {
-                range: {
-                  startRowIndex: indiceLinha,
-                  endRowIndex: indiceLinha + 1,
-                  startColumnIndex: 0,
-                  endColumnIndex: 11
-                },
-                top: { style: 'SOLID', color: { red: 0.85, green: 0.88, blue: 0.92 } },
-                bottom: { style: 'SOLID', color: { red: 0.85, green: 0.88, blue: 0.92 } },
-                left: { style: 'SOLID', color: { red: 0.85, green: 0.88, blue: 0.92 } },
-                right: { style: 'SOLID', color: { red: 0.85, green: 0.88, blue: 0.92 } },
-                innerHorizontal: { style: 'SOLID', color: { red: 0.85, green: 0.88, blue: 0.92 } },
-                innerVertical: { style: 'SOLID', color: { red: 0.85, green: 0.88, blue: 0.92 } }
-              }
-            }
-          ]
-        }
+        requestBody: { requests: [{ repeatCell: {
+          range: { sheetId: aba.sheetId, startRowIndex: indice, endRowIndex: indice + 1, startColumnIndex: 0, endColumnIndex: 12 },
+          cell: { userEnteredFormat: { backgroundColor: cor, verticalAlignment: 'TOP', wrapStrategy: 'WRAP', textFormat: { fontFamily: 'Arial', fontSize: 10 } } }, fields: 'userEnteredFormat(backgroundColor,verticalAlignment,wrapStrategy,textFormat)'
+        }, updateBorders: {
+          range: { sheetId: aba.sheetId, startRowIndex: indice, endRowIndex: indice + 1, startColumnIndex: 0, endColumnIndex: 12 }, top: { style: 'SOLID' }, bottom: { style: 'SOLID' }, left: { style: 'SOLID' }, right: { style: 'SOLID' }
+        }}] }
       })
-    } catch (erroFormatar) {
-      console.warn('Formatação da linha ignorada (não crítica):', erroFormatar.message)
-    }
+    } catch (erro) { console.warn('Formatação ignorada:', erro.message) }
   }
 
-  // 3. Exclui linha na planilha para a função Desfazer (Undo)
-  static async apagarLinhaPlanilha(numeroLinha) {
-    if (!numeroLinha || numeroLinha <= 1) {
-      throw new Error('Número de linha inválido para exclusão.')
-    }
-
+  static async apagarLinhaPlanilha(numeroLinha, nomeAba) {
+    if (!numeroLinha || numeroLinha <= 1) throw new Error('Número de linha inválido para exclusão.')
     const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
-    const indiceLinha = numeroLinha - 1
-
-    await servicoPlanilhas.spreadsheets.batchUpdate({
-      spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,
-      requestBody: {
-        requests: [
-          {
-            deleteDimension: {
-              range: {
-                dimension: 'ROWS',
-                startIndex: indiceLinha,
-                endIndex: indiceLinha + 1
-              }
-            }
-          }
-        ]
-      }
-    })
-
-    return true
+    const aba = await obterAba(nomeAba)
+    await servicoPlanilhas.spreadsheets.batchUpdate({ spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA, requestBody: { requests: [{ deleteDimension: { range: { sheetId: aba.sheetId, dimension: 'ROWS', startIndex: numeroLinha - 1, endIndex: numeroLinha } } }] } })
   }
 }
