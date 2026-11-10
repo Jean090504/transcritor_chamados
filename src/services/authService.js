@@ -71,10 +71,10 @@ export function exigirAutenticacao(requisicao, resposta, proximo) {
 }
 
 function textoAtividade(timestamp) {
-  if (!timestamp) return 'DisponÃ­vel'
+  if (!timestamp) return 'Disponível'
   const minutos = Math.floor((Date.now() - timestamp) / 60000)
-  if (minutos <= 30) return `Ativo hÃ¡ ${minutos} min`
-  return 'DisponÃ­vel'
+  if (minutos <= 30) return `Ativo há ${minutos} min`
+  return 'Disponível'
 }
 
 export function obterStatusAnalistas() {
