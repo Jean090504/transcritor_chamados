@@ -9,21 +9,32 @@ import { limitadorRequisicoes } from '../middlewares/rateLimiter.js'
 const roteador = Router()
 const esquemaGravacaoFinal = z.object({ dados: esquemaChamadoEstruturado, username: z.string().optional() })
 
-roteador.post('/auth/login', limitadorRequisicoes, (requisicao, resposta) => {
-  const { username, senha } = requisicao.body || {}
-  const resultado = autenticarUsuario(String(username || '').trim().toLowerCase(), senha)
-  if (!resultado) return resposta.status(401).json({ erro: 'Usuário ou senha inválidos.' })
-  return resposta.json(resultado)
+roteador.post('/auth/login', limitadorRequisicoes, async (requisicao, resposta) => {
+  try {
+    const { username, senha } = requisicao.body || {}
+    const resultado = await autenticarUsuario(String(username || '').trim().toLowerCase(), senha)
+    if (!resultado) return resposta.status(401).json({ erro: 'UsuÃ¡rio ou senha invÃ¡lidos.' })
+    return resposta.json(resultado)
+  } catch (erro) {
+    return resposta.status(500).json({ erro: erro.message || 'Falha ao autenticar.' })
+  }
 })
 
 roteador.get('/auth/me', exigirAutenticacao, (requisicao, resposta) => resposta.json({ usuario: requisicao.usuario }))
-roteador.post('/auth/alterar-senha', exigirAutenticacao, (requisicao, resposta) => {
+
+roteador.post('/auth/alterar-senha', exigirAutenticacao, async (requisicao, resposta) => {
   try {
-    const token = alterarSenha(requisicao.usuario.sub, requisicao.body?.novaSenha)
+    const token = await alterarSenha(requisicao.usuario.sub, requisicao.body?.novaSenha)
     return resposta.json({ token, mensagem: 'Senha alterada com sucesso.' })
-  } catch (erro) { return resposta.status(400).json({ erro: erro.message }) }
+  } catch (erro) {
+    return resposta.status(400).json({ erro: erro.message })
+  }
 })
-roteador.get('/auth/usuarios', exigirAutenticacao, exigirAcessoGlobal, (requisicao, resposta) => resposta.json({ usuarios: listarUsuariosPublicos() }))
+
+roteador.get('/auth/usuarios', exigirAutenticacao, exigirAcessoGlobal, async (requisicao, resposta) => {
+  return resposta.json({ usuarios: await listarUsuariosPublicos() })
+})
+
 roteador.get('/dashboard', exigirAutenticacao, exigirAcessoGlobal, dashboardSarah)
 roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoGlobal, detalhesAnalista)
 

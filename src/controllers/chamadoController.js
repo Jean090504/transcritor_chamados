@@ -27,9 +27,9 @@ export const preVisualizarChamado = async (requisicao, resposta) => {
   try {
     const username = usernameAlvo(requisicao, requisicao.body.username)
     const analista = obterAnalista(username)
-    if (!analista) return resposta.status(400).json({ sucesso: false, erro: 'Selecione um analista válido.' })
+    if (!analista) return resposta.status(400).json({ sucesso: false, erro: 'Selecione um analista vÃ¡lido.' })
     const dados = esquemaChamadoEstruturado.parse(await extrairDadosChamado(requisicao.body.textoManual))
-    const existente = existeProtocolo(username, dados.protocolo)
+    const existente = await existeProtocolo(username, dados.protocolo)
     return resposta.json({ sucesso: true, dados, duplicado: Boolean(existente), chamadoDuplicado: existente?.id || null, username })
   } catch (erro) { return resposta.status(500).json({ sucesso: false, erro: erro.message || 'Falha ao analisar chamado.' }) }
 }
@@ -38,9 +38,9 @@ export const gravarChamado = async (requisicao, resposta) => {
   try {
     const username = usernameAlvo(requisicao, requisicao.body.username)
     const analista = obterAnalista(username)
-    if (!analista) return resposta.status(400).json({ sucesso: false, erro: 'Selecione um analista válido.' })
+    if (!analista) return resposta.status(400).json({ sucesso: false, erro: 'Selecione um analista vÃ¡lido.' })
     const dados = esquemaChamadoEstruturado.parse(requisicao.body.dados)
-    const chamado = salvarChamado(username, analista.nome, dados, dataAtualSaoPaulo())
+    const chamado = await salvarChamado(username, analista.nome, dados, dataAtualSaoPaulo())
     return resposta.json({ sucesso: true, mensagem: 'Chamado salvo no sistema.', dados: chamado, id: chamado.id, dataAtendimento: chamado.dataAtendimento })
   } catch (erro) { return resposta.status(500).json({ sucesso: false, erro: erro.message || 'Falha ao salvar o chamado.' }) }
 }
@@ -48,14 +48,15 @@ export const gravarChamado = async (requisicao, resposta) => {
 export const desfazerGravacao = async (requisicao, resposta) => {
   try {
     const username = usernameAlvo(requisicao, requisicao.body.username)
-    if (!apagarChamado(username, requisicao.body.id)) return resposta.status(404).json({ sucesso: false, erro: 'Chamado não encontrado.' })
+    if (!await apagarChamado(username, requisicao.body.id)) return resposta.status(404).json({ sucesso: false, erro: 'Chamado nÃ£o encontrado.' })
     return resposta.json({ sucesso: true, mensagem: 'Chamado removido do sistema.' })
   } catch (erro) { return resposta.status(500).json({ sucesso: false, erro: erro.message || 'Falha ao desfazer.' }) }
 }
 
 export const sincronizarPlanilha = async (requisicao, resposta) => {
   const username = usernameAlvo(requisicao, requisicao.query.username)
-  return resposta.json({ sucesso: true, protocolosAtivos: listarChamados(username).map((chamado) => chamado.protocolo), totalNaPlanilha: listarChamados(username).length })
+  const chamados = await listarChamados(username)
+  return resposta.json({ sucesso: true, protocolosAtivos: chamados.map((chamado) => chamado.protocolo), totalNaPlanilha: chamados.length })
 }
 
 export const listarAbas = async (requisicao, resposta) => {
@@ -67,16 +68,23 @@ export const dashboardSarah = async (requisicao, resposta) => {
   try {
     const data = dataAtualSaoPaulo()
     const status = obterStatusAnalistas().filter((analista) => analista.username !== 'sarah.silva')
-    const analistas = status.map((analista) => ({ ...analista, totalChamados: listarChamados(analista.username).length, atendimentosHoje: contarChamadosHoje(analista.username, data) }))
-    const ultimosSeteDias = Array.from({ length: 7 }, (_, indice) => { const dia = dataSaoPauloComDeslocamento(6 - indice); return { data: dia, total: contarPorData(dia) } })
+    const analistas = await Promise.all(status.map(async (analista) => ({
+      ...analista,
+      totalChamados: (await listarChamados(analista.username)).length,
+      atendimentosHoje: await contarChamadosHoje(analista.username, data)
+    })))
+    const ultimosSeteDias = await Promise.all(Array.from({ length: 7 }, async (_, indice) => {
+      const dia = dataSaoPauloComDeslocamento(6 - indice)
+      return { data: dia, total: await contarPorData(dia) }
+    }))
     const totalHoje = analistas.reduce((total, analista) => total + analista.atendimentosHoje, 0)
-    return resposta.json({ data, totalHoje, totalGeral: todosChamados().length, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, mediaPorAnalista: analistas.length ? (totalHoje / analistas.length).toFixed(1) : '0.0', ultimosSeteDias, analistas })
+    return resposta.json({ data, totalHoje, totalGeral: await todosChamados().then((chamados) => chamados.length), analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, mediaPorAnalista: analistas.length ? (totalHoje / analistas.length).toFixed(1) : '0.0', ultimosSeteDias, analistas })
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
 }
 
 export const detalhesAnalista = async (requisicao, resposta) => {
   const analista = obterAnalista(requisicao.params.username)
-  if (!analista || analista.username === 'sarah.silva') return resposta.status(404).json({ erro: 'Analista não encontrado.' })
-  const chamados = listarChamados(analista.username)
-  return resposta.json({ analista, chamados, total: chamados.length, atendimentosHoje: contarChamadosHoje(analista.username, dataAtualSaoPaulo()) })
+  if (!analista || analista.username === 'sarah.silva') return resposta.status(404).json({ erro: 'Analista nÃ£o encontrado.' })
+  const chamados = await listarChamados(analista.username)
+  return resposta.json({ analista, chamados, total: chamados.length, atendimentosHoje: await contarChamadosHoje(analista.username, dataAtualSaoPaulo()) })
 }

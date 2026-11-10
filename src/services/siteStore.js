@@ -1,50 +1,43 @@
-import fs from 'fs'
-import path from 'path'
-import crypto from 'crypto'
-import { diretorioDados } from '../config/storage.js'
+import { prisma } from './prisma.js'
 
-const arquivoChamados = path.join(diretorioDados, 'chamados.json')
-
-function lerChamados() {
-  if (!fs.existsSync(arquivoChamados)) return []
-  try { return JSON.parse(fs.readFileSync(arquivoChamados, 'utf8')) } catch { return [] }
+function serializarChamado(chamado) {
+  return { ...chamado, criadoEm: chamado.criadoEm.toISOString() }
 }
 
-function salvarChamados(chamados) {
-  fs.mkdirSync(path.dirname(arquivoChamados), { recursive: true })
-  const temporario = `${arquivoChamados}.tmp`
-  fs.writeFileSync(temporario, JSON.stringify(chamados, null, 2), { encoding: 'utf8', mode: 0o600 })
-  fs.renameSync(temporario, arquivoChamados)
+export async function listarChamados(username) {
+  const chamados = await prisma.chamado.findMany({
+    where: { username },
+    orderBy: { criadoEm: 'desc' }
+  })
+  return chamados.map(serializarChamado)
 }
 
-export function listarChamados(username) {
-  return lerChamados().filter((chamado) => chamado.username === username).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
+export async function todosChamados() {
+  const chamados = await prisma.chamado.findMany({ orderBy: { criadoEm: 'desc' } })
+  return chamados.map(serializarChamado)
 }
 
-export function todosChamados() { return lerChamados() }
-
-export function contarPorData(data) { return todosChamados().filter((chamado) => chamado.dataAtendimento === data).length }
-
-export function contarChamadosHoje(username, data) {
-  return listarChamados(username).filter((chamado) => chamado.dataAtendimento === data).length
+export async function contarPorData(data) {
+  return prisma.chamado.count({ where: { dataAtendimento: data } })
 }
 
-export function existeProtocolo(username, protocolo) {
-  return listarChamados(username).find((chamado) => chamado.protocolo === protocolo) || null
+export async function contarChamadosHoje(username, data) {
+  return prisma.chamado.count({ where: { username, dataAtendimento: data } })
 }
 
-export function salvarChamado(username, nome, dados, dataAtendimento) {
-  const chamados = lerChamados()
-  const chamado = { id: crypto.randomUUID(), username, nome, ...dados, dataAtendimento, criadoEm: new Date().toISOString() }
-  chamados.push(chamado)
-  salvarChamados(chamados)
-  return chamado
+export async function existeProtocolo(username, protocolo) {
+  const chamado = await prisma.chamado.findFirst({ where: { username, protocolo } })
+  return chamado ? serializarChamado(chamado) : null
 }
 
-export function apagarChamado(username, id) {
-  const chamados = lerChamados()
-  const restantes = chamados.filter((chamado) => !(chamado.username === username && chamado.id === id))
-  if (restantes.length === chamados.length) return false
-  salvarChamados(restantes)
-  return true
+export async function salvarChamado(username, nome, dados, dataAtendimento) {
+  const chamado = await prisma.chamado.create({
+    data: { username, nome, ...dados, dataAtendimento }
+  })
+  return serializarChamado(chamado)
+}
+
+export async function apagarChamado(username, id) {
+  const resultado = await prisma.chamado.deleteMany({ where: { username, id } })
+  return resultado.count > 0
 }
