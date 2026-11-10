@@ -1,8 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { diretorioDados } from '../config/storage.js'
 
-const arquivoChamados = path.resolve(process.cwd(), 'data', 'chamados.json')
+const arquivoChamados = path.join(diretorioDados, 'chamados.json')
 
 function lerChamados() {
   if (!fs.existsSync(arquivoChamados)) return []

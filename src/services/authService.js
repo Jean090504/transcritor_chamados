@@ -4,9 +4,10 @@ import path from 'path'
 import jwt from 'jsonwebtoken'
 import { configuracaoAmbiente } from '../config/env.js'
 import { ANALISTAS, USUARIOS_GLOBAIS } from '../config/analistas.js'
+import { diretorioDados } from '../config/storage.js'
 
 const ultimaAtividade = new Map()
-const arquivoUsuarios = path.resolve(process.cwd(), 'data', 'users.json')
+const arquivoUsuarios = path.join(diretorioDados, 'users.json')
 
 function compararSenha(senha, hashArmazenado) {
   if (!senha || !hashArmazenado) return false
