@@ -10,6 +10,9 @@ const diretorioAtual = path.dirname(caminhoArquivoAtual)
 
 const aplicacaoServidor = express()
 
+// O Vercel encaminha as requisições por proxy e informa o IP original neste cabeçalho.
+aplicacaoServidor.set('trust proxy', 1)
+
 aplicacaoServidor.use(
   helmet({
     contentSecurityPolicy: {
