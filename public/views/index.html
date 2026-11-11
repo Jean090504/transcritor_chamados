@@ -13,7 +13,7 @@
   <section id="telaLogin" class="tela-login">
     <form id="formularioLogin" class="cartao-login border border-slate-200 shadow-soft" novalidate>
       <h1>Transcritor de Chamados</h1>
-      <p>Entre com seu usuário para acessar sua aba.</p>
+      <p>Entre com seu usuário para acessar.</p>
       <label for="loginUsuario">Usuário</label>
       <input id="loginUsuario" autocomplete="username" required placeholder="ex.: sarah.fernandes" />
       <label for="loginSenha">Senha</label>
@@ -120,21 +120,11 @@
 
   <main class="container-aplicacao mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
     <header class="cabecalho-cartao">
-      <div class="icone-cabecalho">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="12" y1="12" x2="12" y2="18"></line>
-          <polyline points="9 15 12 18 15 15"></polyline>
-        </svg>
-      </div>
       <div class="info-cabecalho">
         <h1>Transcritor de Chamados</h1>
-        <p>Extração e estruturação automática de dados operacionais</p>
       </div>
       <div class="controle-acesso">
-        <label for="seletorAba">Aba</label>
-        <select id="seletorAba"></select>
+        <select id="seletorAba" aria-label="Selecionar aba"></select>
         <button id="botaoSair" class="botao-secundario" type="button">Sair</button>
       </div>
     </header>

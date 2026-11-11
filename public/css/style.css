@@ -127,6 +127,7 @@ body {
 }
 
 .icone-cabecalho {
+  display: none;
   width: 52px;
   height: 52px;
   background: var(--cor-primaria-clara);
@@ -138,6 +139,7 @@ body {
   flex-shrink: 0;
   border: 1px solid var(--cor-borda);
 }
+.icone-cabecalho { display: none !important; }
 
 .info-cabecalho h1 {
   font-size: 1.4rem;
@@ -147,6 +149,7 @@ body {
 }
 
 .info-cabecalho p {
+  display: none;
   font-size: 0.875rem;
   color: var(--cor-texto-secundario);
   margin-top: 3px;
@@ -841,7 +844,7 @@ textarea:focus {
 .modal-mensagem-conteudo .botao-primario { min-width: 120px; }
 @keyframes entrarMensagem { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .controle-acesso { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
-.controle-acesso label { font-size: .78rem; color: #64748b; }
+.controle-acesso label { display: none; }
 .controle-acesso select { min-height: 2rem; padding: .25rem .45rem; }
 .painel-sarah { width: 100%; min-height: 100vh; box-sizing: border-box; padding: 3rem clamp(1rem, 5vw, 5rem); overflow-x: hidden; background: var(--cor-fundo, #f5f8fc); }
 .painel-sarah.oculto { display: none; }
