@@ -244,12 +244,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const resposta = await requisicaoAutenticada('/api/auth/solicitacoes-reset')
       if (!resposta.ok) return
       const { solicitacoes } = await resposta.json()
-      painelSolicitacoesReset.classList.remove('oculto')
-      contadorSolicitacoesReset.textContent = `${solicitacoes.length} pendente${solicitacoes.length === 1 ? '' : 's'}`
       if (!solicitacoes.length) {
-        listaSolicitacoesReset.replaceChildren(criarElemento('p', ['sem-solicitacoes-reset'], 'Nenhuma solicitação pendente.'))
+        painelSolicitacoesReset.classList.add('oculto')
+        listaSolicitacoesReset.replaceChildren()
         return
       }
+
+      painelSolicitacoesReset.classList.remove('oculto')
+      contadorSolicitacoesReset.textContent = `${solicitacoes.length} pendente${solicitacoes.length === 1 ? '' : 's'}`
       listaSolicitacoesReset.replaceChildren(...solicitacoes.map((solicitacao) => {
         const item = criarElemento('article', ['item-solicitacao-reset'])
         const informacoes = criarElemento('div', ['informacoes-solicitacao-reset'])
