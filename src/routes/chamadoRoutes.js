@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { autenticarUsuario, alterarSenha, exigirAcessoGlobal, exigirAutenticacao, listarUsuariosPublicos } from '../services/authService.js'
+import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAutenticacao, listarUsuariosPublicos } from '../services/authService.js'
 import { preVisualizarChamado, gravarChamado, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
 import { esquemaTextoEntrada, esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
@@ -13,7 +13,8 @@ roteador.post('/auth/login', limitadorRequisicoes, async (requisicao, resposta) 
   try {
     const { username, senha } = requisicao.body || {}
     const resultado = await autenticarUsuario(String(username || '').trim().toLowerCase(), senha)
-    if (!resultado) return resposta.status(401).json({ erro: 'UsuÃ¡rio ou senha invÃ¡lidos.' })
+    if (!resultado) return resposta.status(401).json({ erro: 'Os dados informados \u00e3o conferem. Verifique usu\u00e1rio e senha.' })
+    if (!resultado) return resposta.status(401).json({ erro: 'Os dados informados não conferem. Verifique usuário e senha.' })
     return resposta.json(resultado)
   } catch (erro) {
     return resposta.status(500).json({ erro: erro.message || 'Falha ao autenticar.' })
@@ -35,8 +36,8 @@ roteador.get('/auth/usuarios', exigirAutenticacao, exigirAcessoGlobal, async (re
   return resposta.json({ usuarios: await listarUsuariosPublicos() })
 })
 
-roteador.get('/dashboard', exigirAutenticacao, exigirAcessoGlobal, dashboardSarah)
-roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoGlobal, detalhesAnalista)
+roteador.get('/dashboard', exigirAutenticacao, exigirAcessoDashboard, dashboardSarah)
+roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoDashboard, detalhesAnalista)
 
 roteador.use(exigirAutenticacao)
 roteador.get('/abas', listarAbas)

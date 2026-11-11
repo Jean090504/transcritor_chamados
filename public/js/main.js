@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const resposta = await requisicaoAutenticada('/api/auth/me')
       if (!resposta.ok) return false
       usuarioAtual = (await resposta.json()).usuario
-      if (usuarioAtual.acessoGlobal) {
+      if (usuarioAtual.acessoDashboard) {
         telaLogin.classList.add('oculto')
         return true
       }
@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       erroLogin.classList.add('oculto')
       const username = document.getElementById('loginUsuario').value.trim().toLowerCase()
       const senha = document.getElementById('loginSenha').value
+      if (!username || !senha) { mostrarModalMensagem('Campos obrigat\u00f3rios', 'Informe seu usu\u00e1rio e sua senha para entrar.'); return }
       if (!username || !senha) { mostrarModalMensagem('Campos obrigatórios', 'Informe seu usuário e sua senha para entrar.'); return }
       try {
         const resposta = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, senha }) })
@@ -122,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   botaoSair.addEventListener('click', () => { sessionStorage.removeItem('token_jwt'); window.location.reload() })
   seletorAba.addEventListener('change', () => sincronizarComPlanilhaReal())
 
-  if (usuarioAtual.acessoGlobal) {
+  if (usuarioAtual.acessoDashboard) {
     const painelSarah = document.getElementById('painelSarah')
     const listaAnalistas = document.getElementById('listaAnalistasDashboard')
     const carregarDashboard = async () => {
@@ -139,7 +140,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('mediaPorAnalista').textContent = dados.mediaPorAnalista
       const maiorTotal = Math.max(...dados.ultimosSeteDias.map((dia) => dia.total), 1)
       document.getElementById('graficoUltimosSeteDias').innerHTML = dados.ultimosSeteDias.map((dia) => `<div class="barra-dia-dashboard" title="${dia.data}"><strong>${dia.total}</strong><i style="height:${Math.max((dia.total / maiorTotal) * 100, 4)}%"></i><span>${dia.data.slice(8)}</span></div>`).join('')
-      listaAnalistas.innerHTML = dados.analistas.map((analista) => {
+      const analistasOrdenados = [...dados.analistas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
+      listaAnalistas.innerHTML = analistasOrdenados.map((analista) => {
         const iniciais = analista.nome.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
         const ativo = analista.status.toLowerCase().startsWith('ativo')
         return `<article class="card-analista" tabindex="0" role="button" data-username="${analista.username}"><div class="card-analista-topo"><span class="avatar-analista">${iniciais}</span><span class="status-analista ${ativo ? 'status-ativo' : ''}"><i></i>${analista.status}</span></div><strong>${analista.nome}</strong><div class="card-analista-rodape"><span>Hoje</span><b>${analista.atendimentosHoje}</b></div></article>`

@@ -17,8 +17,8 @@ export async function todosChamados() {
   return chamados.map(serializarChamado)
 }
 
-export async function contarPorData(data) {
-  return prisma.chamado.count({ where: { dataAtendimento: data } })
+export async function contarPorData(data, usernames) {
+  return prisma.chamado.count({ where: { dataAtendimento: data, ...(usernames?.length ? { username: { in: usernames } } : {}) } })
 }
 
 export async function contarChamadosHoje(username, data) {

@@ -1,6 +1,6 @@
 import { extrairDadosChamado } from '../services/aiService.js'
 import { esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
-import { obterAnalista, ANALISTAS } from '../config/analistas.js'
+import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
 import { contarChamadosHoje, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
 
@@ -19,8 +19,9 @@ function dataSaoPauloComDeslocamento(deslocamento) {
 }
 
 function usernameAlvo(requisicao, solicitado) {
-  if (!requisicao.usuario.acessoGlobal) return requisicao.usuario.sub
-  return solicitado || requisicao.usuario.sub
+  const visiveis = obterAnalistasVisiveis(requisicao.usuario)
+  if (!requisicao.usuario.acessoDashboard) return requisicao.usuario.sub
+  return visiveis.some((analista) => analista.username === solicitado) ? solicitado : visiveis[0]?.username
 }
 
 export const preVisualizarChamado = async (requisicao, resposta) => {
@@ -60,14 +61,17 @@ export const sincronizarPlanilha = async (requisicao, resposta) => {
 }
 
 export const listarAbas = async (requisicao, resposta) => {
-  const visiveis = requisicao.usuario.acessoGlobal ? ANALISTAS : ANALISTAS.filter((analista) => analista.username === requisicao.usuario.sub)
+  const visiveis = obterAnalistasVisiveis(requisicao.usuario)
   return resposta.json({ abas: visiveis.map((analista) => ({ nome: analista.nome, id: analista.username })) })
 }
 
 export const dashboardSarah = async (requisicao, resposta) => {
   try {
     const data = dataAtualSaoPaulo()
-    const status = obterStatusAnalistas().filter((analista) => analista.username !== 'sarah.silva')
+    const usernamesVisiveis = obterAnalistasVisiveis(requisicao.usuario).map((analista) => analista.username)
+    const status = obterStatusAnalistas()
+      .filter((analista) => obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
     const analistas = await Promise.all(status.map(async (analista) => ({
       ...analista,
       totalChamados: (await listarChamados(analista.username)).length,
@@ -75,16 +79,19 @@ export const dashboardSarah = async (requisicao, resposta) => {
     })))
     const ultimosSeteDias = await Promise.all(Array.from({ length: 7 }, async (_, indice) => {
       const dia = dataSaoPauloComDeslocamento(6 - indice)
-      return { data: dia, total: await contarPorData(dia) }
+      return { data: dia, total: await contarPorData(dia, usernamesVisiveis) }
     }))
     const totalHoje = analistas.reduce((total, analista) => total + analista.atendimentosHoje, 0)
-    return resposta.json({ data, totalHoje, totalGeral: await todosChamados().then((chamados) => chamados.length), analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, mediaPorAnalista: analistas.length ? (totalHoje / analistas.length).toFixed(1) : '0.0', ultimosSeteDias, analistas })
+    const usernames = new Set(analistas.map((analista) => analista.username))
+    const totalGeral = (await todosChamados()).filter((chamado) => usernames.has(chamado.username)).length
+    return resposta.json({ data, totalHoje, totalGeral, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, mediaPorAnalista: analistas.length ? (totalHoje / analistas.length).toFixed(1) : '0.0', ultimosSeteDias, analistas })
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
 }
 
 export const detalhesAnalista = async (requisicao, resposta) => {
   const analista = obterAnalista(requisicao.params.username)
-  if (!analista || analista.username === 'sarah.silva') return resposta.status(404).json({ erro: 'Analista nÃ£o encontrado.' })
+  if (analista && !obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
+  if (!analista || !obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
   const chamados = await listarChamados(analista.username)
   return resposta.json({ analista, chamados, total: chamados.length, atendimentosHoje: await contarChamadosHoje(analista.username, dataAtualSaoPaulo()) })
 }
