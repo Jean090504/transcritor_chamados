@@ -96,11 +96,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const { abas } = await abasResposta.json()
       seletorAba.replaceChildren(...abas.map((aba) => {
         const opcao = criarElemento('option', [], aba.nome)
-        opcao.value = aba.nome
+        opcao.value = aba.id
         return opcao
       }))
       seletorAba.disabled = abas.length <= 1
-      seletorAba.value = abas[0]?.nome || ''
+      seletorAba.value = abas[0]?.id || ''
       document.body.classList.remove('sessao-carregando')
       telaLogin.classList.add('oculto')
       return Boolean(seletorAba.value)
