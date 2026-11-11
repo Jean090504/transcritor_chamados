@@ -146,6 +146,20 @@ body {
   letter-spacing: -0.03em;
 }
 
+.info-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-width: 0;
+}
+
+.logo-cabecalho {
+  width: 2.7rem;
+  height: 2.7rem;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
 .info-cabecalho p {
   display: none;
   font-size: 0.875rem;
@@ -854,6 +868,8 @@ textarea:focus {
 .modo-dashboard .container-aplicacao, .modo-dashboard .botao-tema, .modo-dashboard > .circulo-luz { display: none; }
 .sessao-carregando .container-aplicacao, .sessao-carregando #painelSarah, .sessao-carregando .botao-tema, .sessao-carregando > .circulo-luz { display: none; }
 .cabecalho-dashboard { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; max-width: 1100px; margin: 0 auto 1.25rem; border-radius: 8px !important; border-color: #d7dde5 !important; background: #fff !important; box-shadow: none !important; }
+.cabecalho-dashboard-identidade { display: flex; align-items: center; gap: .85rem; min-width: 0; }
+.logo-dashboard { width: 3.1rem; height: 3.1rem; flex: 0 0 auto; object-fit: contain; }
 .cabecalho-dashboard h1 { margin: .25rem 0; }
 .cabecalho-dashboard p { margin: .35rem 0 0; color: #334155; font-size: .92rem; font-weight: 600; }
 .rotulo-dashboard { color: #2563eb; font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
