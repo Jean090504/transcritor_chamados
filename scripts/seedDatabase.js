@@ -29,7 +29,9 @@ for (const usuario of usuarios) {
     update: {
       nome: usuario.nome,
       papel: usuario.papel,
-      aba: usuario.aba
+      aba: usuario.aba,
+      senhaHash: usuario.senhaHash,
+      trocarSenha: usuario.trocarSenha !== false
     }
   })
 }
