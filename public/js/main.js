@@ -301,15 +301,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       const maiorStatus = Math.max(...serieDiaria.flatMap((dia) => categorias.map(([chave]) => dia[chave])), 1)
       graficoComparativoStatus.replaceChildren(...serieDiaria.map((dia) => {
         const grupo = criarElemento('div', ['grupo-status-dashboard'])
-        grupo.title = formatarDataGrafico(dia.data)
+        grupo.tabIndex = 0
+        grupo.setAttribute('role', 'img')
+        grupo.setAttribute('aria-label', `${formatarDataGrafico(dia.data)}: ${dia.acionados} acionados, ${dia.agendados} agendados e ${dia.cancelados} cancelados`)
         const barras = criarElemento('div', ['barras-status-dashboard'])
         categorias.forEach(([chave, rotulo]) => {
           const barra = criarElemento('div', ['barra-status-dashboard', `barra-status-${chave}`])
           barra.style.height = `${Math.max(Number(dia[chave]) / maiorStatus * 100, 3)}%`
-          barra.title = `${rotulo}: ${dia[chave]}`
           barras.append(barra)
         })
-        grupo.append(barras, criarElemento('span', [], formatarDataGrafico(dia.data)))
+        const tooltip = criarElemento('div', ['tooltip-status-dashboard'])
+        tooltip.append(criarElemento('strong', [], formatarDataGrafico(dia.data)))
+        categorias.forEach(([chave, rotulo]) => {
+          const linha = criarElemento('span', ['linha-tooltip-status', `linha-tooltip-${chave}`])
+          linha.append(criarElemento('i'), criarElemento('span', [], `${rotulo}: ${dia[chave]}`))
+          tooltip.append(linha)
+        })
+        grupo.append(barras, criarElemento('span', [], formatarDataGrafico(dia.data)), tooltip)
         return grupo
       }))
     }
