@@ -3,13 +3,13 @@ import { z } from 'zod'
 import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAutenticacao, listarUsuariosPublicos } from '../services/authService.js'
 import { preVisualizarChamado, gravarChamado, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
-import { esquemaTextoEntrada, esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
-import { limitadorRequisicoes } from '../middlewares/rateLimiter.js'
+import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaUsername } from '../schemas/chamadoSchema.js'
+import { limitadorAutenticacao, limitadorRequisicoes } from '../middlewares/rateLimiter.js'
 
 const roteador = Router()
-const esquemaGravacaoFinal = z.object({ dados: esquemaChamadoEstruturado, username: z.string().optional() })
+const esquemaGravacaoFinal = z.object({ dados: esquemaChamadoEstruturado, username: esquemaUsername.optional() })
 
-roteador.post('/auth/login', limitadorRequisicoes, async (requisicao, resposta) => {
+roteador.post('/auth/login', limitadorAutenticacao, async (requisicao, resposta) => {
   try {
     const { username, senha } = requisicao.body || {}
     const resultado = await autenticarUsuario(String(username || '').trim().toLowerCase(), senha)
@@ -41,7 +41,7 @@ roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoD
 
 roteador.use(exigirAutenticacao)
 roteador.get('/abas', listarAbas)
-roteador.post('/previsualizar', limitadorRequisicoes, validarRequisicao(esquemaTextoEntrada.extend({ username: z.string().optional() })), preVisualizarChamado)
+roteador.post('/previsualizar', limitadorRequisicoes, validarRequisicao(esquemaTextoEntrada.extend({ username: esquemaUsername.optional() })), preVisualizarChamado)
 roteador.post('/gravar', limitadorRequisicoes, validarRequisicao(esquemaGravacaoFinal), gravarChamado)
 roteador.post('/desfazer', desfazerGravacao)
 roteador.get('/sincronizar', sincronizarPlanilha)

@@ -846,6 +846,7 @@ textarea:focus {
 .painel-sarah { width: 100%; min-height: 100vh; box-sizing: border-box; padding: 3rem clamp(1rem, 5vw, 5rem); overflow-x: hidden; background: var(--cor-fundo, #f5f8fc); }
 .painel-sarah.oculto { display: none; }
 .modo-dashboard .container-aplicacao, .modo-dashboard .botao-tema, .modo-dashboard > .circulo-luz { display: none; }
+.sessao-carregando .container-aplicacao, .sessao-carregando #painelSarah, .sessao-carregando .botao-tema, .sessao-carregando > .circulo-luz { display: none; }
 .cabecalho-dashboard { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; max-width: 1100px; margin: 0 auto 2rem; }
 .cabecalho-dashboard h1 { margin: .25rem 0; }
 .cabecalho-dashboard p { margin: 0; color: #64748b; }
@@ -866,6 +867,7 @@ textarea:focus {
 .barra-dia-dashboard i { display: block; width: min(38px, 70%); min-height: 5px; border-radius: 8px 8px 3px 3px; background: linear-gradient(180deg, #60a5fa, #2563eb); }
 .barra-dia-dashboard strong { color: #1e3a8a; font-size: .75rem; }
 .grade-analistas { width: 100%; max-width: 1100px; margin: 0 auto 1rem; display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: .8rem; }
+.grade-analistas .card-analista { max-width: none; }
 .card-analista { width: 100%; min-width: 0; min-height: 150px; flex: 1 1 240px; max-width: calc(25% - .6rem); padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; }
 .card-analista { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .card-analista:hover { transform: translateY(-2px); border-color: #93c5fd; box-shadow: 0 12px 28px rgba(37, 99, 235, .12); }

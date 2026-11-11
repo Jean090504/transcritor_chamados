@@ -13,15 +13,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   const botaoFecharMensagemSistema = document.getElementById('botaoFecharMensagemSistema')
   const seletorAba = document.getElementById('seletorAba')
   const botaoSair = document.getElementById('botaoSair')
+  const criarElemento = (tag, classes = [], texto = '') => {
+    const elemento = document.createElement(tag)
+    elemento.classList.add(...classes.filter(Boolean))
+    if (texto) elemento.textContent = texto
+    return elemento
+  }
+  const criarIconeOlho = (visivel) => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    svg.setAttribute('viewBox', '0 0 24 24')
+    svg.setAttribute('aria-hidden', 'true')
+    const adicionar = (tag, atributos) => {
+      const elemento = document.createElementNS('http://www.w3.org/2000/svg', tag)
+      Object.entries(atributos).forEach(([nome, valor]) => elemento.setAttribute(nome, valor))
+      svg.append(elemento)
+    }
+    if (visivel) {
+      adicionar('path', { d: 'M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z' })
+      adicionar('circle', { cx: '12', cy: '12', r: '2.5' })
+    } else {
+      adicionar('path', { d: 'm3 3 18 18' })
+      adicionar('path', { d: 'M10.6 10.6a2 2 0 0 0 2.8 2.8' })
+      adicionar('path', { d: 'M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 3.9' })
+      adicionar('path', { d: 'M6.1 6.1C3.4 8.1 2 12 2 12s3.5 7 10 7c1.1 0 2.1-.2 3-.5' })
+    }
+    return svg
+  }
   const iconeOlhoAberto = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>'
   const iconeOlhoFechado = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 3.9"></path><path d="M6.1 6.1C3.4 8.1 2 12 2 12s3.5 7 10 7c1.1 0 2.1-.2 3-.5"></path></svg>'
   document.querySelectorAll('[data-toggle-password]').forEach((botao) => {
-    botao.innerHTML = iconeOlhoFechado
+    botao.replaceChildren(criarIconeOlho(false))
     botao.addEventListener('click', () => {
       const campo = document.getElementById(botao.dataset.togglePassword)
       const vaiFicarVisivel = campo.type === 'password'
       campo.type = vaiFicarVisivel ? 'text' : 'password'
-      botao.innerHTML = vaiFicarVisivel ? iconeOlhoAberto : iconeOlhoFechado
+      botao.replaceChildren(criarIconeOlho(vaiFicarVisivel))
       botao.setAttribute('aria-label', vaiFicarVisivel ? 'Esconder senha' : 'Mostrar senha')
       botao.title = vaiFicarVisivel ? 'Esconder senha' : 'Mostrar senha'
     })
@@ -60,15 +86,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!resposta.ok) return false
       usuarioAtual = (await resposta.json()).usuario
       if (usuarioAtual.acessoDashboard) {
+        document.body.classList.add('modo-dashboard')
+        document.body.classList.remove('sessao-carregando')
         telaLogin.classList.add('oculto')
         return true
       }
       const abasResposta = await requisicaoAutenticada('/api/abas')
       if (!abasResposta.ok) return false
       const { abas } = await abasResposta.json()
-      seletorAba.innerHTML = abas.map((aba) => `<option value="${aba.nome}">${aba.nome}</option>`).join('')
+      seletorAba.replaceChildren(...abas.map((aba) => {
+        const opcao = criarElemento('option', [], aba.nome)
+        opcao.value = aba.nome
+        return opcao
+      }))
       seletorAba.disabled = abas.length <= 1
       seletorAba.value = abas[0]?.nome || ''
+      document.body.classList.remove('sessao-carregando')
       telaLogin.classList.add('oculto')
       return Boolean(seletorAba.value)
     } catch {
@@ -80,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (!token || !(await iniciarSessao())) {
+    document.body.classList.remove('sessao-carregando')
     telaLogin.classList.remove('oculto')
     formularioLogin.addEventListener('submit', async (evento) => {
       evento.preventDefault()
@@ -139,13 +173,36 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('totalAnalistasAtivos').textContent = dados.analistasAtivos
       document.getElementById('mediaPorAnalista').textContent = dados.mediaPorAnalista
       const maiorTotal = Math.max(...dados.ultimosSeteDias.map((dia) => dia.total), 1)
-      document.getElementById('graficoUltimosSeteDias').innerHTML = dados.ultimosSeteDias.map((dia) => `<div class="barra-dia-dashboard" title="${dia.data}"><strong>${dia.total}</strong><i style="height:${Math.max((dia.total / maiorTotal) * 100, 4)}%"></i><span>${dia.data.slice(8)}</span></div>`).join('')
+      const grafico = document.getElementById('graficoUltimosSeteDias')
+      grafico.replaceChildren(...dados.ultimosSeteDias.map((dia) => {
+        const barra = criarElemento('div', ['barra-dia-dashboard'])
+        barra.title = String(dia.data)
+        const total = criarElemento('strong', [], String(dia.total))
+        const preenchimento = criarElemento('i')
+        preenchimento.style.height = `${Math.max(Number(dia.total) / maiorTotal * 100, 4)}%`
+        const diaLabel = criarElemento('span', [], String(dia.data).slice(8))
+        barra.append(total, preenchimento, diaLabel)
+        return barra
+      }))
       const analistasOrdenados = [...dados.analistas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
-      listaAnalistas.innerHTML = analistasOrdenados.map((analista) => {
+      listaAnalistas.replaceChildren(...analistasOrdenados.map((analista) => {
         const iniciais = analista.nome.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
         const ativo = analista.status.toLowerCase().startsWith('ativo')
-        return `<article class="card-analista" tabindex="0" role="button" data-username="${analista.username}"><div class="card-analista-topo"><span class="avatar-analista">${iniciais}</span><span class="status-analista ${ativo ? 'status-ativo' : ''}"><i></i>${analista.status}</span></div><strong>${analista.nome}</strong><div class="card-analista-rodape"><span>Hoje</span><b>${analista.atendimentosHoje}</b></div></article>`
-      }).join('')
+        const card = criarElemento('article', ['card-analista', 'max-w-none'])
+        card.tabIndex = 0
+        card.setAttribute('role', 'button')
+        card.dataset.username = analista.username
+        const topo = criarElemento('div', ['card-analista-topo'])
+        const avatar = criarElemento('span', ['avatar-analista'], iniciais)
+        const status = criarElemento('span', ['status-analista', ativo ? 'status-ativo' : ''], analista.status)
+        status.prepend(criarElemento('i'))
+        topo.append(avatar, status)
+        const nome = criarElemento('strong', [], analista.nome)
+        const rodape = criarElemento('div', ['card-analista-rodape'])
+        rodape.append(criarElemento('span', [], 'Hoje'), criarElemento('b', [], String(analista.atendimentosHoje)))
+        card.append(topo, nome, rodape)
+        return card
+      }))
       listaAnalistas.querySelectorAll('.card-analista').forEach((card) => {
         const abrir = () => abrirDetalhesAnalista(card.dataset.username)
         card.addEventListener('click', abrir)
@@ -164,7 +221,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('fecharDetalhesChamado').addEventListener('click', fecharDetalhesChamado)
     modalDetalhes.addEventListener('click', (evento) => { if (evento.target === modalDetalhes) fecharDetalhes() })
     modalDetalhesChamado.addEventListener('click', (evento) => { if (evento.target === modalDetalhesChamado) fecharDetalhesChamado() })
-    const escaparHtml = (valor) => String(valor ?? '').replace(/[&<>'"]/g, (caractere) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[caractere])
     function classificarChamado(chamado) {
       const normalizar = (valor) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       const base = normalizar(chamado.baseAcionada)
@@ -187,7 +243,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       ]
       statusDetalhesChamado.className = `status-detalhe-chamado ${status.classe}`
       statusDetalhesChamado.textContent = status.texto
-      camposDetalhesChamado.innerHTML = campos.map(([rotulo, valor]) => `<div class="campo-detalhe-chamado"><span>${rotulo}</span><strong>${escaparHtml(valor || 'Não informado')}</strong></div>`).join('')
+      camposDetalhesChamado.replaceChildren(...campos.map(([rotulo, valor]) => {
+        const campo = criarElemento('div', ['campo-detalhe-chamado'])
+        campo.append(criarElemento('span', [], rotulo), criarElemento('strong', [], valor || 'Não informado'))
+        return campo
+      }))
       modalDetalhesChamado.classList.remove('oculto')
     }
     async function abrirDetalhesAnalista(username) {
@@ -195,8 +255,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!resposta.ok) { mostrarModalMensagem('Não foi possível carregar', 'Tente novamente em instantes.'); return }
       const dados = await resposta.json()
       document.getElementById('tituloDetalhesAnalista').textContent = dados.analista.nome
-      resumoDetalhes.innerHTML = `<div class="resumo-detalhes-item">Total de chamados<strong>${dados.total}</strong></div><div class="resumo-detalhes-item">Atendidos hoje<strong>${dados.atendimentosHoje}</strong></div>`
-      listaDetalhes.innerHTML = dados.chamados.length ? dados.chamados.map((chamado, indice) => { const status = classificarChamado(chamado); return `<article class="item-detalhe-chamado ${status.classe}" tabindex="0" role="button" data-chamado-indice="${indice}"><div class="item-detalhe-cabecalho"><span>Protocolo ${escaparHtml(chamado.protocolo)}</span><time>${escaparHtml(chamado.dataAtendimento)}</time></div><div class="item-detalhe-campos"><span>Seguradora: ${escaparHtml(chamado.seguradora)}</span><span>Serviço: ${escaparHtml(chamado.servico)}</span><span>Localidade: ${escaparHtml(chamado.localidade)}</span><span>Base: ${escaparHtml(chamado.baseAcionada)}</span></div></article>` }).join('') : '<p>Nenhum chamado registrado para este analista.</p>'
+      const totalResumo = criarElemento('div', ['resumo-detalhes-item'], 'Total de chamados')
+      totalResumo.append(criarElemento('strong', [], String(dados.total)))
+      const hojeResumo = criarElemento('div', ['resumo-detalhes-item'], 'Atendidos hoje')
+      hojeResumo.append(criarElemento('strong', [], String(dados.atendimentosHoje)))
+      resumoDetalhes.replaceChildren(totalResumo, hojeResumo)
+      listaDetalhes.replaceChildren(...(dados.chamados.length ? dados.chamados.map((chamado, indice) => {
+        const status = classificarChamado(chamado)
+        const item = criarElemento('article', ['item-detalhe-chamado', status.classe])
+        item.tabIndex = 0
+        item.setAttribute('role', 'button')
+        item.dataset.chamadoIndice = String(indice)
+        const cabecalho = criarElemento('div', ['item-detalhe-cabecalho'])
+        cabecalho.append(criarElemento('span', [], 'Protocolo ' + (chamado.protocolo || '')), criarElemento('time', [], chamado.dataAtendimento || ''))
+        const camposItem = criarElemento('div', ['item-detalhe-campos'])
+        camposItem.append(criarElemento('span', [], 'Seguradora: ' + (chamado.seguradora || '')), criarElemento('span', [], 'Serviço: ' + (chamado.servico || '')), criarElemento('span', [], 'Localidade: ' + (chamado.localidade || '')), criarElemento('span', [], 'Base: ' + (chamado.baseAcionada || '')))
+        item.append(cabecalho, camposItem)
+        return item
+      }) : [criarElemento('p', [], 'Nenhum chamado registrado para este analista.')]))
       listaDetalhes.querySelectorAll('.item-detalhe-chamado').forEach((item) => {
         const abrir = () => abrirDetalhesChamado(dados.chamados[Number(item.dataset.chamadoIndice)])
         item.addEventListener('click', abrir)

@@ -8,16 +8,19 @@ export const esquemaTextoEntrada = zodValidacao.object({
     .max(8000, 'Texto muito longo para processamento')
 })
 
+const textoCampo = zodValidacao.string().trim().max(500, 'Campo muito longo')
+export const esquemaUsername = zodValidacao.string().trim().toLowerCase().max(64).regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/, 'Usuário inválido')
+
 export const esquemaChamadoEstruturado = zodValidacao.object({
-  protocolo: zodValidacao.string(),
-  seguradora: zodValidacao.string(),
-  servico: zodValidacao.string(),
-  previaServico: zodValidacao.string().default('Nao informado'),
-  localidade: zodValidacao.string(),
-  baseAcionada: zodValidacao.string().default('Nao acionada'),
-  dataMarcada: zodValidacao.string().default('Nao informado'),
-  horarioMarcado: zodValidacao.string().default('Nao informado'),
-  retratacaoInicial: zodValidacao.string().default('AGENDAMENTO'),
-  retratacaoFinal: zodValidacao.string().default('AGENDAMENTO'),
-  resumoTentativas: zodValidacao.string().default('Nao informado')
+  protocolo: textoCampo.max(100),
+  seguradora: textoCampo,
+  servico: textoCampo,
+  previaServico: textoCampo.default('Nao informado'),
+  localidade: textoCampo,
+  baseAcionada: textoCampo.default('Nao acionada'),
+  dataMarcada: textoCampo.default('Nao informado'),
+  horarioMarcado: textoCampo.default('Nao informado'),
+  retratacaoInicial: textoCampo.default('AGENDAMENTO'),
+  retratacaoFinal: textoCampo.default('AGENDAMENTO'),
+  resumoTentativas: zodValidacao.string().trim().max(2000).default('Nao informado')
 })

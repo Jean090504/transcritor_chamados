@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "build": "prisma generate && prisma migrate deploy && npm run db:seed",
+    "build": "npm run build:css && prisma generate && prisma migrate deploy && npm run db:seed",
+    "build:css": "tailwindcss -i ./src/tailwind.css -o ./public/css/tailwind.css --minify",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node scripts/seedDatabase.js"
@@ -21,5 +22,8 @@
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.19.0",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
   }
 }

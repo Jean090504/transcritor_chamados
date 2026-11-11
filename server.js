@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { configuracaoAmbiente } from './src/config/env.js'
 import rotasChamado from './src/routes/chamadoRoutes.js'
+import { limitadorApi } from './src/middlewares/rateLimiter.js'
 
 const caminhoArquivoAtual = fileURLToPath(import.meta.url)
 const diretorioAtual = path.dirname(caminhoArquivoAtual)
@@ -36,7 +37,7 @@ aplicacaoServidor.get('/api/status', (requisicao, resposta) => {
 })
 
 // Rotas da API
-aplicacaoServidor.use('/api', rotasChamado)
+aplicacaoServidor.use('/api', limitadorApi, rotasChamado)
 
 // Rota coringa para entregar a interface principal
 aplicacaoServidor.get('*', (requisicao, resposta) => {

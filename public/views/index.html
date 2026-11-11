@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transcritor de Chamados | Operacional</title>
+  <link rel="stylesheet" href="/css/tailwind.css" />
   <link rel="stylesheet" href="/css/style.css" />
   
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23eff6ff'/><path d='M22 16h14l8 8v20a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4V20a4 4 0 0 1 4-4z' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/><polyline points='36 16 36 24 44 24' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/><path d='M32 29v13' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round'/><path d='M26 36l6 6 6-6' fill='none' stroke='%232563eb' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 </head>
-<body>
+<body class="sessao-carregando bg-slate-100 text-slate-900 antialiased">
   <section id="telaLogin" class="tela-login">
-    <form id="formularioLogin" class="cartao-login" novalidate>
+    <form id="formularioLogin" class="cartao-login border border-slate-200 shadow-soft" novalidate>
       <h1>Transcritor de Chamados</h1>
       <p>Entre com seu usuário para acessar sua aba.</p>
       <label for="loginUsuario">Usuário</label>
@@ -26,7 +27,7 @@
   </section>
 
   <section id="telaTrocaSenha" class="tela-login oculto">
-    <form id="formularioTrocaSenha" class="cartao-login" novalidate>
+    <form id="formularioTrocaSenha" class="cartao-login border border-slate-200 shadow-soft" novalidate>
       <h1>Crie sua senha pessoal</h1>
       <div id="usuarioTrocaSenha" class="usuario-autenticado"></div>
       <p>Por segurança, altere a senha inicial antes de continuar.</p>
@@ -76,8 +77,8 @@
     </div>
   </div>
 
-  <section id="painelSarah" class="painel-sarah oculto">
-    <header class="cabecalho-dashboard">
+  <section id="painelSarah" class="painel-sarah oculto bg-slate-50">
+    <header class="cabecalho-dashboard mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white p-5 shadow-soft sm:p-7">
       <div>
         <span class="rotulo-dashboard">Visão geral operacional</span>
         <h1>Dashboard dos analistas</h1>
@@ -85,7 +86,7 @@
       </div>
       <button id="botaoSairDashboard" class="botao-secundario" type="button">Sair</button>
     </header>
-    <div class="metricas-dashboard">
+    <div class="metricas-dashboard mx-auto grid max-w-6xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <article class="metrica-dashboard metrica-destaque"><span>Atendimentos hoje</span><strong id="totalAtendimentosHoje">0</strong></article>
       <article class="metrica-dashboard"><span>Total de chamados</span><strong id="totalChamadosGeral">0</strong></article>
       <article class="metrica-dashboard"><span>Analistas ativos</span><strong id="totalAnalistasAtivos">0</strong></article>
@@ -93,8 +94,8 @@
     </div>
     <section class="grafico-dashboard"><div class="cabecalho-secao-dashboard"><div><span class="rotulo-dashboard">Ritmo operacional</span><h2>Últimos 7 dias</h2></div><span id="dataDashboard" class="data-dashboard"></span></div><div id="graficoUltimosSeteDias" class="barras-dashboard"></div></section>
     <div class="cabecalho-lista-dashboard"><div><span class="rotulo-dashboard">Equipe</span><h2>Analistas</h2></div><div class="legenda-status" aria-label="Legenda dos status"><span><i class="legenda-ponto ponto-laranja"></i>Agendamento</span><span><i class="legenda-ponto ponto-verde"></i>Acionado</span><span><i class="legenda-ponto ponto-vermelho"></i>Cancelado</span></div></div>
-    <div id="listaAnalistasDashboard" class="grade-analistas"></div>
-    <button id="botaoAtualizarDashboard" class="botao-secundario" type="button">Atualizar</button>
+    <div id="listaAnalistasDashboard" class="grade-analistas grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+    <button id="botaoAtualizarDashboard" class="botao-secundario mx-auto block" type="button">Atualizar</button>
   </section>
   <div class="circulo-luz luz-1"></div>
   <div class="circulo-luz luz-2"></div>
@@ -117,7 +118,7 @@
     </svg>
   </button>
 
-  <main class="container-aplicacao">
+  <main class="container-aplicacao mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
     <header class="cabecalho-cartao">
       <div class="icone-cabecalho">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -155,7 +156,7 @@
     </section>
 
     <!-- Formulário Principal -->
-    <section class="area-formulario">
+    <section class="area-formulario rounded-2xl shadow-soft">
       <div class="cabecalho-texto">
         <label for="textoChamado">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
