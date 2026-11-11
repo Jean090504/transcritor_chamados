@@ -292,6 +292,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const diaLabel = criarElemento('span', [], formatarDataGrafico(dia.data))
         const tooltip = criarElemento('div', ['tooltip-volume-dashboard'])
         tooltip.append(criarElemento('strong', [], formatarDataGrafico(dia.data)), criarElemento('span', [], `${dia.total} atendimento${dia.total === 1 ? '' : 's'}`))
+        barra.addEventListener('mouseenter', () => tooltip.classList.add('tooltip-visivel'))
+        barra.addEventListener('mouseleave', () => tooltip.classList.remove('tooltip-visivel'))
+        barra.addEventListener('focus', () => tooltip.classList.add('tooltip-visivel'))
+        barra.addEventListener('blur', () => tooltip.classList.remove('tooltip-visivel'))
         barra.append(total, preenchimento, diaLabel, tooltip)
         return barra
       }))
@@ -321,6 +325,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           linha.append(criarElemento('i'), criarElemento('span', [], `${rotulo}: ${dia[chave]}`))
           tooltip.append(linha)
         })
+        grupo.addEventListener('mouseenter', () => tooltip.classList.add('tooltip-visivel'))
+        grupo.addEventListener('mouseleave', () => tooltip.classList.remove('tooltip-visivel'))
+        grupo.addEventListener('focus', () => tooltip.classList.add('tooltip-visivel'))
+        grupo.addEventListener('blur', () => tooltip.classList.remove('tooltip-visivel'))
         grupo.append(barras, criarElemento('span', [], formatarDataGrafico(dia.data)), tooltip)
         return grupo
       }))
