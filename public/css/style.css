@@ -14,8 +14,8 @@
   --cor-erro-fundo: #fef2f2;
   --cor-erro-borda: #fecaca;
   --cor-erro-texto: #b91c1c;
-  --raio-borda: 20px;
-  --sombra-card: 0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  --raio-borda: 12px;
+  --sombra-card: 0 8px 22px -10px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(226, 232, 240, 0.8);
 }
 
 /* Modo Escuro */
@@ -32,7 +32,7 @@ body.dark-mode {
   --cor-sucesso-fundo: #1e293b;
   --cor-sucesso-borda: #475569;
   --cor-sucesso-texto: #f8fafc;
-  --sombra-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --sombra-card: 0 8px 22px -10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -44,9 +44,7 @@ body.dark-mode {
 
 body {
   background-color: var(--cor-fundo);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.08) 0px, transparent 50%);
+  background-image: none;
   color: var(--cor-texto-principal);
   min-height: 100vh;
   display: flex;
@@ -65,7 +63,7 @@ body {
   right: 24px;
   width: 42px;
   height: 42px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--cor-cartao);
   border: 1px solid var(--cor-borda);
   color: var(--cor-texto-principal);
@@ -132,7 +130,7 @@ body {
   height: 52px;
   background: var(--cor-primaria-clara);
   color: var(--cor-primaria);
-  border-radius: 14px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,7 +181,7 @@ body {
   font-size: 0.775rem;
   font-weight: 600;
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -206,7 +204,7 @@ textarea {
   width: 100%;
   padding: 16px 18px 42px 18px;
   border: 1.5px solid var(--cor-borda);
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 0.88rem;
   font-family: inherit;
   line-height: 1.6;
@@ -260,7 +258,7 @@ textarea:focus {
   color: #ffffff;
   border: none;
   padding: 15px 22px;
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 0.96rem;
   font-weight: 700;
   cursor: pointer;
@@ -268,12 +266,12 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.18);
 }
 
 .botao-primario:hover:not(:disabled) {
   background: var(--cor-primaria-hover);
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .botao-primario:disabled {
@@ -310,7 +308,7 @@ textarea:focus {
 .painel-alerta {
   margin-top: 20px;
   padding: 18px 20px;
-  border-radius: 14px;
+  border-radius: 8px;
   font-size: 0.88rem;
   line-height: 1.6;
 }
@@ -365,7 +363,7 @@ textarea:focus {
   background: var(--cor-primaria-clara);
   color: var(--cor-primaria);
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   text-decoration: none;
   font-weight: 700;
   font-size: 0.825rem;
@@ -410,7 +408,7 @@ textarea:focus {
   padding: 10px 14px;
   background: var(--cor-cartao);
   border: 1px solid var(--cor-borda);
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 0.8rem;
 }
 
@@ -436,7 +434,7 @@ textarea:focus {
   max-width: 680px;
   max-height: 90vh;
   overflow-y: auto;
-  border-radius: 18px;
+  border-radius: 10px;
   padding: 28px;
   box-shadow: var(--sombra-card);
 }
@@ -637,7 +635,7 @@ textarea:focus {
 .card-metrica {
   background: var(--cor-cartao);
   border: 1px solid var(--cor-borda);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -704,7 +702,7 @@ textarea:focus {
   gap: 8px;
   background: var(--cor-cartao);
   border: 1px solid var(--cor-borda);
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 6px 12px;
 }
 
@@ -842,7 +840,7 @@ textarea:focus {
 .cartao-login input:focus, .campo-grupo input:focus, .campo-grupo textarea:focus, .controle-acesso select:focus { outline: 3px solid rgba(37, 99, 235, .16); border-color: #2563eb; }
 .cartao-login input, .controle-acesso select { color: var(--cor-texto-principal); }
 .modal-mensagem-sistema { z-index: 10000; background: rgba(15, 23, 42, .48); }
-.modal-mensagem-conteudo { width: min(92vw, 410px); padding: 2rem; border-radius: 22px; text-align: center; background: var(--cor-cartao, #fff); box-shadow: 0 24px 70px rgba(15, 23, 42, .22); animation: entrarMensagem .22s ease-out; }
+.modal-mensagem-conteudo { width: min(92vw, 410px); padding: 2rem; border-radius: 10px; text-align: center; background: var(--cor-cartao, #fff); box-shadow: 0 12px 30px rgba(15, 23, 42, .16); animation: entrarMensagem .22s ease-out; }
 .icone-mensagem-sistema { width: 3.2rem; height: 3.2rem; display: grid; place-items: center; margin: 0 auto 1rem; border-radius: 50%; background: #dbeafe; color: #2563eb; font-size: 1.5rem; font-weight: 800; }
 .modal-mensagem-conteudo h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
 .modal-mensagem-conteudo p { margin: 0 0 1.4rem; color: var(--cor-texto-secundario, #64748b); line-height: 1.5; }
