@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const telaLogin = document.getElementById('telaLogin')
+  const telaEsqueciSenha = document.getElementById('telaEsqueciSenha')
   const telaTrocaSenha = document.getElementById('telaTrocaSenha')
   const formularioLogin = document.getElementById('formularioLogin')
+  const formularioEsqueciSenha = document.getElementById('formularioEsqueciSenha')
   const erroLogin = document.getElementById('erroLogin')
+  const erroEsqueciSenha = document.getElementById('erroEsqueciSenha')
   const formularioTrocaSenha = document.getElementById('formularioTrocaSenha')
   const erroTrocaSenha = document.getElementById('erroTrocaSenha')
   const usuarioTrocaSenha = document.getElementById('usuarioTrocaSenha')
@@ -12,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const textoMensagemSistema = document.getElementById('textoMensagemSistema')
   const botaoFecharMensagemSistema = document.getElementById('botaoFecharMensagemSistema')
   const botaoEsqueciSenha = document.getElementById('botaoEsqueciSenha')
+  const botaoVoltarLogin = document.getElementById('botaoVoltarLogin')
   const seletorAba = document.getElementById('seletorAba')
   const botaoSair = document.getElementById('botaoSair')
   const criarElemento = (tag, classes = [], texto = '') => {
@@ -65,6 +69,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function fecharModalMensagem() { modalMensagemSistema.classList.add('oculto') }
+  botaoEsqueciSenha?.addEventListener('click', () => {
+    setTimeout(() => {
+      fecharModalMensagem()
+      telaLogin.classList.add('oculto')
+      telaEsqueciSenha.classList.remove('oculto')
+      document.getElementById('usuarioEsqueciSenha').focus()
+    }, 0)
+  })
+  botaoVoltarLogin?.addEventListener('click', () => {
+    telaEsqueciSenha.classList.add('oculto')
+    telaLogin.classList.remove('oculto')
+    erroEsqueciSenha.classList.add('oculto')
+  })
   botaoFecharMensagemSistema.addEventListener('click', fecharModalMensagem)
   botaoEsqueciSenha?.addEventListener('click', () => {
     mostrarModalMensagem('Recuperação de senha', 'Solicite ao ROOT ou ao administrador do sistema a redefinição da sua senha. Por segurança, não é possível redefinir a senha apenas informando o usuário.')
@@ -136,6 +153,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         mostrarModalMensagem('Sistema indisponível', 'A API não está respondendo. Inicie o servidor e tente novamente.')
       }
     })
+    formularioEsqueciSenha?.addEventListener('submit', async (evento) => {
+      evento.preventDefault()
+      erroEsqueciSenha.classList.add('oculto')
+      const username = document.getElementById('usuarioEsqueciSenha').value.trim().toLowerCase()
+      if (!username) {
+        erroEsqueciSenha.textContent = 'Informe seu usuário.'
+        erroEsqueciSenha.classList.remove('oculto')
+        return
+      }
+      try {
+        const resposta = await fetch('/api/auth/solicitar-reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) })
+        const dados = await resposta.json()
+        if (!resposta.ok) {
+          mostrarModalMensagem('Não foi possível solicitar', dados.erro || 'Confira o usuário e tente novamente.')
+          return
+        }
+        mostrarModalMensagem('Solicitação enviada', dados.mensagem)
+        formularioEsqueciSenha.reset()
+      } catch {
+        mostrarModalMensagem('Sistema indisponível', 'Não foi possível enviar a solicitação. Tente novamente em instantes.')
+      }
+    })
     return
   }
 
@@ -164,6 +203,58 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (usuarioAtual.acessoDashboard) {
     const painelSarah = document.getElementById('painelSarah')
     const listaAnalistas = document.getElementById('listaAnalistasDashboard')
+    const painelSolicitacoesReset = document.getElementById('painelSolicitacoesReset')
+    const listaSolicitacoesReset = document.getElementById('listaSolicitacoesReset')
+    const contadorSolicitacoesReset = document.getElementById('contadorSolicitacoesReset')
+    const carregarSolicitacoesReset = async () => {
+      const resposta = await requisicaoAutenticada('/api/auth/solicitacoes-reset')
+      if (!resposta.ok) return
+      const { solicitacoes } = await resposta.json()
+      painelSolicitacoesReset.classList.remove('oculto')
+      contadorSolicitacoesReset.textContent = `${solicitacoes.length} pendente${solicitacoes.length === 1 ? '' : 's'}`
+      if (!solicitacoes.length) {
+        listaSolicitacoesReset.replaceChildren(criarElemento('p', ['sem-solicitacoes-reset'], 'Nenhuma solicitação pendente.'))
+        return
+      }
+      listaSolicitacoesReset.replaceChildren(...solicitacoes.map((solicitacao) => {
+        const item = criarElemento('article', ['item-solicitacao-reset'])
+        const informacoes = criarElemento('div', ['informacoes-solicitacao-reset'])
+        informacoes.append(
+          criarElemento('strong', [], solicitacao.nome),
+          criarElemento('span', [], solicitacao.username),
+          criarElemento('time', [], `Solicitado em ${new Date(solicitacao.solicitadoEm).toLocaleString('pt-BR')}`)
+        )
+        const acoes = criarElemento('div', ['acoes-solicitacao-reset'])
+        const aprovar = criarElemento('button', ['botao-primario'], 'Aprovar reset')
+        const rejeitar = criarElemento('button', ['botao-secundario'], 'Rejeitar')
+        aprovar.addEventListener('click', async () => {
+          aprovar.disabled = true
+          const respostaAprovacao = await requisicaoAutenticada(`/api/auth/solicitacoes-reset/${encodeURIComponent(solicitacao.id)}/aprovar`, { method: 'POST' })
+          const dadosAprovacao = await respostaAprovacao.json()
+          if (!respostaAprovacao.ok) {
+            aprovar.disabled = false
+            mostrarModalMensagem('Não foi possível aprovar', dadosAprovacao.erro || 'Tente novamente em instantes.')
+            return
+          }
+          await carregarSolicitacoesReset()
+          mostrarModalMensagem('Reset aprovado', `Usuário: ${dadosAprovacao.reset.username}\nSenha temporária: ${dadosAprovacao.reset.senhaTemporaria}\n\nInforme essa senha ao usuário. Ela será trocada no primeiro login.`)
+        })
+        rejeitar.addEventListener('click', async () => {
+          rejeitar.disabled = true
+          const respostaRejeicao = await requisicaoAutenticada(`/api/auth/solicitacoes-reset/${encodeURIComponent(solicitacao.id)}/rejeitar`, { method: 'POST' })
+          const dadosRejeicao = await respostaRejeicao.json()
+          if (!respostaRejeicao.ok) {
+            rejeitar.disabled = false
+            mostrarModalMensagem('Não foi possível rejeitar', dadosRejeicao.erro || 'Tente novamente em instantes.')
+            return
+          }
+          await carregarSolicitacoesReset()
+        })
+        acoes.append(aprovar, rejeitar)
+        item.append(informacoes, acoes)
+        return item
+      }))
+    }
     const carregarDashboard = async () => {
       const resposta = await requisicaoAutenticada('/api/dashboard')
       if (!resposta.ok) return
@@ -287,6 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sairSarah = () => { sessionStorage.removeItem('token_jwt'); window.location.reload() }
     document.getElementById('botaoSairDashboard').addEventListener('click', sairSarah)
     document.getElementById('botaoAtualizarDashboard').addEventListener('click', carregarDashboard)
+    await carregarSolicitacoesReset()
     await carregarDashboard()
     return
   }

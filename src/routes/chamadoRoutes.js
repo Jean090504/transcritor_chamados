@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAutenticacao, listarUsuariosPublicos } from '../services/authService.js'
+import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAutenticacao, listarUsuariosPublicos, solicitarResetSenha, listarSolicitacoesReset, aprovarSolicitacaoReset, rejeitarSolicitacaoReset } from '../services/authService.js'
 import { preVisualizarChamado, gravarChamado, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
 import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaUsername, esquemaLogin, esquemaNovaSenha } from '../schemas/chamadoSchema.js'
@@ -11,6 +11,7 @@ const roteador = Router()
 const esquemaGravacaoFinal = z.object({ dados: esquemaChamadoEstruturado, username: esquemaUsername.optional() })
 const esquemaDesfazer = z.object({ id: z.string().uuid(), username: esquemaUsername.optional() })
 const esquemaSincronizar = z.object({ username: esquemaUsername.optional() })
+const esquemaIdReset = z.object({ id: z.string().uuid() })
 
 roteador.post('/auth/login', limitadorAutenticacao, validarRequisicao(esquemaLogin), async (requisicao, resposta) => {
   try {
@@ -24,6 +25,11 @@ roteador.post('/auth/login', limitadorAutenticacao, validarRequisicao(esquemaLog
     return resposta.status(500).json({ erro: 'Falha ao autenticar.' })
   }
 })
+
+roteador.post('/auth/solicitar-reset', limitadorAutenticacao, validarRequisicao(z.object({ username: esquemaUsername })), asyncHandler(async (requisicao, resposta) => {
+  await solicitarResetSenha(requisicao.body.username)
+  return resposta.json({ mensagem: 'Se o usuário existir, a solicitação será encaminhada para aprovação.' })
+}))
 
 roteador.get('/auth/me', exigirAutenticacao, (requisicao, resposta) => resposta.json({ usuario: requisicao.usuario }))
 
@@ -39,6 +45,31 @@ roteador.post('/auth/alterar-senha', exigirAutenticacao, validarRequisicao(esque
 
 roteador.get('/auth/usuarios', exigirAutenticacao, exigirAcessoGlobal, asyncHandler(async (requisicao, resposta) => {
   return resposta.json({ usuarios: await listarUsuariosPublicos() })
+}))
+
+roteador.get('/auth/solicitacoes-reset', exigirAutenticacao, exigirAcessoDashboard, asyncHandler(async (requisicao, resposta) => {
+  return resposta.json({ solicitacoes: await listarSolicitacoesReset(requisicao.usuario) })
+}))
+
+roteador.post('/auth/solicitacoes-reset/:id/aprovar', exigirAutenticacao, exigirAcessoDashboard, validarRequisicao(esquemaIdReset.extend({}), 'params'), asyncHandler(async (requisicao, resposta) => {
+  try {
+    return resposta.json({ sucesso: true, reset: await aprovarSolicitacaoReset(requisicao.params.id, requisicao.usuario) })
+  } catch (erro) {
+    if (erro.message === 'ACESSO_NEGADO') return resposta.status(403).json({ erro: 'Você não pode aprovar este reset.' })
+    if (erro.message === 'SOLICITACAO_NAO_PENDENTE') return resposta.status(409).json({ erro: 'Esta solicitação já foi resolvida.' })
+    throw erro
+  }
+}))
+
+roteador.post('/auth/solicitacoes-reset/:id/rejeitar', exigirAutenticacao, exigirAcessoDashboard, validarRequisicao(esquemaIdReset, 'params'), asyncHandler(async (requisicao, resposta) => {
+  try {
+    await rejeitarSolicitacaoReset(requisicao.params.id, requisicao.usuario)
+    return resposta.json({ sucesso: true })
+  } catch (erro) {
+    if (erro.message === 'ACESSO_NEGADO') return resposta.status(403).json({ erro: 'Você não pode rejeitar este reset.' })
+    if (erro.message === 'SOLICITACAO_NAO_PENDENTE') return resposta.status(409).json({ erro: 'Esta solicitação já foi resolvida.' })
+    throw erro
+  }
 }))
 
 roteador.get('/dashboard', exigirAutenticacao, exigirAcessoDashboard, asyncHandler(dashboardSarah))

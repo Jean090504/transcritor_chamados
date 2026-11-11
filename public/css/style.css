@@ -871,6 +871,19 @@ textarea:focus {
 .metrica-pendentes strong { color: #b45309; }
 .metrica-cancelados { border-top: 4px solid #dc2626; }
 .metrica-cancelados strong { color: #b91c1c; }
+.painel-solicitacoes-reset { margin: 0 auto 1.25rem; padding: 1rem 1.2rem; border: 1px solid #fed7aa; border-radius: 16px; background: #fff7ed; box-shadow: 0 8px 24px rgba(154, 52, 18, .06); }
+.cabecalho-solicitacoes-reset { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.cabecalho-solicitacoes-reset h2 { margin: .2rem 0 0; font-size: 1.05rem; color: #9a3412; }
+.contador-solicitacoes-reset { padding: .35rem .65rem; border-radius: 999px; color: #9a3412; background: #ffedd5; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+.lista-solicitacoes-reset { display: grid; gap: .65rem; margin-top: .85rem; }
+.item-solicitacao-reset { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem; border: 1px solid #fed7aa; border-radius: 12px; background: #fff; }
+.informacoes-solicitacao-reset { display: grid; gap: .15rem; min-width: 0; }
+.informacoes-solicitacao-reset strong { color: #1e293b; overflow-wrap: anywhere; }
+.informacoes-solicitacao-reset span, .informacoes-solicitacao-reset time, .sem-solicitacoes-reset { color: #64748b; font-size: .78rem; }
+.acoes-solicitacao-reset { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.acoes-solicitacao-reset button { min-height: 2.25rem; padding: .55rem .75rem; font-size: .78rem; }
+.sem-solicitacoes-reset { margin: 0; }
+.modal-mensagem-conteudo p { white-space: pre-line; }
 .grafico-dashboard, .cabecalho-lista-dashboard { max-width: 1100px; margin: 0 auto 1.5rem; }
 .grafico-dashboard { padding: 1.25rem; border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; }
 .cabecalho-secao-dashboard, .cabecalho-lista-dashboard { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
@@ -896,6 +909,7 @@ textarea:focus {
 .card-analista-rodape b { color: #2563eb; font-size: 1.35rem; line-height: 1; }
 #botaoAtualizarDashboard { display: block; margin: 0 auto; }
 @media (max-width: 760px) { .metricas-dashboard { grid-template-columns: repeat(2, 1fr); } .cabecalho-secao-dashboard, .cabecalho-lista-dashboard { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 640px) { .cabecalho-solicitacoes-reset, .item-solicitacao-reset { align-items: flex-start; flex-direction: column; } .acoes-solicitacao-reset { width: 100%; justify-content: stretch; } .acoes-solicitacao-reset button { flex: 1; } }
 @media (max-width: 980px) { .card-analista { max-width: calc(33.333% - .55rem); } }
 @media (max-width: 680px) { .card-analista { max-width: calc(50% - .4rem); } }
 @media (max-width: 480px) { .card-analista { max-width: 100%; } }

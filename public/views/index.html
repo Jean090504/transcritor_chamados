@@ -31,6 +31,18 @@
     </form>
   </section>
 
+  <section id="telaEsqueciSenha" class="tela-login oculto">
+    <form id="formularioEsqueciSenha" class="cartao-login border border-slate-200 shadow-soft" novalidate>
+      <h1>Esqueci minha senha</h1>
+      <p>Informe seu usuário. A solicitação será encaminhada para aprovação da supervisora ou do ROOT.</p>
+      <label for="usuarioEsqueciSenha">Usuário</label>
+      <input id="usuarioEsqueciSenha" autocomplete="username" required placeholder="ex.: seu.usuario" />
+      <button class="botao-primario" type="submit">Solicitar redefinição</button>
+      <button id="botaoVoltarLogin" class="botao-secundario" type="button">Voltar para o login</button>
+      <div id="erroEsqueciSenha" class="erro-login oculto"></div>
+    </form>
+  </section>
+
   <section id="telaTrocaSenha" class="tela-login oculto">
     <form id="formularioTrocaSenha" class="cartao-login border border-slate-200 shadow-soft" novalidate>
       <h1>Crie sua senha pessoal</h1>
@@ -91,6 +103,13 @@
       </div>
       <button id="botaoSairDashboard" class="botao-secundario" type="button">Sair</button>
     </header>
+    <section id="painelSolicitacoesReset" class="painel-solicitacoes-reset mx-auto max-w-6xl oculto" aria-labelledby="tituloSolicitacoesReset">
+      <header class="cabecalho-solicitacoes-reset">
+        <div><span class="rotulo-dashboard">Segurança</span><h2 id="tituloSolicitacoesReset">Solicitações de reset</h2></div>
+        <span id="contadorSolicitacoesReset" class="contador-solicitacoes-reset">0 pendentes</span>
+      </header>
+      <div id="listaSolicitacoesReset" class="lista-solicitacoes-reset"></div>
+    </section>
     <div class="metricas-dashboard mx-auto grid max-w-6xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <article class="metrica-dashboard metrica-destaque"><span>Atendimentos hoje</span><strong id="totalAtendimentosHoje">0</strong></article>
       <article class="metrica-dashboard metrica-acionados"><span>Acionados hoje</span><strong id="totalAtendimentosAcionadosHoje">0</strong></article>

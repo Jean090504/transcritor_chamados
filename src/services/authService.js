@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import { configuracaoAmbiente } from '../config/env.js'
-import { ANALISTAS, USUARIOS_GLOBAIS } from '../config/analistas.js'
+import { ANALISTAS, USUARIOS_GLOBAIS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { prisma } from './prisma.js'
 
 const ultimaAtividade = new Map()
@@ -23,6 +23,79 @@ function compararSenha(senha, hashArmazenado) {
 function criarHashSenha(senha) {
   const salt = crypto.randomBytes(16).toString('hex')
   return `${salt}:${crypto.scryptSync(senha, salt, 64).toString('hex')}`
+}
+
+function criarSenhaTemporaria() {
+  const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%'
+  return Array.from({ length: 12 }, () => caracteres[crypto.randomInt(0, caracteres.length)]).join('')
+}
+
+function formatarSolicitacaoReset(solicitacao) {
+  return {
+    id: solicitacao.id,
+    username: solicitacao.username,
+    nome: solicitacao.usuario.nome,
+    status: solicitacao.status,
+    solicitadoEm: solicitacao.solicitadoEm.toISOString(),
+    resolvidoEm: solicitacao.resolvidoEm?.toISOString() || null,
+    resolvidoPor: solicitacao.resolvidoPor || null
+  }
+}
+
+export async function solicitarResetSenha(username) {
+  const usuario = await prisma.usuario.findUnique({ where: { username }, select: { username: true } })
+  if (!usuario) return
+  const pendente = await prisma.solicitacaoResetSenha.findFirst({ where: { username, status: 'PENDENTE' } })
+  if (!pendente) await prisma.solicitacaoResetSenha.create({ data: { username } })
+}
+
+export async function listarSolicitacoesReset(usuario) {
+  const usernames = usuario?.papel === 'root'
+    ? undefined
+    : obterAnalistasVisiveis(usuario).map((analista) => analista.username)
+  if (usernames && !usernames.length) return []
+  const solicitacoes = await prisma.solicitacaoResetSenha.findMany({
+    where: { status: 'PENDENTE', ...(usernames ? { username: { in: usernames } } : {}) },
+    include: { usuario: { select: { nome: true } } },
+    orderBy: { solicitadoEm: 'asc' }
+  })
+  return solicitacoes.map(formatarSolicitacaoReset)
+}
+
+export async function aprovarSolicitacaoReset(id, usuarioAprovador) {
+  const senhaTemporaria = criarSenhaTemporaria()
+  const usernamesPermitidos = usuarioAprovador?.papel === 'root'
+    ? null
+    : obterAnalistasVisiveis(usuarioAprovador).map((analista) => analista.username)
+  const resultado = await prisma.$transaction(async (transacao) => {
+    const solicitacao = await transacao.solicitacaoResetSenha.findUnique({ where: { id }, include: { usuario: true } })
+    if (!solicitacao || solicitacao.status !== 'PENDENTE') throw new Error('SOLICITACAO_NAO_PENDENTE')
+    if (usernamesPermitidos && !usernamesPermitidos.includes(solicitacao.username)) throw new Error('ACESSO_NEGADO')
+    const atualizacao = await transacao.solicitacaoResetSenha.updateMany({
+      where: { id, status: 'PENDENTE' },
+      data: { status: 'APROVADA', resolvidoEm: new Date(), resolvidoPor: usuarioAprovador.sub }
+    })
+    if (!atualizacao.count) throw new Error('SOLICITACAO_NAO_PENDENTE')
+    await transacao.usuario.update({
+      where: { username: solicitacao.username },
+      data: { senhaHash: criarHashSenha(senhaTemporaria), trocarSenha: true, tokenVersao: { increment: 1 } }
+    })
+    return solicitacao
+  })
+  return { username: resultado.username, nome: resultado.usuario.nome, senhaTemporaria }
+}
+
+export async function rejeitarSolicitacaoReset(id, usuarioAprovador) {
+  const usernamesPermitidos = usuarioAprovador?.papel === 'root'
+    ? null
+    : obterAnalistasVisiveis(usuarioAprovador).map((analista) => analista.username)
+  const solicitacao = await prisma.solicitacaoResetSenha.findUnique({ where: { id } })
+  if (!solicitacao || solicitacao.status !== 'PENDENTE') throw new Error('SOLICITACAO_NAO_PENDENTE')
+  if (usernamesPermitidos && !usernamesPermitidos.includes(solicitacao.username)) throw new Error('ACESSO_NEGADO')
+  await prisma.solicitacaoResetSenha.update({
+    where: { id },
+    data: { status: 'REJEITADA', resolvidoEm: new Date(), resolvidoPor: usuarioAprovador.sub }
+  })
 }
 
 export async function listarUsuariosPublicos() {
