@@ -14,6 +14,7 @@ model Usuario {
   aba        String?
   senhaHash  String
   trocarSenha Boolean  @default(true)
+  tokenVersao Int      @default(0)
   criadoEm   DateTime  @default(now())
   atualizadoEm DateTime @updatedAt
   chamados   Chamado[]

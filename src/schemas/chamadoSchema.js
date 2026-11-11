@@ -11,6 +11,15 @@ export const esquemaTextoEntrada = zodValidacao.object({
 const textoCampo = zodValidacao.string().trim().max(500, 'Campo muito longo')
 export const esquemaUsername = zodValidacao.string().trim().toLowerCase().max(64).regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/, 'Usuário inválido')
 
+export const esquemaLogin = zodValidacao.object({
+  username: esquemaUsername,
+  senha: zodValidacao.string().min(1).max(128)
+})
+
+export const esquemaNovaSenha = zodValidacao.object({
+  novaSenha: zodValidacao.string().min(8).max(128)
+})
+
 export const esquemaChamadoEstruturado = zodValidacao.object({
   protocolo: textoCampo.max(100),
   seguradora: textoCampo,

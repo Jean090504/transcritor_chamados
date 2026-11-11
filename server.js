@@ -21,7 +21,10 @@ aplicacaoServidor.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        connectSrc: ["'self'"]
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameAncestors: ["'none'"]
       }
     }
   })
@@ -38,6 +41,12 @@ aplicacaoServidor.get('/api/status', (requisicao, resposta) => {
 
 // Rotas da API
 aplicacaoServidor.use('/api', limitadorApi, rotasChamado)
+
+aplicacaoServidor.use((erro, requisicao, resposta, proximo) => {
+  if (resposta.headersSent) return proximo(erro)
+  console.error('Erro interno na API:', erro)
+  return resposta.status(500).json({ sucesso: false, erro: 'Erro interno do servidor.' })
+})
 
 // Rota coringa para entregar a interface principal
 aplicacaoServidor.get('*', (requisicao, resposta) => {

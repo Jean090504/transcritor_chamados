@@ -10,8 +10,14 @@ function compararSenha(senha, hashArmazenado) {
   if (!senha || !hashArmazenado) return false
   const [salt, digest] = String(hashArmazenado).split(':')
   if (!salt || !digest) return false
-  const calculado = crypto.scryptSync(senha, salt, 64).toString('hex')
-  return crypto.timingSafeEqual(Buffer.from(calculado, 'hex'), Buffer.from(digest, 'hex'))
+  try {
+    const calculado = crypto.scryptSync(senha, salt, 64).toString('hex')
+    const esperado = Buffer.from(digest, 'hex')
+    const derivado = Buffer.from(calculado, 'hex')
+    return esperado.length === derivado.length && crypto.timingSafeEqual(derivado, esperado)
+  } catch {
+    return false
+  }
 }
 
 function criarHashSenha(senha) {
@@ -42,7 +48,8 @@ export async function autenticarUsuario(username, senha) {
     aba: usuarioBase.aba || null,
     acessoGlobal: papel === 'root',
     acessoDashboard: papel === 'root' || papel === 'supervisor',
-    precisaTrocarSenha: configurado.trocarSenha !== false
+    precisaTrocarSenha: configurado.trocarSenha !== false,
+    tokenVersao: configurado.tokenVersao
   }
   return { usuario: payload, token: jwt.sign(payload, configuracaoAmbiente.JWT_SECRET, { expiresIn: '8h' }) }
 }
@@ -53,17 +60,19 @@ export async function alterarSenha(username, novaSenha) {
   if (!usuario) throw new Error('UsuÃ¡rio nÃ£o encontrado.')
   const atualizado = await prisma.usuario.update({
     where: { username },
-    data: { senhaHash: criarHashSenha(novaSenha), trocarSenha: false }
+    data: { senhaHash: criarHashSenha(novaSenha), trocarSenha: false, tokenVersao: { increment: 1 } }
   })
-  return jwt.sign({ sub: username, nome: atualizado.nome, papel: atualizado.papel, aba: atualizado.aba || null, acessoGlobal: atualizado.papel === 'root', acessoDashboard: atualizado.papel === 'root' || atualizado.papel === 'supervisor', precisaTrocarSenha: false }, configuracaoAmbiente.JWT_SECRET, { expiresIn: '8h' })
+  return jwt.sign({ sub: username, nome: atualizado.nome, papel: atualizado.papel, aba: atualizado.aba || null, acessoGlobal: atualizado.papel === 'root', acessoDashboard: atualizado.papel === 'root' || atualizado.papel === 'supervisor', precisaTrocarSenha: false, tokenVersao: atualizado.tokenVersao }, configuracaoAmbiente.JWT_SECRET, { expiresIn: '8h' })
 }
 
-export function exigirAutenticacao(requisicao, resposta, proximo) {
+export async function exigirAutenticacao(requisicao, resposta, proximo) {
   const cabecalho = requisicao.headers.authorization || ''
   const token = cabecalho.startsWith('Bearer ') ? cabecalho.slice(7) : null
   if (!token) return resposta.status(401).json({ erro: 'AutenticaÃ§Ã£o necessÃ¡ria.' })
   try {
     requisicao.usuario = jwt.verify(token, configuracaoAmbiente.JWT_SECRET)
+    const usuarioAtual = await prisma.usuario.findUnique({ where: { username: requisicao.usuario.sub }, select: { tokenVersao: true } })
+    if (!usuarioAtual || usuarioAtual.tokenVersao !== requisicao.usuario.tokenVersao) return resposta.status(401).json({ erro: 'SessÃ£o expirada. Entre novamente.' })
     ultimaAtividade.set(requisicao.usuario.sub, Date.now())
     return proximo()
   } catch {

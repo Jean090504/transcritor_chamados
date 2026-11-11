@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tituloMensagemSistema = document.getElementById('tituloMensagemSistema')
   const textoMensagemSistema = document.getElementById('textoMensagemSistema')
   const botaoFecharMensagemSistema = document.getElementById('botaoFecharMensagemSistema')
+  const botaoEsqueciSenha = document.getElementById('botaoEsqueciSenha')
   const seletorAba = document.getElementById('seletorAba')
   const botaoSair = document.getElementById('botaoSair')
   const criarElemento = (tag, classes = [], texto = '') => {
@@ -65,6 +66,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function fecharModalMensagem() { modalMensagemSistema.classList.add('oculto') }
   botaoFecharMensagemSistema.addEventListener('click', fecharModalMensagem)
+  botaoEsqueciSenha?.addEventListener('click', () => {
+    mostrarModalMensagem('Recuperação de senha', 'Solicite ao ROOT ou ao administrador do sistema a redefinição da sua senha. Por segurança, não é possível redefinir a senha apenas informando o usuário.')
+  })
   modalMensagemSistema.addEventListener('click', (evento) => { if (evento.target === modalMensagemSistema) fecharModalMensagem() })
   document.addEventListener('keydown', (evento) => { if (evento.key === 'Escape') fecharModalMensagem() })
 

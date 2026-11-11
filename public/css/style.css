@@ -831,6 +831,11 @@ textarea:focus {
 .botao-olho-senha:hover { color: var(--cor-primaria, #2563eb); }
 .cartao-login h1 { margin: 0; font-size: 1.35rem; }
 .cartao-login p { margin: 0 0 .7rem; color: #64748b; }
+.marca-login { display: inline-flex; align-items: center; gap: .55rem; margin-bottom: .35rem; }
+.marca-login-texto { color: #11149b; font-size: 1.45rem; font-weight: 900; letter-spacing: -.08em; }
+.marca-login-simbolo { width: 2.5rem; height: 2.5rem; }
+.botao-link-login { border: 0; padding: .2rem; background: transparent; color: #2563eb; font-size: .85rem; cursor: pointer; }
+.botao-link-login:hover { text-decoration: underline; }
 .cartao-login input, .controle-acesso select { min-height: 2.5rem; padding: .55rem .7rem; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; }
 .erro-login { color: #b91c1c; font-size: .85rem; }
 .usuario-autenticado { padding: .65rem .8rem; border-radius: 10px; background: #eff6ff; color: #1d4ed8; font-size: .84rem; font-weight: 700; }

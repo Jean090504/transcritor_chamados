@@ -21,7 +21,7 @@ function dataSaoPauloComDeslocamento(deslocamento) {
 function usernameAlvo(requisicao, solicitado) {
   const visiveis = obterAnalistasVisiveis(requisicao.usuario)
   if (!requisicao.usuario.acessoDashboard) return requisicao.usuario.sub
-  return visiveis.some((analista) => analista.username === solicitado) ? solicitado : visiveis[0]?.username
+  return visiveis.some((analista) => analista.username === solicitado) ? solicitado : null
 }
 
 export const preVisualizarChamado = async (requisicao, resposta) => {
@@ -32,7 +32,7 @@ export const preVisualizarChamado = async (requisicao, resposta) => {
     const dados = esquemaChamadoEstruturado.parse(await extrairDadosChamado(requisicao.body.textoManual))
     const existente = await existeProtocolo(username, dados.protocolo)
     return resposta.json({ sucesso: true, dados, duplicado: Boolean(existente), chamadoDuplicado: existente?.id || null, username })
-  } catch (erro) { return resposta.status(500).json({ sucesso: false, erro: erro.message || 'Falha ao analisar chamado.' }) }
+  } catch (erro) { console.error('Falha ao analisar chamado:', erro); return resposta.status(500).json({ sucesso: false, erro: 'Falha ao analisar chamado.' }) }
 }
 
 export const gravarChamado = async (requisicao, resposta) => {
@@ -43,7 +43,7 @@ export const gravarChamado = async (requisicao, resposta) => {
     const dados = esquemaChamadoEstruturado.parse(requisicao.body.dados)
     const chamado = await salvarChamado(username, analista.nome, dados, dataAtualSaoPaulo())
     return resposta.json({ sucesso: true, mensagem: 'Chamado salvo no sistema.', dados: chamado, id: chamado.id, dataAtendimento: chamado.dataAtendimento })
-  } catch (erro) { return resposta.status(500).json({ sucesso: false, erro: erro.message || 'Falha ao salvar o chamado.' }) }
+  } catch (erro) { console.error('Falha ao salvar chamado:', erro); return resposta.status(500).json({ sucesso: false, erro: 'Falha ao salvar o chamado.' }) }
 }
 
 export const desfazerGravacao = async (requisicao, resposta) => {
@@ -51,7 +51,7 @@ export const desfazerGravacao = async (requisicao, resposta) => {
     const username = usernameAlvo(requisicao, requisicao.body.username)
     if (!await apagarChamado(username, requisicao.body.id)) return resposta.status(404).json({ sucesso: false, erro: 'Chamado nÃ£o encontrado.' })
     return resposta.json({ sucesso: true, mensagem: 'Chamado removido do sistema.' })
-  } catch (erro) { return resposta.status(500).json({ sucesso: false, erro: erro.message || 'Falha ao desfazer.' }) }
+  } catch (erro) { console.error('Falha ao desfazer chamado:', erro); return resposta.status(500).json({ sucesso: false, erro: 'Falha ao desfazer.' }) }
 }
 
 export const sincronizarPlanilha = async (requisicao, resposta) => {

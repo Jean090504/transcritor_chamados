@@ -4,6 +4,10 @@ import crypto from 'crypto'
 import { ANALISTAS } from '../src/config/analistas.js'
 
 const arquivoUsuarios = path.resolve('data', 'users.json')
+const existentes = fs.existsSync(arquivoUsuarios) ? JSON.parse(fs.readFileSync(arquivoUsuarios, 'utf8')) : []
+const porUsername = new Map(existentes.map((usuario) => [usuario.username, usuario]))
+const usuarioSarahAnterior = porUsername.get('sarah.silva')
+if (usuarioSarahAnterior && !porUsername.has('sarah.fernandes')) porUsername.set('sarah.fernandes', { ...usuarioSarahAnterior, username: 'sarah.fernandes' })
 
 const usuarios = [
   { username: 'root', nome: 'ADMINISTRADOR', papel: 'root', aba: null },
@@ -17,6 +21,8 @@ function hash(senha) { const salt = crypto.randomBytes(16).toString('hex'); retu
 
 const senhas = []
 const configuracao = usuarios.map((usuario) => {
+  const existente = porUsername.get(usuario.username)
+  if (existente?.senhaHash) return { ...usuario, senhaHash: existente.senhaHash, trocarSenha: existente.trocarSenha !== false }
   const senha = senhaAleatoria()
   senhas.push(`${usuario.username}: ${senha}`)
   return { ...usuario, senhaHash: hash(senha), trocarSenha: true }

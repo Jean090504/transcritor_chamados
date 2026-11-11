@@ -12,8 +12,30 @@
 <body class="sessao-carregando bg-slate-100 text-slate-900 antialiased">
   <section id="telaLogin" class="tela-login">
     <form id="formularioLogin" class="cartao-login border border-slate-200 shadow-soft" novalidate>
-      <h1>Transcritor de Chamados</h1>
-      <p>Entre com seu usuário para acessar.</p>
+      <div class="marca-login" aria-label="Tempo">
+        <span class="marca-login-texto">Tempo</span>
+        <svg class="marca-login-simbolo" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="marcaAzul" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#0877d1" />
+              <stop offset="1" stop-color="#0a53b5" />
+            </linearGradient>
+            <linearGradient id="marcaVerde" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#00bd73" />
+              <stop offset="1" stop-color="#079456" />
+            </linearGradient>
+            <linearGradient id="marcaCiano" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#13c7ef" />
+              <stop offset="1" stop-color="#0798df" />
+            </linearGradient>
+          </defs>
+          <path d="M32 4c11 0 21 6 26 16L39 32 22 8c3-3 6-4 10-4Z" fill="url(#marcaAzul)" />
+          <path d="M39 32 58 20c4 8 4 17 0 24-5 10-14 16-25 17l-11-21Z" fill="url(#marcaVerde)" />
+          <path d="M22 8 33 28 22 61C11 57 4 47 4 36 4 24 11 13 22 8Z" fill="url(#marcaCiano)" />
+        </svg>
+      </div>
+      <h1>Bem Vindo!</h1>
+      <p>Para começar a usar o Transcritor, entre abaixo.</p>
       <label for="loginUsuario">Usuário</label>
       <input id="loginUsuario" autocomplete="username" required placeholder="ex.: sarah.fernandes" />
       <label for="loginSenha">Senha</label>
@@ -22,6 +44,7 @@
         <button class="botao-olho-senha" type="button" data-toggle-password="loginSenha" aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="2.5"></circle></svg></button>
       </div>
       <button class="botao-primario" type="submit">Entrar</button>
+      <button id="botaoEsqueciSenha" class="botao-link-login" type="button">Esqueci minha senha</button>
       <div id="erroLogin" class="erro-login oculto"></div>
     </form>
   </section>
