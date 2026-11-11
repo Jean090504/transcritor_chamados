@@ -283,12 +283,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       const grafico = document.getElementById('graficoUltimosSeteDias')
       grafico.replaceChildren(...serieDiaria.map((dia) => {
         const barra = criarElemento('div', ['barra-dia-dashboard'])
-        barra.title = `${formatarDataGrafico(dia.data)}: ${dia.total} atendimento${dia.total === 1 ? '' : 's'}`
+        barra.tabIndex = 0
+        barra.setAttribute('role', 'img')
+        barra.setAttribute('aria-label', `${formatarDataGrafico(dia.data)}: ${dia.total} atendimento${dia.total === 1 ? '' : 's'}`)
         const total = criarElemento('strong', [], String(dia.total))
         const preenchimento = criarElemento('i')
         preenchimento.style.height = `${Math.max(Number(dia.total) / maiorTotal * 100, 4)}%`
         const diaLabel = criarElemento('span', [], formatarDataGrafico(dia.data))
-        barra.append(total, preenchimento, diaLabel)
+        const tooltip = criarElemento('div', ['tooltip-volume-dashboard'])
+        tooltip.append(criarElemento('strong', [], formatarDataGrafico(dia.data)), criarElemento('span', [], `${dia.total} atendimento${dia.total === 1 ? '' : 's'}`))
+        barra.append(total, preenchimento, diaLabel, tooltip)
         return barra
       }))
     }
@@ -311,7 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           barras.append(barra)
         })
         const tooltip = criarElemento('div', ['tooltip-status-dashboard'])
-        tooltip.append(criarElemento('strong', [], formatarDataGrafico(dia.data)))
+        tooltip.append(criarElemento('strong', [], formatarDataGrafico(dia.data)), criarElemento('span', ['total-tooltip-status'], `Total: ${dia.total}`))
         categorias.forEach(([chave, rotulo]) => {
           const linha = criarElemento('span', ['linha-tooltip-status', `linha-tooltip-${chave}`])
           linha.append(criarElemento('i'), criarElemento('span', [], `${rotulo}: ${dia[chave]}`))

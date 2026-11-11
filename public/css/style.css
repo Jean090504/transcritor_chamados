@@ -899,7 +899,7 @@ textarea:focus {
 .cabecalho-secao-dashboard h2, .cabecalho-lista-dashboard h2 { margin: .2rem 0 0; font-size: 1.15rem; }
 .data-dashboard, .cabecalho-lista-dashboard > span { color: #64748b; font-size: .8rem; }
 .barras-dashboard { height: 145px; display: flex; align-items: flex-end; gap: .75rem; padding-top: 1.2rem; overflow-x: auto; }
-.barra-dia-dashboard { flex: 1 0 42px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: .35rem; color: #64748b; font-size: .72rem; }
+.barra-dia-dashboard { position: relative; flex: 1 0 42px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: .35rem; color: #64748b; font-size: .72rem; cursor: help; }
 .barra-dia-dashboard i { display: block; width: min(38px, 70%); min-height: 5px; border-radius: 3px 3px 1px 1px; background: #4775ad; }
 .barra-dia-dashboard strong { color: #1e3a8a; font-size: .75rem; }
 .legenda-grafico-status { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .7rem; color: #64748b; font-size: .75rem; }
@@ -915,6 +915,10 @@ textarea:focus {
 .tooltip-status-dashboard { position: absolute; z-index: 5; left: 50%; bottom: calc(100% - 1.2rem); display: grid; min-width: 142px; gap: .35rem; padding: .65rem .75rem; border: 1px solid #dbe4ef; border-radius: 6px; color: #e2e8f0; background: #172033; box-shadow: 0 8px 18px rgba(15, 23, 42, .18); opacity: 0; pointer-events: none; transform: translate(-50%, 5px); transition: opacity .15s ease, transform .15s ease; }
 .grupo-status-dashboard:hover .tooltip-status-dashboard, .grupo-status-dashboard:focus-visible .tooltip-status-dashboard { opacity: 1; transform: translate(-50%, 0); }
 .tooltip-status-dashboard strong { padding-bottom: .25rem; border-bottom: 1px solid rgba(226, 232, 240, .2); color: #fff; font-size: .78rem; }
+.tooltip-volume-dashboard { position: absolute; z-index: 5; left: 50%; bottom: calc(100% - 1.2rem); display: grid; min-width: 105px; gap: .35rem; padding: .65rem .75rem; border: 1px solid #dbe4ef; border-radius: 6px; color: #e2e8f0; background: #172033; box-shadow: 0 8px 18px rgba(15, 23, 42, .18); opacity: 0; pointer-events: none; transform: translate(-50%, 5px); transition: opacity .15s ease, transform .15s ease; }
+.barra-dia-dashboard:hover .tooltip-volume-dashboard, .barra-dia-dashboard:focus-visible .tooltip-volume-dashboard { opacity: 1; transform: translate(-50%, 0); }
+.tooltip-volume-dashboard strong { padding-bottom: .25rem; border-bottom: 1px solid rgba(226, 232, 240, .2); color: #fff; font-size: .78rem; }
+.tooltip-volume-dashboard span, .total-tooltip-status { color: #e2e8f0; font-size: .72rem; }
 .linha-tooltip-status { display: flex; align-items: center; gap: .35rem; white-space: nowrap; font-size: .72rem; }
 .linha-tooltip-status i { width: .45rem; height: .45rem; display: inline-block; flex: 0 0 auto; border-radius: 50%; }
 .linha-tooltip-acionados i { background: #4ade80; }
