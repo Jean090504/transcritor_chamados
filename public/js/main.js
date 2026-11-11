@@ -58,8 +58,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
   })
   localStorage.removeItem('token_jwt')
+  const manterSessaoAposFluxo = sessionStorage.getItem('manter_sessao_apos_recarga') === '1'
+  sessionStorage.removeItem('manter_sessao_apos_recarga')
+  if (!manterSessaoAposFluxo) sessionStorage.removeItem('token_jwt')
   let token = sessionStorage.getItem('token_jwt')
   let usuarioAtual = null
+
+  window.addEventListener('pageshow', (evento) => {
+    if (!evento.persisted) return
+    sessionStorage.removeItem('token_jwt')
+    window.location.reload()
+  })
 
   function mostrarModalMensagem(titulo, mensagem) {
     tituloMensagemSistema.textContent = titulo
@@ -148,6 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dados = await resposta.json()
       if (!resposta.ok) { mostrarModalMensagem('Não foi possível entrar', dados.erro || 'Confira seus dados e tente novamente.'); return }
       sessionStorage.setItem('token_jwt', dados.token)
+        sessionStorage.setItem('manter_sessao_apos_recarga', '1')
         window.location.reload()
       } catch {
         mostrarModalMensagem('Sistema indisponível', 'A API não está respondendo. Inicie o servidor e tente novamente.')
@@ -192,6 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dados = await resposta.json()
       if (!resposta.ok) { mostrarModalMensagem('Não foi possível alterar', dados.erro || 'Tente novamente em instantes.'); return }
       sessionStorage.setItem('token_jwt', dados.token)
+      sessionStorage.setItem('manter_sessao_apos_recarga', '1')
       window.location.reload()
     })
     return
