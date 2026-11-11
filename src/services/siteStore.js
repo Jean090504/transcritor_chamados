@@ -52,6 +52,37 @@ export async function contarStatusAtendimentosHoje(usernames, data) {
   return resultado
 }
 
+function adicionarDias(data, quantidade) {
+  const dia = new Date(`${data}T12:00:00Z`)
+  dia.setUTCDate(dia.getUTCDate() + quantidade)
+  return dia.toISOString().slice(0, 10)
+}
+
+export async function obterResumoPeriodo(usernames, inicio, fim) {
+  const serieDiaria = []
+  for (let data = inicio; data <= fim; data = adicionarDias(data, 1)) {
+    serieDiaria.push({ data, total: 0, acionados: 0, agendados: 0, cancelados: 0 })
+  }
+  if (!usernames?.length) return { serieDiaria, resumo: { total: 0, acionados: 0, agendados: 0, cancelados: 0 } }
+
+  const chamados = await prisma.chamado.findMany({
+    where: { dataAtendimento: { gte: inicio, lte: fim }, username: { in: usernames } },
+    select: { dataAtendimento: true, baseAcionada: true, retratacaoInicial: true, retratacaoFinal: true }
+  })
+  const porData = new Map(serieDiaria.map((item) => [item.data, item]))
+  const resumo = { total: chamados.length, acionados: 0, agendados: 0, cancelados: 0 }
+  chamados.forEach((chamado) => {
+    const dia = porData.get(chamado.dataAtendimento)
+    if (!dia) return
+    dia.total += 1
+    const categoria = classificarAtendimento(chamado)
+    const chave = categoria === 'pendentes' ? 'agendados' : categoria
+    dia[chave] += 1
+    resumo[chave] += 1
+  })
+  return { serieDiaria, resumo }
+}
+
 export async function existeProtocolo(username, protocolo) {
   const chamado = await prisma.chamado.findFirst({ where: { username, protocolo } })
   return chamado ? serializarChamado(chamado) : null

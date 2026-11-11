@@ -116,7 +116,23 @@
       <article class="metrica-dashboard metrica-pendentes"><span>Pendentes de acionamento</span><strong id="totalAtendimentosPendentesHoje">0</strong></article>
       <article class="metrica-dashboard metrica-cancelados"><span>Cancelados hoje</span><strong id="totalAtendimentosCanceladosHoje">0</strong></article>
     </div>
-    <section class="grafico-dashboard"><div class="cabecalho-secao-dashboard"><div><span class="rotulo-dashboard">Ritmo operacional</span><h2>Últimos 7 dias</h2></div><span id="dataDashboard" class="data-dashboard"></span></div><div id="graficoUltimosSeteDias" class="barras-dashboard"></div></section>
+    <section class="filtros-dashboard" aria-label="Filtro dos gráficos">
+      <div class="atalhos-periodo-dashboard">
+        <button type="button" class="botao-periodo-dashboard" data-periodo="hoje">Hoje</button>
+        <button type="button" class="botao-periodo-dashboard" data-periodo="7">7 dias</button>
+        <button type="button" class="botao-periodo-dashboard" data-periodo="30">30 dias</button>
+        <button type="button" class="botao-periodo-dashboard" data-periodo="mes">Este mês</button>
+        <button type="button" class="botao-periodo-dashboard" data-periodo="mes-anterior">Mês anterior</button>
+      </div>
+      <div class="campos-periodo-dashboard">
+        <label for="dataInicioDashboard">De</label><input id="dataInicioDashboard" type="date" />
+        <label for="dataFimDashboard">Até</label><input id="dataFimDashboard" type="date" />
+        <button id="aplicarPeriodoDashboard" class="botao-primario" type="button">Aplicar período</button>
+      </div>
+      <p id="erroPeriodoDashboard" class="erro-periodo-dashboard oculto"></p>
+    </section>
+    <section class="grafico-dashboard"><div class="cabecalho-secao-dashboard"><div><span class="rotulo-dashboard">Ritmo operacional</span><h2>Atendimentos por dia</h2></div><span id="dataDashboard" class="data-dashboard"></span></div><div id="graficoUltimosSeteDias" class="barras-dashboard"></div></section>
+    <section class="grafico-dashboard"><div class="cabecalho-secao-dashboard"><div><span class="rotulo-dashboard">Distribuição dos status</span><h2>Acionados x agendados x cancelados</h2></div><div class="legenda-grafico-status"><span><i class="ponto-status-acionado"></i>Acionados</span><span><i class="ponto-status-agendado"></i>Agendados</span><span><i class="ponto-status-cancelado"></i>Cancelados</span></div></div><div id="graficoComparativoStatus" class="grafico-comparativo-status"></div></section>
     <div class="cabecalho-lista-dashboard"><div><span class="rotulo-dashboard">Equipe</span><h2>Analistas</h2></div><div class="legenda-status" aria-label="Legenda dos status"><span><i class="legenda-ponto ponto-laranja"></i>Agendamento</span><span><i class="legenda-ponto ponto-verde"></i>Acionado</span><span><i class="legenda-ponto ponto-vermelho"></i>Cancelado</span></div></div>
     <div id="listaAnalistasDashboard" class="grade-analistas grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
     <button id="botaoAtualizarDashboard" class="botao-secundario mx-auto block" type="button">Atualizar</button>

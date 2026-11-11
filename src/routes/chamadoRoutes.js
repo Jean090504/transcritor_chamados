@@ -12,6 +12,20 @@ const esquemaGravacaoFinal = z.object({ dados: esquemaChamadoEstruturado, userna
 const esquemaDesfazer = z.object({ id: z.string().uuid(), username: esquemaUsername.optional() })
 const esquemaSincronizar = z.object({ username: esquemaUsername.optional() })
 const esquemaIdReset = z.object({ id: z.string().uuid() })
+const esquemaDataDashboard = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.')
+const esquemaPeriodoDashboard = z.object({ inicio: esquemaDataDashboard.optional(), fim: esquemaDataDashboard.optional() }).superRefine((periodo, contexto) => {
+  if (Boolean(periodo.inicio) !== Boolean(periodo.fim)) {
+    contexto.addIssue({ code: z.ZodIssueCode.custom, message: 'Informe as duas datas do período.' })
+    return
+  }
+  if (periodo.inicio && periodo.fim) {
+    const inicio = Date.parse(`${periodo.inicio}T00:00:00Z`)
+    const fim = Date.parse(`${periodo.fim}T00:00:00Z`)
+    const dias = Math.floor((fim - inicio) / 86400000)
+    if (!Number.isFinite(inicio) || !Number.isFinite(fim) || dias < 0) contexto.addIssue({ code: z.ZodIssueCode.custom, message: 'O período informado é inválido.' })
+    if (dias > 366) contexto.addIssue({ code: z.ZodIssueCode.custom, message: 'O período máximo é de 366 dias.' })
+  }
+})
 
 roteador.post('/auth/login', limitadorAutenticacao, validarRequisicao(esquemaLogin), async (requisicao, resposta) => {
   try {
@@ -72,7 +86,7 @@ roteador.post('/auth/solicitacoes-reset/:id/rejeitar', exigirAutenticacao, exigi
   }
 }))
 
-roteador.get('/dashboard', exigirAutenticacao, exigirAcessoDashboard, asyncHandler(dashboardSarah))
+roteador.get('/dashboard', exigirAutenticacao, exigirAcessoDashboard, validarRequisicao(esquemaPeriodoDashboard, 'query'), asyncHandler(dashboardSarah))
 roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoDashboard, asyncHandler(detalhesAnalista))
 
 roteador.use(exigirAutenticacao)

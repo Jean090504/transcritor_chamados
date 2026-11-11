@@ -2,7 +2,7 @@ import { extrairDadosChamado } from '../services/aiService.js'
 import { esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
-import { contarChamadosHoje, contarStatusAtendimentosHoje, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
+import { contarChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
 
 function dataAtualSaoPaulo() {
   const partes = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
@@ -68,6 +68,8 @@ export const listarAbas = async (requisicao, resposta) => {
 export const dashboardSarah = async (requisicao, resposta) => {
   try {
     const data = dataAtualSaoPaulo()
+    const inicio = requisicao.query.inicio || dataSaoPauloComDeslocamento(6)
+    const fim = requisicao.query.fim || data
     const usernamesVisiveis = obterAnalistasVisiveis(requisicao.usuario).map((analista) => analista.username)
     const status = obterStatusAnalistas()
       .filter((analista) => obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username))
@@ -83,9 +85,10 @@ export const dashboardSarah = async (requisicao, resposta) => {
     }))
     const totalHoje = analistas.reduce((total, analista) => total + analista.atendimentosHoje, 0)
     const statusAtendimentosHoje = await contarStatusAtendimentosHoje(usernamesVisiveis, data)
+    const resumoPeriodo = await obterResumoPeriodo(usernamesVisiveis, inicio, fim)
     const usernames = new Set(analistas.map((analista) => analista.username))
     const totalGeral = (await todosChamados()).filter((chamado) => usernames.has(chamado.username)).length
-    return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, ultimosSeteDias, analistas })
+    return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo, ultimosSeteDias, analistas })
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
 }
 

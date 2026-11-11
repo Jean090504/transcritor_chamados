@@ -214,7 +214,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (usuarioAtual.acessoDashboard) {
     const painelSarah = document.getElementById('painelSarah')
     const listaAnalistas = document.getElementById('listaAnalistasDashboard')
+    const dataInicioDashboard = document.getElementById('dataInicioDashboard')
+    const dataFimDashboard = document.getElementById('dataFimDashboard')
+    const aplicarPeriodoDashboard = document.getElementById('aplicarPeriodoDashboard')
+    const erroPeriodoDashboard = document.getElementById('erroPeriodoDashboard')
+    const graficoComparativoStatus = document.getElementById('graficoComparativoStatus')
     const subtituloDashboard = document.getElementById('subtituloDashboard')
+    let dataReferenciaDashboard = ''
     const nomePerfil = usuarioAtual.papel === 'root'
       ? 'Root'
       : `Supervisora ${usuarioAtual.sub.split('.').map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join(' ')}`
@@ -271,30 +277,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         return item
       }))
     }
-    const carregarDashboard = async () => {
-      const resposta = await requisicaoAutenticada('/api/dashboard')
+    const formatarDataGrafico = (data) => `${data.slice(8)}/${data.slice(5, 7)}`
+    const renderizarGraficoVolume = (serieDiaria) => {
+      const maiorTotal = Math.max(...serieDiaria.map((dia) => dia.total), 1)
+      const grafico = document.getElementById('graficoUltimosSeteDias')
+      grafico.replaceChildren(...serieDiaria.map((dia) => {
+        const barra = criarElemento('div', ['barra-dia-dashboard'])
+        barra.title = `${formatarDataGrafico(dia.data)}: ${dia.total} atendimento${dia.total === 1 ? '' : 's'}`
+        const total = criarElemento('strong', [], String(dia.total))
+        const preenchimento = criarElemento('i')
+        preenchimento.style.height = `${Math.max(Number(dia.total) / maiorTotal * 100, 4)}%`
+        const diaLabel = criarElemento('span', [], formatarDataGrafico(dia.data))
+        barra.append(total, preenchimento, diaLabel)
+        return barra
+      }))
+    }
+    const renderizarGraficoStatus = (serieDiaria) => {
+      const categorias = [
+        ['acionados', 'Acionados'],
+        ['agendados', 'Agendados'],
+        ['cancelados', 'Cancelados']
+      ]
+      const maiorStatus = Math.max(...serieDiaria.flatMap((dia) => categorias.map(([chave]) => dia[chave])), 1)
+      graficoComparativoStatus.replaceChildren(...serieDiaria.map((dia) => {
+        const grupo = criarElemento('div', ['grupo-status-dashboard'])
+        grupo.title = formatarDataGrafico(dia.data)
+        const barras = criarElemento('div', ['barras-status-dashboard'])
+        categorias.forEach(([chave, rotulo]) => {
+          const barra = criarElemento('div', ['barra-status-dashboard', `barra-status-${chave}`])
+          barra.style.height = `${Math.max(Number(dia[chave]) / maiorStatus * 100, 3)}%`
+          barra.title = `${rotulo}: ${dia[chave]}`
+          barras.append(barra)
+        })
+        grupo.append(barras, criarElemento('span', [], formatarDataGrafico(dia.data)))
+        return grupo
+      }))
+    }
+    const carregarDashboard = async (inicio = '', fim = '') => {
+      const parametros = inicio && fim ? `?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}` : ''
+      const resposta = await requisicaoAutenticada(`/api/dashboard${parametros}`)
       if (!resposta.ok) return
       const dados = await resposta.json()
+      dataReferenciaDashboard = dados.data
       document.body.classList.add('modo-dashboard')
       painelSarah.classList.remove('oculto')
-      document.getElementById('dataDashboard').textContent = ''
+      document.getElementById('dataDashboard').textContent = `${formatarDataGrafico(dados.periodo.inicio)} a ${formatarDataGrafico(dados.periodo.fim)}`
       subtituloDashboard.textContent = nomePerfil
       document.getElementById('totalAtendimentosHoje').textContent = dados.totalHoje
       document.getElementById('totalAtendimentosAcionadosHoje').textContent = dados.statusAtendimentosHoje.acionados
       document.getElementById('totalAtendimentosPendentesHoje').textContent = dados.statusAtendimentosHoje.pendentes
       document.getElementById('totalAtendimentosCanceladosHoje').textContent = dados.statusAtendimentosHoje.cancelados
-      const maiorTotal = Math.max(...dados.ultimosSeteDias.map((dia) => dia.total), 1)
-      const grafico = document.getElementById('graficoUltimosSeteDias')
-      grafico.replaceChildren(...dados.ultimosSeteDias.map((dia) => {
-        const barra = criarElemento('div', ['barra-dia-dashboard'])
-        barra.title = String(dia.data)
-        const total = criarElemento('strong', [], String(dia.total))
-        const preenchimento = criarElemento('i')
-        preenchimento.style.height = `${Math.max(Number(dia.total) / maiorTotal * 100, 4)}%`
-        const diaLabel = criarElemento('span', [], String(dia.data).slice(8))
-        barra.append(total, preenchimento, diaLabel)
-        return barra
-      }))
+      dataInicioDashboard.value = dados.periodo.inicio
+      dataFimDashboard.value = dados.periodo.fim
+      renderizarGraficoVolume(dados.resumoPeriodo.serieDiaria)
+      renderizarGraficoStatus(dados.resumoPeriodo.serieDiaria)
       const analistasOrdenados = [...dados.analistas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
       listaAnalistas.replaceChildren(...analistasOrdenados.map((analista) => {
         const iniciais = analista.nome.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
@@ -320,6 +356,50 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.addEventListener('keydown', (evento) => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrir() } })
       })
     }
+    const somarDiasData = (data, quantidade) => {
+      const dataCalculada = new Date(`${data}T12:00:00Z`)
+      dataCalculada.setUTCDate(dataCalculada.getUTCDate() + quantidade)
+      return dataCalculada.toISOString().slice(0, 10)
+    }
+    const obterPeriodoAtalho = (atalho) => {
+      const fim = dataReferenciaDashboard
+      if (atalho === 'hoje') return { inicio: fim, fim }
+      if (atalho === '7') return { inicio: somarDiasData(fim, -6), fim }
+      if (atalho === '30') return { inicio: somarDiasData(fim, -29), fim }
+      if (atalho === 'mes') return { inicio: `${fim.slice(0, 7)}-01`, fim }
+      const ultimoDiaMesAnterior = new Date(`${fim.slice(0, 7)}-01T12:00:00Z`)
+      ultimoDiaMesAnterior.setUTCDate(0)
+      const fimMesAnterior = ultimoDiaMesAnterior.toISOString().slice(0, 10)
+      return { inicio: `${fimMesAnterior.slice(0, 7)}-01`, fim: fimMesAnterior }
+    }
+    const aplicarPeriodo = async (inicio, fim) => {
+      if (!inicio || !fim) {
+        erroPeriodoDashboard.textContent = 'Informe a data inicial e a data final.'
+        erroPeriodoDashboard.classList.remove('oculto')
+        return
+      }
+      if (inicio > fim) {
+        erroPeriodoDashboard.textContent = 'A data inicial deve ser anterior ou igual à data final.'
+        erroPeriodoDashboard.classList.remove('oculto')
+        return
+      }
+      erroPeriodoDashboard.classList.add('oculto')
+      await carregarDashboard(inicio, fim)
+    }
+    document.querySelectorAll('.botao-periodo-dashboard').forEach((botao) => {
+      botao.addEventListener('click', async () => {
+        const periodo = obterPeriodoAtalho(botao.dataset.periodo)
+        dataInicioDashboard.value = periodo.inicio
+        dataFimDashboard.value = periodo.fim
+        document.querySelectorAll('.botao-periodo-dashboard').forEach((item) => item.classList.remove('periodo-ativo'))
+        botao.classList.add('periodo-ativo')
+        await aplicarPeriodo(periodo.inicio, periodo.fim)
+      })
+    })
+    aplicarPeriodoDashboard.addEventListener('click', async () => {
+      document.querySelectorAll('.botao-periodo-dashboard').forEach((item) => item.classList.remove('periodo-ativo'))
+      await aplicarPeriodo(dataInicioDashboard.value, dataFimDashboard.value)
+    })
     const modalDetalhes = document.getElementById('modalDetalhesAnalista')
     const listaDetalhes = document.getElementById('listaDetalhesAnalista')
     const resumoDetalhes = document.getElementById('resumoDetalhesAnalista')
