@@ -203,6 +203,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (usuarioAtual.acessoDashboard) {
     const painelSarah = document.getElementById('painelSarah')
     const listaAnalistas = document.getElementById('listaAnalistasDashboard')
+    const subtituloDashboard = document.getElementById('subtituloDashboard')
+    const nomePerfil = usuarioAtual.papel === 'root'
+      ? 'Root'
+      : `Supervisora ${usuarioAtual.sub.split('.').map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join(' ')}`
+    subtituloDashboard.textContent = nomePerfil
     const painelSolicitacoesReset = document.getElementById('painelSolicitacoesReset')
     const listaSolicitacoesReset = document.getElementById('listaSolicitacoesReset')
     const contadorSolicitacoesReset = document.getElementById('contadorSolicitacoesReset')
@@ -262,7 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.body.classList.add('modo-dashboard')
       painelSarah.classList.remove('oculto')
       document.getElementById('dataDashboard').textContent = ''
-      document.getElementById('subtituloDashboard').textContent = ''
+      subtituloDashboard.textContent = nomePerfil
       document.getElementById('totalAtendimentosHoje').textContent = dados.totalHoje
       document.getElementById('totalAtendimentosAcionadosHoje').textContent = dados.statusAtendimentosHoje.acionados
       document.getElementById('totalAtendimentosPendentesHoje').textContent = dados.statusAtendimentosHoje.pendentes

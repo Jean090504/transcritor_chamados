@@ -857,7 +857,7 @@ textarea:focus {
 .sessao-carregando .container-aplicacao, .sessao-carregando #painelSarah, .sessao-carregando .botao-tema, .sessao-carregando > .circulo-luz { display: none; }
 .cabecalho-dashboard { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; max-width: 1100px; margin: 0 auto 1.25rem; border-radius: 8px !important; border-color: #d7dde5 !important; background: #fff !important; box-shadow: none !important; }
 .cabecalho-dashboard h1 { margin: .25rem 0; }
-.cabecalho-dashboard p { margin: 0; color: #64748b; }
+.cabecalho-dashboard p { margin: .35rem 0 0; color: #334155; font-size: .92rem; font-weight: 600; }
 .rotulo-dashboard { color: #2563eb; font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
 .metricas-dashboard { max-width: 1100px; margin: 0 auto 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; }
 .metrica-dashboard { padding: 1rem 1.1rem; border: 1px solid #d7dde5; border-radius: 8px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
@@ -871,7 +871,7 @@ textarea:focus {
 .metrica-pendentes strong { color: #b45309; }
 .metrica-cancelados { border-top: 3px solid #b83232; }
 .metrica-cancelados strong { color: #b91c1c; }
-.painel-solicitacoes-reset { margin: 0 auto 1.25rem; padding: 1rem 1.2rem; border: 1px solid #d7dde5; border-left: 4px solid #1d4ed8; border-radius: 8px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
+.painel-solicitacoes-reset { width: 100%; max-width: 1100px; box-sizing: border-box; margin: 0 auto 1.25rem; padding: .85rem 1rem; border: 1px solid #d7dde5; border-left: 4px solid #1d4ed8; border-radius: 8px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
 .cabecalho-solicitacoes-reset { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .cabecalho-solicitacoes-reset h2 { margin: .2rem 0 0; font-size: 1.05rem; color: #1f2937; }
 .contador-solicitacoes-reset { padding: .3rem .55rem; border: 1px solid #bfdbfe; border-radius: 4px; color: #1e40af; background: #eff6ff; font-size: .78rem; font-weight: 700; white-space: nowrap; }
