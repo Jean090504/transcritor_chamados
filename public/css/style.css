@@ -898,7 +898,7 @@ textarea:focus {
 .cabecalho-secao-dashboard, .cabecalho-lista-dashboard { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .cabecalho-secao-dashboard h2, .cabecalho-lista-dashboard h2 { margin: .2rem 0 0; font-size: 1.15rem; }
 .data-dashboard, .cabecalho-lista-dashboard > span { color: #64748b; font-size: .8rem; }
-.barras-dashboard { height: 145px; display: flex; align-items: flex-end; gap: .75rem; padding-top: 1.2rem; overflow-x: auto; }
+.barras-dashboard { height: 215px; box-sizing: border-box; display: flex; align-items: flex-end; gap: .75rem; padding-top: 4.2rem; overflow-x: auto; }
 .barra-dia-dashboard { position: relative; flex: 1 0 42px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: .35rem; color: #64748b; font-size: .72rem; cursor: help; }
 .barra-dia-dashboard i { display: block; width: min(38px, 70%); min-height: 5px; border-radius: 3px 3px 1px 1px; background: #4775ad; }
 .barra-dia-dashboard strong { color: #1e3a8a; font-size: .75rem; }
@@ -908,7 +908,7 @@ textarea:focus {
 .ponto-status-acionado, .barra-status-acionados { background: #2f7d32; }
 .ponto-status-agendado, .barra-status-agendados { background: #b7791f; }
 .ponto-status-cancelado, .barra-status-cancelados { background: #b83232; }
-.grafico-comparativo-status { min-height: 145px; display: flex; align-items: flex-end; gap: .7rem; padding-top: 1.2rem; overflow-x: auto; }
+.grafico-comparativo-status { height: 215px; box-sizing: border-box; display: flex; align-items: flex-end; gap: .7rem; padding-top: 4.2rem; overflow-x: auto; }
 .grupo-status-dashboard { position: relative; min-width: 52px; height: 145px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: .35rem; color: #64748b; font-size: .72rem; cursor: help; }
 .barras-status-dashboard { height: 120px; display: flex; align-items: flex-end; gap: 3px; }
 .barra-status-dashboard { width: 10px; min-height: 3px; border-radius: 2px 2px 0 0; }
