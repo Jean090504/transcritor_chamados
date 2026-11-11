@@ -177,16 +177,20 @@
     <div class="layout-transcritor">
     <aside class="painel-metricas">
       <div class="card-metrica">
-        <span class="metrica-rotulo">Gravados Hoje</span>
+        <span class="metrica-rotulo">Atendimentos hoje</span>
         <strong id="metricaTotal" class="metrica-valor">0</strong>
       </div>
       <div class="card-metrica">
-        <span class="metrica-rotulo">Prévia Média</span>
-        <strong id="metricaMediaPrevia" class="metrica-valor">--</strong>
+        <span class="metrica-rotulo">Acionados hoje</span>
+        <strong id="metricaAcionados" class="metrica-valor">0</strong>
       </div>
-      <div class="card-metrica card-metrica-larga">
-        <span class="metrica-rotulo">Seguradoras do Turno</span>
-        <div id="metricaSeguradoras" class="metrica-seguradoras">Nenhum registo</div>
+      <div class="card-metrica metrica-pendentes">
+        <span class="metrica-rotulo">Pendentes de acionamento</span>
+        <strong id="metricaPendentes" class="metrica-valor">0</strong>
+      </div>
+      <div class="card-metrica metrica-taxa">
+        <span class="metrica-rotulo">Taxa de acionamento</span>
+        <strong id="metricaTaxa" class="metrica-valor">0%</strong>
       </div>
     </aside>
 
@@ -241,7 +245,9 @@
         </div>
       </button>
 
-     <div class="container-historico">
+    </section>
+    <aside class="coluna-historico">
+      <div class="container-historico">
         <div class="cabecalho-historico">
           <div class="titulo-toggle-historico" id="toggleHistorico">
             <span>Últimos Envios Locais (<span id="totalHistorico">0</span>)</span>
@@ -249,7 +255,6 @@
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </div>
-          
           <div class="acoes-historico-topo">
             <button type="button" id="botaoSincronizar" class="botao-acao-historico" title="Atualizar o histórico do sistema">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -257,12 +262,9 @@
               </svg>
               Atualizar
             </button>
-            <button type="button" id="botaoLimparHistorico" class="botao-acao-historico" title="Limpar todo o histórico local">
-              Limpar
-            </button>
+            <button type="button" id="botaoLimparHistorico" class="botao-acao-historico" title="Limpar todo o histórico local">Limpar</button>
           </div>
         </div>
-        
         <div id="painelHistorico" class="painel-historico oculto">
           <div class="barra-pesquisa-historico">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -274,7 +276,7 @@
           <div id="listaHistorico" class="lista-historico"></div>
         </div>
       </div>
-    </section>
+    </aside>
   </div>
   </main>
 

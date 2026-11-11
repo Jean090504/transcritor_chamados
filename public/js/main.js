@@ -522,8 +522,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Elementos das Métricas
   const metricaTotal = document.getElementById('metricaTotal')
-  const metricaMediaPrevia = document.getElementById('metricaMediaPrevia')
-  const metricaSeguradoras = document.getElementById('metricaSeguradoras')
+  const metricaAcionados = document.getElementById('metricaAcionados')
+  const metricaPendentes = document.getElementById('metricaPendentes')
+  const metricaTaxa = document.getElementById('metricaTaxa')
 
   // Elementos do Modal
   const modalConfirmacao = document.getElementById('modalConfirmacao')
@@ -679,45 +680,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 4. Métricas do Turno
   function atualizarPainelMetricas() {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-    metricaTotal.textContent = historico.length
+    const hoje = new Date().toLocaleDateString('en-CA')
+    const atendimentosHoje = historico.filter((item) => !item.dataDia || item.dataDia === hoje)
+    const acionadosHoje = atendimentosHoje.filter((item) => {
+      const base = String(item.baseAcionada || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+      return base && !base.includes('nao acionad') && !base.includes('nao informado') && !base.includes('sem acionamento')
+    }).length
+    const pendentesHoje = Math.max(atendimentosHoje.length - acionadosHoje, 0)
+    const taxaAcionamento = atendimentosHoje.length
+      ? Math.round((acionadosHoje / atendimentosHoje.length) * 100)
+      : 0
 
-    if (historico.length === 0) {
-      metricaMediaPrevia.textContent = '--'
-      metricaSeguradoras.textContent = 'Nenhum registo'
-      return
-    }
-
-    let minutosTotal = 0
-    let contagemMinutos = 0
-    const contagemSeguradoras = {}
-
-    historico.forEach((item) => {
-      const seg = item.seguradora || 'OUTROS'
-      contagemSeguradoras[seg] = (contagemSeguradoras[seg] || 0) + 1
-
-      if (item.previaServico) {
-        const extraido = item.previaServico.match(/\d+/)
-        if (extraido) {
-          minutosTotal += parseInt(extraido[0], 10)
-          contagemMinutos++
-        }
-      }
-    })
-
-    if (contagemMinutos > 0) {
-      const media = Math.round(minutosTotal / contagemMinutos)
-      metricaMediaPrevia.textContent = `${media} min`
-    } else {
-      metricaMediaPrevia.textContent = '--'
-    }
-
-    metricaSeguradoras.replaceChildren()
-    Object.entries(contagemSeguradoras).slice(0, 3).forEach(([seg, total]) => {
-      const tag = document.createElement('span')
-      tag.className = 'tag-seguradora'
-      tag.textContent = `${seg}: ${total}`
-      metricaSeguradoras.appendChild(tag)
-    })
+    metricaTotal.textContent = String(atendimentosHoje.length)
+    metricaAcionados.textContent = String(acionadosHoje)
+    metricaPendentes.textContent = String(pendentesHoje)
+    metricaTaxa.textContent = `${taxaAcionamento}%`
   }
 
   // 5. Sincronização em tempo real com a Planilha
