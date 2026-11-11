@@ -22,14 +22,14 @@ for (const usuario of usuarios) {
       username: usuario.username,
       nome: usuario.nome,
       papel: usuario.papel,
-      aba: usuario.aba
+      aba: usuario.aba,
+      senhaHash: usuario.senhaHash,
+      trocarSenha: usuario.trocarSenha !== false
     },
     update: {
       nome: usuario.nome,
       papel: usuario.papel,
-      aba: usuario.aba,
-      senhaHash: usuario.senhaHash,
-      trocarSenha: usuario.trocarSenha !== false
+      aba: usuario.aba
     }
   })
 }
