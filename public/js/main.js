@@ -772,7 +772,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       return
     }
 
+    const gruposPorDia = new Map()
     filtrados.forEach((item) => {
+      const dia = item.dataDia || 'sem-data'
+      if (!gruposPorDia.has(dia)) gruposPorDia.set(dia, [])
+      gruposPorDia.get(dia).push(item)
+    })
+    gruposPorDia.forEach((itens, dataDia) => {
+      const grupo = document.createElement('section')
+      grupo.className = 'grupo-historico-dia'
+      const tituloDia = document.createElement('h3')
+      tituloDia.className = 'titulo-historico-dia'
+      tituloDia.textContent = dataDia === 'sem-data' ? 'Envios anteriores' : new Date(`${dataDia}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+      grupo.appendChild(tituloDia)
+      itens.forEach((item) => {
       const card = document.createElement('div')
       card.className = 'item-historico'
 
@@ -808,7 +821,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       containerDireita.append(hora, botaoExcluirItem)
       card.append(detalhes, containerDireita)
-      listaHistorico.appendChild(card)
+      grupo.appendChild(card)
+      })
+      listaHistorico.appendChild(grupo)
     })
   }
 
@@ -826,7 +841,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       baseAcionada: dados.baseAcionada,
       previaServico: dados.previaServico,
       linha: linhaCriada,
-      dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      dataDia: new Date().toLocaleDateString('en-CA')
     })
 
     if (historico.length > 25) historico.pop()

@@ -174,7 +174,8 @@
     </header>
 
     <!-- Mini Painel de Métricas do Turno -->
-    <section class="painel-metricas">
+    <div class="layout-transcritor">
+    <aside class="painel-metricas">
       <div class="card-metrica">
         <span class="metrica-rotulo">Gravados Hoje</span>
         <strong id="metricaTotal" class="metrica-valor">0</strong>
@@ -187,20 +188,12 @@
         <span class="metrica-rotulo">Seguradoras do Turno</span>
         <div id="metricaSeguradoras" class="metrica-seguradoras">Nenhum registo</div>
       </div>
-    </section>
+    </aside>
 
     <!-- Formulário Principal -->
     <section class="area-formulario rounded-2xl shadow-soft">
       <div class="cabecalho-texto">
-        <label for="textoChamado">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="9" x2="20" y2="9"></line>
-            <line x1="4" y1="15" x2="20" y2="15"></line>
-            <line x1="10" y1="3" x2="8" y2="21"></line>
-            <line x1="16" y1="3" x2="14" y2="21"></line>
-          </svg>
-          Texto do Chamado
-        </label>
+        <label for="textoChamado">Texto do Chamado</label>
         <div class="acoes-texto">
           <button type="button" id="botaoColar" class="botao-secundario" title="Colar">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -282,6 +275,7 @@
         </div>
       </div>
     </section>
+  </div>
   </main>
 
   <!-- Modal de Confirmação e Edição -->
