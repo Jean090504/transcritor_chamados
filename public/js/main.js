@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('totalAtendimentosHoje').textContent = dados.totalHoje
       document.getElementById('totalChamadosGeral').textContent = dados.totalGeral
       document.getElementById('totalAnalistasAtivos').textContent = dados.analistasAtivos
-      document.getElementById('mediaPorAnalista').textContent = dados.mediaPorAnalista
+      document.getElementById('totalAtendimentosAcionadosHoje').textContent = dados.totalAtendimentosAcionadosHoje
       const maiorTotal = Math.max(...dados.ultimosSeteDias.map((dia) => dia.total), 1)
       const grafico = document.getElementById('graficoUltimosSeteDias')
       grafico.replaceChildren(...dados.ultimosSeteDias.map((dia) => {

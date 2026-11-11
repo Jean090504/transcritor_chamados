@@ -2,7 +2,7 @@ import { extrairDadosChamado } from '../services/aiService.js'
 import { esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
-import { contarChamadosHoje, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
+import { contarChamadosHoje, contarAtendimentosAcionadosHoje, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
 
 function dataAtualSaoPaulo() {
   const partes = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
@@ -82,9 +82,10 @@ export const dashboardSarah = async (requisicao, resposta) => {
       return { data: dia, total: await contarPorData(dia, usernamesVisiveis) }
     }))
     const totalHoje = analistas.reduce((total, analista) => total + analista.atendimentosHoje, 0)
+    const totalAtendimentosAcionadosHoje = await contarAtendimentosAcionadosHoje(usernamesVisiveis, data)
     const usernames = new Set(analistas.map((analista) => analista.username))
     const totalGeral = (await todosChamados()).filter((chamado) => usernames.has(chamado.username)).length
-    return resposta.json({ data, totalHoje, totalGeral, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, mediaPorAnalista: analistas.length ? (totalHoje / analistas.length).toFixed(1) : '0.0', ultimosSeteDias, analistas })
+    return resposta.json({ data, totalHoje, totalAtendimentosAcionadosHoje, totalGeral, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, ultimosSeteDias, analistas })
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
 }
 
