@@ -33,21 +33,23 @@ function normalizarStatus(valor) {
     .trim()
 }
 
-function chamadoFoiAcionado(chamado) {
+function classificarAtendimento(chamado) {
   const base = normalizarStatus(chamado.baseAcionada)
   const estado = normalizarStatus(chamado.retratacaoFinal || chamado.retratacaoInicial)
-  if (/cancelad|nao acionad|sem acionamento/.test(estado)) return false
-  if (base && !/nao acionad|nao informado|sem acionamento|cancelad/.test(base)) return true
-  return estado.includes('acionad')
+  if (/cancelad/.test(`${base} ${estado}`)) return 'cancelados'
+  if ((base && !/nao acionad|nao informado|sem acionamento/.test(base)) || estado.includes('acionad')) return 'acionados'
+  return 'pendentes'
 }
 
-export async function contarAtendimentosAcionadosHoje(usernames, data) {
-  if (!usernames?.length) return 0
+export async function contarStatusAtendimentosHoje(usernames, data) {
+  const resultado = { acionados: 0, pendentes: 0, cancelados: 0 }
+  if (!usernames?.length) return resultado
   const chamados = await prisma.chamado.findMany({
     where: { dataAtendimento: data, username: { in: usernames } },
     select: { baseAcionada: true, retratacaoInicial: true, retratacaoFinal: true }
   })
-  return chamados.filter(chamadoFoiAcionado).length
+  chamados.forEach((chamado) => { resultado[classificarAtendimento(chamado)] += 1 })
+  return resultado
 }
 
 export async function existeProtocolo(username, protocolo) {

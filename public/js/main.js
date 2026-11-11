@@ -173,9 +173,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('dataDashboard').textContent = ''
       document.getElementById('subtituloDashboard').textContent = ''
       document.getElementById('totalAtendimentosHoje').textContent = dados.totalHoje
-      document.getElementById('totalChamadosGeral').textContent = dados.totalGeral
-      document.getElementById('totalAnalistasAtivos').textContent = dados.analistasAtivos
-      document.getElementById('totalAtendimentosAcionadosHoje').textContent = dados.totalAtendimentosAcionadosHoje
+      document.getElementById('totalAtendimentosAcionadosHoje').textContent = dados.statusAtendimentosHoje.acionados
+      document.getElementById('totalAtendimentosPendentesHoje').textContent = dados.statusAtendimentosHoje.pendentes
+      document.getElementById('totalAtendimentosCanceladosHoje').textContent = dados.statusAtendimentosHoje.cancelados
       const maiorTotal = Math.max(...dados.ultimosSeteDias.map((dia) => dia.total), 1)
       const grafico = document.getElementById('graficoUltimosSeteDias')
       grafico.replaceChildren(...dados.ultimosSeteDias.map((dia) => {
