@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (texto) elemento.textContent = texto
     return elemento
   }
+  const fusoBrasilia = 'America/Sao_Paulo'
+  const formatarDataBrasilia = (data = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: fusoBrasilia }).format(data)
+  const formatarHoraBrasilia = (data = new Date()) => new Intl.DateTimeFormat('pt-BR', { timeZone: fusoBrasilia, hour: '2-digit', minute: '2-digit' }).format(data)
   const criarIconeOlho = (visivel) => {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     svg.setAttribute('viewBox', '0 0 24 24')
@@ -682,7 +685,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 4. Métricas do Turno
   function atualizarPainelMetricas() {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-    const hoje = new Date().toLocaleDateString('en-CA')
+    const hoje = formatarDataBrasilia()
     const atendimentosHoje = historico.filter((item) => !item.dataDia || item.dataDia === hoje)
     const acionadosHoje = atendimentosHoje.filter((item) => {
       const base = String(item.baseAcionada || '')
@@ -765,7 +768,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       grupo.className = 'grupo-historico-dia'
       const tituloDia = document.createElement('h3')
       tituloDia.className = 'titulo-historico-dia'
-      tituloDia.textContent = dataDia === 'sem-data' ? 'Envios anteriores' : new Date(`${dataDia}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+      tituloDia.textContent = dataDia === 'sem-data' ? 'Envios anteriores' : new Intl.DateTimeFormat('pt-BR', { timeZone: fusoBrasilia, weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${dataDia}T12:00:00Z`))
       grupo.appendChild(tituloDia)
       itens.forEach((item) => {
       const card = document.createElement('div')
@@ -823,8 +826,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       baseAcionada: dados.baseAcionada,
       previaServico: dados.previaServico,
       linha: linhaCriada,
-      dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      dataDia: new Date().toLocaleDateString('en-CA')
+      dataHora: formatarHoraBrasilia(),
+      dataDia: formatarDataBrasilia()
     })
 
     if (historico.length > 25) historico.pop()

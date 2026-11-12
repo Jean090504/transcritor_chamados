@@ -4,7 +4,7 @@ import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlo
 import { preVisualizarChamado, gravarChamado, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
 import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaUsername, esquemaLogin, esquemaNovaSenha } from '../schemas/chamadoSchema.js'
-import { limitadorAutenticacao, limitadorRequisicoes } from '../middlewares/rateLimiter.js'
+import { limitadorAnalise, limitadorAutenticacao, limitadorGravacao } from '../middlewares/rateLimiter.js'
 import { asyncHandler } from '../middlewares/asyncHandler.js'
 
 const roteador = Router()
@@ -91,8 +91,8 @@ roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoD
 
 roteador.use(exigirAutenticacao)
 roteador.get('/abas', asyncHandler(listarAbas))
-roteador.post('/previsualizar', limitadorRequisicoes, validarRequisicao(esquemaTextoEntrada.extend({ username: esquemaUsername.optional() })), preVisualizarChamado)
-roteador.post('/gravar', limitadorRequisicoes, validarRequisicao(esquemaGravacaoFinal), gravarChamado)
+roteador.post('/previsualizar', limitadorAnalise, validarRequisicao(esquemaTextoEntrada.extend({ username: esquemaUsername.optional() })), preVisualizarChamado)
+roteador.post('/gravar', limitadorGravacao, validarRequisicao(esquemaGravacaoFinal), gravarChamado)
 roteador.post('/desfazer', validarRequisicao(esquemaDesfazer), desfazerGravacao)
 roteador.get('/sincronizar', validarRequisicao(esquemaSincronizar, 'query'), asyncHandler(sincronizarPlanilha))
 

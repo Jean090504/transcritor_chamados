@@ -1,9 +1,37 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai'
+import { createHash } from 'node:crypto'
 import { configuracaoAmbiente } from '../config/env.js'
 
 const clienteInteligenciaArtificial = new GoogleGenerativeAI(configuracaoAmbiente.CHAVE_API_GEMINI)
+const cacheAnalises = new Map()
+const CACHE_ANALISE_TTL_MS = 5 * 60 * 1000
+const LIMITE_CACHE_ANALISES = 50
+
+function chaveAnalise(texto) {
+  return createHash('sha256').update(texto).digest('hex')
+}
+
+function registrarAnaliseCache(chave, dados) {
+  cacheAnalises.set(chave, { dados, expiraEm: Date.now() + CACHE_ANALISE_TTL_MS })
+  if (cacheAnalises.size > LIMITE_CACHE_ANALISES) {
+    const primeiraChave = cacheAnalises.keys().next().value
+    cacheAnalises.delete(primeiraChave)
+  }
+}
 
 export async function extrairDadosChamado(textoBruto) {
+  const chave = chaveAnalise(textoBruto)
+  const resultadoEmCache = cacheAnalises.get(chave)
+  if (resultadoEmCache && resultadoEmCache.expiraEm > Date.now()) return resultadoEmCache.dados
+  if (resultadoEmCache) cacheAnalises.delete(chave)
+
+  const inicioAnalise = performance.now()
+  const horarioBrasilia = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }).format(new Date())
+
   const instrucaoExtracao = `
     És um assistente operacional. Analisa o texto do chamado fornecido e extrai as informações solicitadas estritamente em formato JSON válido.
 
@@ -20,6 +48,10 @@ export async function extrairDadosChamado(textoBruto) {
     - retratacaoFinal: Texto presente em "[ RETRATACAO ] -> FINAL :". Se vazio ou ausente, retorne "AGENDAMENTO".
     - resumoTentativas: Resumo de todas as bases contactadas. Cada base DEVE começar obrigatoriamente numa nova linha usando quebra de linha real (\\n). Formato por linha:
       NOME DA BASE: T1 STATUS, T2 STATUS
+
+    Datas devem permanecer no padrão brasileiro DD/MM e horários no padrão 24 horas HH:mm.
+    Considere como referência a data e hora de Brasília: ${horarioBrasilia}.
+    Nunca converta datas para o padrão americano MM/DD.
 
     Texto do chamado:
     ${textoBruto}
@@ -63,20 +95,6 @@ export async function extrairDadosChamado(textoBruto) {
     'gemini-3.5-flash'
   ].filter((nomeModelo, indice, modelos) => nomeModelo && modelos.indexOf(nomeModelo) === indice)
 
-  async function gerarComPrazo(modeloGemini, instrucao, prazoMs = 20000) {
-    let temporizador
-    try {
-      return await Promise.race([
-        modeloGemini.generateContent(instrucao),
-        new Promise((_, rejeitar) => {
-          temporizador = setTimeout(() => rejeitar(new Error('Tempo limite excedido ao analisar o chamado.')), prazoMs)
-        })
-      ])
-    } finally {
-      clearTimeout(temporizador)
-    }
-  }
-
   for (const nomeModelo of modelosDisponiveis) {
     try {
       const modeloGemini = clienteInteligenciaArtificial.getGenerativeModel({
@@ -84,9 +102,12 @@ export async function extrairDadosChamado(textoBruto) {
         generationConfig: configuracaoSchema
       })
 
-      const resultadoGeracao = await gerarComPrazo(modeloGemini, instrucaoExtracao)
+      const resultadoGeracao = await modeloGemini.generateContent(instrucaoExtracao, { timeout: 20000 })
       const respostaTexto = resultadoGeracao.response.text()
-      return JSON.parse(respostaTexto)
+      const dadosExtraidos = JSON.parse(respostaTexto)
+      registrarAnaliseCache(chave, dadosExtraidos)
+      console.info(JSON.stringify({ evento: 'analise_chamado', modelo: nomeModelo, duracaoMs: Math.round(performance.now() - inicioAnalise), caracteres: textoBruto.length }))
+      return dadosExtraidos
     } catch (erro) {
       console.warn(`Tentativa com ${nomeModelo} falhou: ${erro.message || erro}. Tentando próximo...`)
       if (erro.status === 429 || erro.status === 503 || erro.status === 404) {

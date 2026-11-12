@@ -1,13 +1,24 @@
 import rateLimit from 'express-rate-limit'
 
-export const limitadorRequisicoes = rateLimit({
+export const limitadorGravacao = rateLimit({
   windowMs: 60 * 1000,
-  max: 15,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     sucesso: false,
-    erro: 'Muitas requisicoes realizadas. Aguarde um minuto antes de tentar novamente.'
+    erro: 'Limite de gravacoes atingido. Aguarde um minuto antes de tentar novamente.'
+  }
+})
+
+export const limitadorAnalise = rateLimit({
+  windowMs: 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    sucesso: false,
+    erro: 'Limite de analises atingido. Aguarde um minuto antes de tentar novamente.'
   }
 })
 
