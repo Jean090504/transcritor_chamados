@@ -132,10 +132,7 @@ export async function extrairDadosChamado(textoBruto) {
     } catch (erro) {
       console.warn(`Tentativa com ${nomeModelo} falhou: ${erro.message || erro}. Tentando próximo...`)
       registrarFalhaModelo(falhas, nomeModelo, erro)
-      if ([400, 401, 403, 404, 408, 429, 500, 502, 503, 504].includes(Number(erro.status))) {
-        continue
-      }
-      throw erro
+      continue
     }
   }
 
@@ -196,8 +193,7 @@ export async function extrairDadosOperacionais(textoBruto) {
       return dados
     } catch (erro) {
       registrarFalhaModelo(falhas, nomeModelo, erro)
-      if ([400, 401, 403, 404, 408, 429, 500, 502, 503, 504].includes(Number(erro.status))) continue
-      throw erro
+      continue
     }
   }
   throw erroIAIndisponivel(falhas)

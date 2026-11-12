@@ -41,9 +41,10 @@ export const preVisualizarOperacional = async (requisicao, resposta) => {
     const dados = esquemaDadosOperacionais.parse(await extrairDadosOperacionais(requisicao.body.textoManual))
     return resposta.json({ sucesso: true, dados: prepararRegistroOperacional(dados, requisicao.usuario) })
   } catch (erro) {
-    console.error('Falha ao analisar registro operacional:', erro)
+    console.error('Falha ao analisar registro operacional:', erro?.stack || erro)
     if (erro.codigo === 'IA_INDISPONIVEL') return resposta.status(erro.status || 503).json({ sucesso: false, erro: erro.mensagemPublica || erro.message })
-    return resposta.status(500).json({ sucesso: false, erro: 'Falha ao analisar o chamado operacional.' })
+    const detalhe = String(erro?.message || '').replace(/AIza[\w-]{20,}/g, '[chave ocultada]').slice(0, 240)
+    return resposta.status(502).json({ sucesso: false, erro: detalhe ? `Falha na IA: ${detalhe}` : 'Falha na IA ao analisar o chamado operacional.' })
   }
 }
 
