@@ -6,6 +6,29 @@ const clienteInteligenciaArtificial = new GoogleGenerativeAI(configuracaoAmbient
 const cacheAnalises = new Map()
 const CACHE_ANALISE_TTL_MS = 5 * 60 * 1000
 const LIMITE_CACHE_ANALISES = 50
+const MODELOS_FLASH_FALLBACK = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-flash']
+
+function obterModelosDisponiveis() {
+  return [configuracaoAmbiente.MODELO_GEMINI, ...MODELOS_FLASH_FALLBACK].filter((nomeModelo, indice, modelos) => nomeModelo && modelos.indexOf(nomeModelo) === indice)
+}
+
+function erroIAIndisponivel(falhas) {
+  const status = [...new Set(falhas.map((falha) => falha.status).filter(Boolean))]
+  const erro = new Error('NÃ£o foi possÃ­vel analisar agora. Tente novamente em instantes.')
+  erro.codigo = 'IA_INDISPONIVEL'
+  erro.status = status.includes(429) ? 429 : status.includes(401) || status.includes(403) ? 403 : 503
+  erro.falhas = falhas
+  if (erro.status === 429) erro.mensagemPublica = 'A cota da IA foi atingida. Aguarde alguns instantes e tente novamente.'
+  else if (erro.status === 403) erro.mensagemPublica = 'A chave da IA nÃ£o tem permissÃ£o ou estÃ¡ invÃ¡lida. Verifique GEMINI_API_KEY na implantaÃ§Ã£o.'
+  else erro.mensagemPublica = 'A IA estÃ¡ temporariamente indisponÃ­vel. Tente novamente em instantes.'
+  return erro
+}
+
+function registrarFalhaModelo(falhas, nomeModelo, erro) {
+  const status = Number(erro?.status) || null
+  falhas.push({ modelo: nomeModelo, status, mensagem: String(erro?.message || erro).slice(0, 300) })
+  console.warn(`Tentativa com ${nomeModelo} falhou [${status || 'sem status'}]: ${erro?.message || erro}`)
+}
 
 function chaveAnalise(texto) {
   return createHash('sha256').update(texto).digest('hex')
@@ -90,10 +113,8 @@ export async function extrairDadosChamado(textoBruto) {
     }
   }
 
-  const modelosDisponiveis = [
-    configuracaoAmbiente.MODELO_GEMINI,
-    'gemini-3.5-flash'
-  ].filter((nomeModelo, indice, modelos) => nomeModelo && modelos.indexOf(nomeModelo) === indice)
+  const modelosDisponiveis = obterModelosDisponiveis()
+  const falhas = []
 
   for (const nomeModelo of modelosDisponiveis) {
     try {
@@ -110,14 +131,15 @@ export async function extrairDadosChamado(textoBruto) {
       return dadosExtraidos
     } catch (erro) {
       console.warn(`Tentativa com ${nomeModelo} falhou: ${erro.message || erro}. Tentando próximo...`)
-      if (erro.status === 429 || erro.status === 503 || erro.status === 404) {
+      registrarFalhaModelo(falhas, nomeModelo, erro)
+      if ([400, 401, 403, 404, 408, 429, 500, 502, 503, 504].includes(Number(erro.status))) {
         continue
       }
       throw erro
     }
   }
 
-  throw new Error('Todos os modelos da linha Flash falharam. Verifique a cota ou chave de API.')
+  throw erroIAIndisponivel(falhas)
 }
 
 export async function extrairDadosOperacionais(textoBruto) {
@@ -163,7 +185,8 @@ export async function extrairDadosOperacionais(textoBruto) {
       required: ['protocolo', 'assistencia', 'outraAssist', 'servico', 'cidade', 'uf', 'cliente', 'dataHoraSolicitacao', 'dataHoraRetorno', 'porQuePedimosAuxilio', 'houveAtuacaoRede', 'retornoAuxilio', 'servicoBaseIndicada', 'resolucaoAcionamento', 'baseAcionada']
     }
   }
-  const modelosDisponiveis = [configuracaoAmbiente.MODELO_GEMINI, 'gemini-3.5-flash'].filter((nomeModelo, indice, modelos) => nomeModelo && modelos.indexOf(nomeModelo) === indice)
+  const modelosDisponiveis = obterModelosDisponiveis()
+  const falhas = []
   for (const nomeModelo of modelosDisponiveis) {
     try {
       const modeloGemini = clienteInteligenciaArtificial.getGenerativeModel({ model: nomeModelo, generationConfig: configuracaoSchema })
@@ -172,9 +195,10 @@ export async function extrairDadosOperacionais(textoBruto) {
       registrarAnaliseCache(chave, dados)
       return dados
     } catch (erro) {
-      if (erro.status === 429 || erro.status === 503 || erro.status === 404) continue
+      registrarFalhaModelo(falhas, nomeModelo, erro)
+      if ([400, 401, 403, 404, 408, 429, 500, 502, 503, 504].includes(Number(erro.status))) continue
       throw erro
     }
   }
-  throw new Error('Todos os modelos da linha Flash falharam. Verifique a cota ou chave de API.')
+  throw erroIAIndisponivel(falhas)
 }
