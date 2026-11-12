@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }))
       seletorAba.disabled = abas.length <= 1
       seletorAba.value = abas[0]?.id || ''
+      document.body.classList.add('modo-analista')
       document.body.classList.remove('sessao-carregando')
       telaLogin.classList.add('oculto')
       return Boolean(seletorAba.value)

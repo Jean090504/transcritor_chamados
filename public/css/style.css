@@ -1052,13 +1052,17 @@ textarea:focus {
 .painel-sarah { background: linear-gradient(135deg, #f4f8fc 0%, #eef8f5 52%, #f3f8fd 100%); }
 .cabecalho-dashboard { border-top: 3px solid #0b67d1 !important; border-right-color: rgba(0, 166, 214, .35) !important; border-bottom-color: rgba(0, 200, 117, .3) !important; }
 .cabecalho-dashboard-identidade .logo-dashboard { filter: drop-shadow(0 5px 8px rgba(0, 166, 214, .18)); }
-.metrica-dashboard { position: relative; overflow: hidden; border-top: 3px solid #0b67d1; background: linear-gradient(145deg, #fff 0%, #f7fbff 100%); }
+.metrica-dashboard { position: relative; min-height: 106px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; border-top: 3px solid #0b67d1; background: linear-gradient(145deg, #fff 0%, #f7fbff 100%); text-align: center; }
+.metrica-dashboard span, .metrica-dashboard strong { position: relative; z-index: 1; }
+.metrica-dashboard span { font-size: .9rem; }
+.metrica-dashboard strong { margin-top: .45rem; font-size: 2.15rem; line-height: 1; }
+.metrica-destaque { border-color: #0b67d1; background: linear-gradient(135deg, #0b67d1 0%, #00a6d6 100%); }
+.metrica-destaque span, .metrica-destaque strong { color: #fff; }
 .metrica-dashboard:nth-child(2) { border-top-color: #00a6d6; }
 .metrica-dashboard:nth-child(3) { border-top-color: #00c875; }
 .metrica-dashboard:nth-child(4) { border-top-color: #0b67d1; }
 .metrica-dashboard::after { position: absolute; right: -1.8rem; bottom: -2.2rem; width: 7rem; height: 7rem; border-radius: 50%; background: rgba(0, 200, 117, .08); content: ''; }
 .metrica-dashboard:nth-child(2)::after { background: rgba(0, 166, 214, .08); }
-.metrica-dashboard strong { position: relative; z-index: 1; }
 .grafico-dashboard, .filtros-dashboard { background: linear-gradient(145deg, #fff 0%, #fbfefd 100%); border-color: rgba(11, 103, 209, .2); }
 .botao-periodo-dashboard:hover, .botao-periodo-dashboard.periodo-ativo { border-color: #00a6d6; color: #075985; background: linear-gradient(90deg, #e8f6ff, #e9fff5); }
 .card-analista { border-top: 3px solid #0b67d1; background: linear-gradient(145deg, #fff 0%, #f8fcff 100%); }
@@ -1071,6 +1075,19 @@ textarea:focus {
 body.dark-mode .painel-sarah { background: linear-gradient(135deg, #0b1220 0%, #0c211e 52%, #0b1728 100%); }
 body.dark-mode .metrica-dashboard, body.dark-mode .grafico-dashboard, body.dark-mode .filtros-dashboard, body.dark-mode .card-analista { background: linear-gradient(145deg, #111827 0%, #12231f 100%); }
 body.dark-mode .avatar-analista { background: linear-gradient(135deg, #123b59, #124633); color: #b9f5df; }
+
+/* Ambiente do analista com a paleta da marca e fundo próprio. */
+body.modo-analista { align-items: flex-start; background-color: #edf7f4; background-image: radial-gradient(circle at 8% 12%, rgba(0, 200, 117, .16), transparent 28%), radial-gradient(circle at 94% 8%, rgba(0, 166, 214, .15), transparent 30%), linear-gradient(135deg, #f4f9ff 0%, #eefaf6 52%, #f2f7ff 100%); }
+body.modo-analista .container-aplicacao { position: relative; margin-top: 2rem; border-top: 4px solid transparent; border-image: linear-gradient(90deg, #0b67d1, #00a6d6, #00c875) 1; box-shadow: 0 16px 40px rgba(11, 103, 209, .1), 0 8px 22px rgba(0, 200, 117, .06); }
+body.modo-analista .cabecalho-cartao { border-bottom-color: rgba(0, 166, 214, .28); }
+body.modo-analista .card-metrica { border-top: 3px solid #0b67d1; background: linear-gradient(145deg, #fff, #f5fbff); }
+body.modo-analista .card-metrica:nth-child(2) { border-top-color: #00a6d6; }
+body.modo-analista .card-metrica:nth-child(3) { border-top-color: #00c875; }
+body.modo-analista .card-metrica:nth-child(4) { border-top-color: #0b67d1; }
+body.modo-analista .area-formulario, body.modo-analista .container-historico { border-color: rgba(11, 103, 209, .2); box-shadow: 0 8px 22px rgba(15, 23, 42, .045); }
+body.dark-mode.modo-analista { background-color: #0b171b; background-image: radial-gradient(circle at 8% 12%, rgba(0, 200, 117, .14), transparent 28%), radial-gradient(circle at 94% 8%, rgba(0, 166, 214, .14), transparent 30%), linear-gradient(135deg, #0b1220 0%, #0c211e 52%, #0b1728 100%); }
+body.dark-mode.modo-analista .container-aplicacao { box-shadow: 0 16px 40px rgba(0, 0, 0, .28); }
+body.dark-mode.modo-analista .card-metrica { background: linear-gradient(145deg, #111827, #12231f); }
 @media (max-width: 760px) { .metricas-dashboard { grid-template-columns: repeat(2, 1fr); } .cabecalho-secao-dashboard, .cabecalho-lista-dashboard { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 640px) { .campos-periodo-dashboard { align-items: stretch; flex-direction: column; } .campo-periodo-dashboard input, .campos-periodo-dashboard .botao-primario { width: 100%; box-sizing: border-box; } .legenda-grafico-status { justify-content: flex-start; } }
 @media (max-width: 640px) { .cabecalho-solicitacoes-reset, .item-solicitacao-reset { align-items: flex-start; flex-direction: column; } .acoes-solicitacao-reset { width: 100%; justify-content: stretch; } .acoes-solicitacao-reset button { flex: 1; } }
