@@ -22,7 +22,7 @@ export const USUARIOS_OPERACIONAIS_INICIAIS = [
     nome: 'ADMINISTRADOR OPERACIONAL',
     papel: 'operacional',
     aba: null,
-    senhaHash: 'e3ccb1de41792f862bcf0cc4ae33a5b9:14cca5c4d95f1ede07ab55a5fc6523a3de82d967c4fbce2f6a4bd34e83b1f2eea45e0d108325e1c798aff0a26e0c36603ec4ed157ca2022f6faa07e20142d286',
+    senhaHash: 'e3ccb1de41792f862bcf0cc4ae33a5b9:9f0d85c034ee0fe9072a23538d4d1b9eccb7fd3256d6a50772f45b29c47f96f5a9555361b79deb94b46a4dd104ecae68253a9d8a8a4d97897892f597f5a56f9c',
     trocarSenha: true
   }
 ]
