@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return true
       }
       if (usuarioAtual.acessoOperacional) {
+        document.body.classList.add('modo-administrativo')
         document.body.classList.remove('sessao-carregando')
         telaLogin.classList.add('oculto')
         return true
@@ -294,7 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       campoElementos.get('adm').value = usuarioAtual.nome.includes('FLAVIO') ? 'FLAVIO MARCOLINO' : 'ELAINE MARREIROS'
       atualizarTempoOperacional()
     }
-    subtituloOperacional.textContent = `${usuarioAtual.nome} · registro independente do dashboard`
+    subtituloOperacional.textContent = `${usuarioAtual.nome} · envio independente para a planilha operacional`
     painelOperacional.classList.remove('oculto')
     document.body.classList.remove('sessao-carregando')
     botaoAnalisarOperacional.addEventListener('click', async () => {

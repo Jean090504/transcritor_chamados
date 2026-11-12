@@ -31,7 +31,6 @@ roteador.post('/auth/login', limitadorAutenticacao, validarRequisicao(esquemaLog
   try {
     const { username, senha } = requisicao.body || {}
     const resultado = await autenticarUsuario(username, senha)
-    if (!resultado) return resposta.status(401).json({ erro: 'Os dados informados \u00e3o conferem. Verifique usu\u00e1rio e senha.' })
     if (!resultado) return resposta.status(401).json({ erro: 'Os dados informados não conferem. Verifique usuário e senha.' })
     return resposta.json(resultado)
   } catch (erro) {

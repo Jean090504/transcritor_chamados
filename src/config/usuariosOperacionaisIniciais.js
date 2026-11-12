@@ -16,5 +16,13 @@ export const USUARIOS_OPERACIONAIS_INICIAIS = [
     aba: null,
     senhaHash: '3fddad2f0215f8e2a086d8253ddd0a66:7d6b51c7d8fcc2617c6bf51121af0ef0d3aff11df112c4f7cad50fd43fe47a72be5a3636b5533c25a0dbcd9aee702a5492b32705d8c8408cb45ec18fe85a6bae',
     trocarSenha: true
+  },
+  {
+    username: 'adm',
+    nome: 'ADMINISTRADOR OPERACIONAL',
+    papel: 'operacional',
+    aba: null,
+    senhaHash: 'e3ccb1de41792f862bcf0cc4ae33a5b9:14cca5c4d95f1ede07ab55a5fc6523a3de82d967c4fbce2f6a4bd34e83b1f2eea45e0d108325e1c798aff0a26e0c36603ec4ed157ca2022f6faa07e20142d286',
+    trocarSenha: true
   }
 ]

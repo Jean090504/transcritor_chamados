@@ -15,6 +15,7 @@ const usuarios = [
   { username: 'junaide.auzeni', nome: 'JUNAIDE AUZENI DE SOUSA', papel: 'supervisor', aba: null },
   { username: 'elaine.marreiros', nome: 'ELAINE MARREIROS', papel: 'operacional', aba: null },
   { username: 'flavio.marcolino', nome: 'FLAVIO MARCOLINO', papel: 'operacional', aba: null },
+  { username: 'adm', nome: 'ADMINISTRADOR OPERACIONAL', papel: 'operacional', aba: null },
   ...ANALISTAS.map((analista) => ({ ...analista, papel: 'analista' }))
 ]
 
