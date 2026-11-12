@@ -3,6 +3,7 @@ import { esquemaChamadoEstruturado, esquemaDadosOperacionais } from '../schemas/
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
 import { contarChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
+import { prepararRegistroOperacional } from '../services/operacionalService.js'
 import { listarHistoricoOperacional, salvarRegistroOperacionalSeguro } from '../services/operacionalRegistroService.js'
 
 function dataAtualSaoPaulo() {

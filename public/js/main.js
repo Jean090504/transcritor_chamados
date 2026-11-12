@@ -1,7 +1,7 @@
 const atalhosInspecao = new Set(['I', 'J', 'C'])
 document.addEventListener('contextmenu', (evento) => evento.preventDefault())
 document.addEventListener('keydown', (evento) => {
-  const tecla = evento.key.toUpperCase()
+  const tecla = String(evento.key || '').toUpperCase()
   const abrirFerramentas = tecla === 'F12' || (evento.ctrlKey && evento.shiftKey && atalhosInspecao.has(tecla))
   const verCodigo = evento.ctrlKey && !evento.shiftKey && !evento.altKey && tecla === 'U'
   if (abrirFerramentas || verCodigo) {
