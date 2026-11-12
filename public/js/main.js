@@ -243,6 +243,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const botaoAnalisarOperacional = document.getElementById('botaoAnalisarOperacional')
     const botaoEnviarOperacional = document.getElementById('botaoEnviarOperacional')
     const subtituloOperacional = document.getElementById('subtituloOperacional')
+    const identidadeOperacional = document.getElementById('identidadeOperacional')
+    const nomeAdmOperacional = usuarioAtual.nome.includes('FLAVIO') ? 'FLAVIO MARCOLINO' : usuarioAtual.nome.includes('ELAINE') ? 'ELAINE MARREIROS' : usuarioAtual.nome
     const campos = [
       ['protocolo', 'Protocolo', 'text'], ['assistencia', 'Assistência', 'text'], ['barra', 'Barra', 'text', true], ['outraAssist', 'Outra assist.', 'text'],
       ['servico', 'Serviço', 'text'], ['cidade', 'Cidade', 'text'], ['uf', 'UF', 'text'], ['cliente', 'Cliente', 'text'],
@@ -251,21 +253,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       ['porQuePedimosAuxilio', 'Por que pedimos auxílio?', 'text'], ['houveAtuacaoRede', 'Houve atuação da rede?', 'text'],
       ['retornoAuxilio', 'Retorno do auxílio', 'text'], ['servicoBaseIndicada', 'Serviço acionado com a base indicada', 'text'],
       ['resolucaoAcionamento', 'Resolução do acionamento', 'text'], ['baseAcionada', 'Base acionada', 'text'],
-      ['respondidoPor', 'Respondido por', 'text', true], ['adm', 'Adm - Elaine Marreiros', 'select']
+      ['respondidoPor', 'Respondido por', 'text', true], ['adm', 'Administrador responsável', 'text', true]
     ]
     const campoElementos = new Map()
     camposOperacionais.replaceChildren(...campos.map(([chave, rotulo, tipo, readonly]) => {
       const grupo = criarElemento('label', ['campo-operacional'])
       grupo.append(criarElemento('span', [], rotulo))
-      const campo = tipo === 'select' ? document.createElement('select') : document.createElement('input')
+      const campo = document.createElement('input')
       campo.id = `operacional-${chave}`
       campo.name = chave
-      campo.type = tipo === 'select' ? undefined : tipo
+      campo.type = tipo
       campo.readOnly = Boolean(readonly)
-      if (tipo === 'select') {
-        campo.append(criarElemento('option', [], 'ELAINE MARREIROS'))
-        campo.append(criarElemento('option', [], 'FLAVIO MARCOLINO'))
-      }
+      if (chave === 'adm') grupo.classList.add('campo-adm-operacional')
       campo.addEventListener('input', () => {
         if (chave === 'protocolo') {
           const barra = campoElementos.get('barra')
@@ -292,10 +291,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const preencherCamposOperacionais = (dados) => {
       campos.forEach(([chave]) => { if (campoElementos.has(chave)) campoElementos.get(chave).value = dados[chave] || '' })
       campoElementos.get('respondidoPor').value = usuarioAtual.nome
-      campoElementos.get('adm').value = usuarioAtual.nome.includes('FLAVIO') ? 'FLAVIO MARCOLINO' : 'ELAINE MARREIROS'
+      campoElementos.get('adm').value = nomeAdmOperacional
       atualizarTempoOperacional()
     }
-    subtituloOperacional.textContent = `${usuarioAtual.nome} · envio independente para a planilha operacional`
+    identidadeOperacional.textContent = `Adm - ${nomeAdmOperacional}`
+    subtituloOperacional.textContent = `Adm - ${nomeAdmOperacional} · envio independente para a planilha operacional`
     painelOperacional.classList.remove('oculto')
     document.body.classList.remove('sessao-carregando')
     botaoAnalisarOperacional.addEventListener('click', async () => {
@@ -323,13 +323,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         textoOperacional.value = ''
         formularioOperacional.reset()
         campoElementos.get('respondidoPor').value = usuarioAtual.nome
+        campoElementos.get('adm').value = nomeAdmOperacional
         campoElementos.get('barra').value = ''
         campoElementos.get('tempoRetorno').value = 'Não informado'
         campoElementos.get('faixaRetorno').value = 'Não informado'
       } catch (erro) { mostrarModalMensagem('Falha no envio', erro.message) } finally { botaoEnviarOperacional.disabled = false }
     })
     document.getElementById('botaoColarOperacional')?.addEventListener('click', async () => { try { textoOperacional.value = await navigator.clipboard.readText(); textoOperacional.focus() } catch { mostrarModalMensagem('Não foi possível colar', 'Permita o acesso à área de transferência no navegador.') } })
-    document.getElementById('botaoLimparOperacional')?.addEventListener('click', () => { formularioOperacional.reset(); formularioOperacional.classList.add('oculto'); textoOperacional.value = ''; campoElementos.get('respondidoPor').value = usuarioAtual.nome })
+    document.getElementById('botaoLimparOperacional')?.addEventListener('click', () => { formularioOperacional.reset(); formularioOperacional.classList.add('oculto'); textoOperacional.value = ''; campoElementos.get('respondidoPor').value = usuarioAtual.nome; campoElementos.get('adm').value = nomeAdmOperacional })
     document.getElementById('botaoSairOperacional')?.addEventListener('click', () => { sessionStorage.removeItem('token_jwt'); window.location.reload() })
     return
   }

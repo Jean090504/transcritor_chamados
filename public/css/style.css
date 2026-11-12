@@ -779,6 +779,8 @@ textarea:focus {
 .cabecalho-operacional .info-cabecalho { display: flex; align-items: center; gap: .85rem; }
 .cabecalho-operacional h1 { margin: .15rem 0 0; font-size: 1.2rem; }
 .cabecalho-operacional p { margin: .25rem 0 0; color: #64748b; font-size: .82rem; }
+.identidade-operacional { display: grid; gap: .15rem; margin-left: auto; padding: .55rem .8rem; border: 1px solid rgba(0, 166, 214, .28); border-radius: 8px; background: linear-gradient(135deg, rgba(0, 200, 117, .08), rgba(0, 166, 214, .08)); color: #64748b; font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.identidade-operacional strong { color: #075985; font-size: .78rem; letter-spacing: 0; white-space: nowrap; }
 .operacional-corpo { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(0, 1.6fr); gap: 1rem; margin-top: 1rem; align-items: start; }
 .operacional-entrada, .formulario-operacional { padding: 1.1rem; border: 1px solid #d7e0ec; border-radius: 12px; background: #fff; box-shadow: 0 6px 20px rgba(15, 23, 42, .05); }
 .operacional-entrada textarea { width: 100%; min-height: 230px; resize: vertical; box-sizing: border-box; margin: .85rem 0; padding: .8rem; border: 1px solid #cbd5e1; border-radius: 8px; color: #0f172a; }
@@ -793,6 +795,8 @@ textarea:focus {
 .campo-operacional select:hover { border-color: #00a6d6; box-shadow: 0 4px 12px rgba(0, 166, 214, .12); }
 .campo-operacional select:focus { border-color: #0b67d1; outline: 3px solid rgba(0, 166, 214, .16); box-shadow: 0 5px 14px rgba(11, 103, 209, .12); }
 .campo-operacional input[readonly] { background: #f8fafc; color: #64748b; }
+.campo-operacional input[readonly]:focus { border-color: #cbd5e1; outline: none; box-shadow: none; }
+.campo-adm-operacional input { border-color: rgba(0, 200, 117, .4); background: linear-gradient(90deg, #f3fff9, #f4fbff); color: #075985; font-weight: 800; cursor: not-allowed; }
 .acoes-operacionais { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
 body.modo-administrativo { align-items: flex-start; background: #eef9f5; background-image: radial-gradient(circle at 4% 10%, rgba(0, 200, 117, .2), transparent 25%), radial-gradient(circle at 96% 14%, rgba(0, 166, 214, .18), transparent 28%), linear-gradient(135deg, #f5fbff 0%, #edf9f4 52%, #f3f8ff 100%); }
 body.modo-administrativo .container-aplicacao, body.modo-administrativo .botao-tema, body.modo-administrativo > .circulo-luz, body.modo-administrativo #painelSarah { display: none; }
@@ -805,6 +809,9 @@ body.modo-administrativo .operacional-entrada textarea:focus { border-color: #00
 body.dark-mode.modo-administrativo { background: #0b171b; background-image: radial-gradient(circle at 4% 10%, rgba(0, 200, 117, .14), transparent 25%), radial-gradient(circle at 96% 14%, rgba(0, 166, 214, .14), transparent 28%), linear-gradient(135deg, #0b1220 0%, #0c211e 52%, #0b1728 100%); }
 body.dark-mode.modo-administrativo .operacional-entrada, body.dark-mode.modo-administrativo .formulario-operacional { background: linear-gradient(145deg, #111827, #12231f); }
 body.dark-mode .campo-operacional select { border-color: #187b94; color: #b9f5df; background-color: #10222b; }
+body.dark-mode.modo-administrativo .identidade-operacional { border-color: #187b94; background: linear-gradient(135deg, rgba(0, 200, 117, .12), rgba(0, 166, 214, .14)); }
+body.dark-mode.modo-administrativo .identidade-operacional strong, body.dark-mode.modo-administrativo .campo-adm-operacional input { color: #b9f5df; }
+body.dark-mode.modo-administrativo .campo-adm-operacional input { border-color: #168b73; background: #102a2a; }
 
 /* A central administrativa ocupa a área útil inteira, sem ficar presa ao cartão estreito. */
 body.modo-administrativo { min-height: 100vh; overflow-x: hidden; }

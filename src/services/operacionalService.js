@@ -65,7 +65,7 @@ export function prepararRegistroOperacional(dados, usuario) {
     dataHoraSolicitacao: formatarDataHora(dados.dataHoraSolicitacao),
     dataHoraRetorno: formatarDataHora(dados.dataHoraRetorno),
     respondidoPor,
-    adm: dados.adm || respondidoPor
+    adm: usuario?.nome || dados.adm || respondidoPor
   }
 }
 
