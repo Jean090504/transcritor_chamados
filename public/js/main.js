@@ -39,6 +39,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const fusoBrasilia = 'America/Sao_Paulo'
   const formatarDataBrasilia = (data = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: fusoBrasilia }).format(data)
   const formatarHoraBrasilia = (data = new Date()) => new Intl.DateTimeFormat('pt-BR', { timeZone: fusoBrasilia, hour: '2-digit', minute: '2-digit' }).format(data)
+  const formatarDataPtBr = (valor = '') => {
+    const texto = String(valor || '').trim()
+    const correspondencia = texto.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/)
+    return correspondencia ? `${correspondencia[3]}/${correspondencia[2]}/${correspondencia[1]}` : texto
+  }
   const criarIconeOlho = (visivel) => {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     svg.setAttribute('viewBox', '0 0 24 24')
@@ -576,7 +581,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       statusDetalhesChamado.className = `status-detalhe-chamado ${status.classe}`
       statusDetalhesChamado.textContent = status.texto
       camposDetalhesChamado.replaceChildren(...campos.map(([rotulo, valor]) => {
-        const campo = criarElemento('div', ['campo-detalhe-chamado'])
+        const campo = criarElemento('div', ['campo-detalhe-chamado', rotulo === 'RESUMO TENTATIVAS' ? 'campo-detalhe-largo' : ''])
         campo.append(criarElemento('span', [], rotulo), criarElemento('strong', [], valor || 'Não informado'))
         return campo
       }))
@@ -599,7 +604,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.setAttribute('role', 'button')
         item.dataset.chamadoIndice = String(indice)
         const cabecalho = criarElemento('div', ['item-detalhe-cabecalho'])
-        cabecalho.append(criarElemento('span', [], 'Protocolo ' + (chamado.protocolo || '')), criarElemento('time', [], chamado.dataAtendimento || ''))
+        cabecalho.append(criarElemento('span', [], 'Protocolo ' + (chamado.protocolo || '')), criarElemento('time', [], formatarDataPtBr(chamado.dataAtendimento)))
         const camposItem = criarElemento('div', ['item-detalhe-campos'])
         camposItem.append(criarElemento('span', [], 'Seguradora: ' + (chamado.seguradora || '')), criarElemento('span', [], 'Serviço: ' + (chamado.servico || '')), criarElemento('span', [], 'Localidade: ' + (chamado.localidade || '')), criarElemento('span', [], 'Base: ' + (chamado.baseAcionada || '')))
         item.append(cabecalho, camposItem)
