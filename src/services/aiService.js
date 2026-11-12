@@ -17,7 +17,6 @@ export async function extrairDadosChamado(textoBruto) {
     - dataMarcada: Data agendada com a base acionada (ex: se na prévia da base acionada constar "24/10 - 18H00", a data é "24/10"). Se for imediato ou sem data futura, coloca "Imediato". Se não houver, "Nao informado".
     - horarioMarcado: Horário agendado com a base acionada (ex: se constar "24/10 - 18H00", o horário é "18H00"; se constar "QQ HORARIO", coloca "QQ HORARIO"). Se não houver, "Nao informado".
     - retratacaoInicial: Texto exato presente em "RETRATACAO -> INICIAL". Se estiver vazio, sem preenchimento ou ausente, preenche obrigatoriamente como "AGENDAMENTO".
-    - retratacaoInicial: Texto presente em "[ RETRATACAO ] -> INICIAL :". Se vazio ou ausente, retorne "AGENDAMENTO".
     - retratacaoFinal: Texto presente em "[ RETRATACAO ] -> FINAL :". Se vazio ou ausente, retorne "AGENDAMENTO".
     - resumoTentativas: Resumo de todas as bases contactadas. Cada base DEVE começar obrigatoriamente numa nova linha usando quebra de linha real (\\n). Formato por linha:
       NOME DA BASE: T1 STATUS, T2 STATUS
@@ -61,11 +60,22 @@ export async function extrairDadosChamado(textoBruto) {
 
   const modelosDisponiveis = [
     configuracaoAmbiente.MODELO_GEMINI,
-    'gemini-3.5-flash-lite',
-    'gemini-3.5-flash',
-    'gemini-3.1-flash-lite',
-    'gemini-flash-latest'
+    'gemini-3.5-flash'
   ].filter((nomeModelo, indice, modelos) => nomeModelo && modelos.indexOf(nomeModelo) === indice)
+
+  async function gerarComPrazo(modeloGemini, instrucao, prazoMs = 20000) {
+    let temporizador
+    try {
+      return await Promise.race([
+        modeloGemini.generateContent(instrucao),
+        new Promise((_, rejeitar) => {
+          temporizador = setTimeout(() => rejeitar(new Error('Tempo limite excedido ao analisar o chamado.')), prazoMs)
+        })
+      ])
+    } finally {
+      clearTimeout(temporizador)
+    }
+  }
 
   for (const nomeModelo of modelosDisponiveis) {
     try {
@@ -74,7 +84,7 @@ export async function extrairDadosChamado(textoBruto) {
         generationConfig: configuracaoSchema
       })
 
-      const resultadoGeracao = await modeloGemini.generateContent(instrucaoExtracao)
+      const resultadoGeracao = await gerarComPrazo(modeloGemini, instrucaoExtracao)
       const respostaTexto = resultadoGeracao.response.text()
       return JSON.parse(respostaTexto)
     } catch (erro) {

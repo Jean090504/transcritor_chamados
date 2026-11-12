@@ -983,6 +983,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 9. Extração com IA
   botaoProcessar.addEventListener('click', async () => {
+    if (botaoProcessar.disabled) return
     const texto = campoTexto.value.trim()
     if (!texto || texto.length < 20) {
       dispararToast('Validação', 'Insira o texto completo do chamado antes de processar.', 'aviso')
