@@ -774,6 +774,26 @@ textarea:focus {
   .layout-transcritor .card-metrica { flex: 1 1 150px; }
 }
 
+.painel-operacional { width: min(1180px, calc(100% - 2rem)); margin: 2rem auto; color: #0f172a; }
+.cabecalho-operacional { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.15rem 1.35rem; border: 1px solid #d7e0ec; border-radius: 12px; background: #fff; }
+.cabecalho-operacional .info-cabecalho { display: flex; align-items: center; gap: .85rem; }
+.cabecalho-operacional h1 { margin: .15rem 0 0; font-size: 1.2rem; }
+.cabecalho-operacional p { margin: .25rem 0 0; color: #64748b; font-size: .82rem; }
+.operacional-corpo { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(0, 1.6fr); gap: 1rem; margin-top: 1rem; align-items: start; }
+.operacional-entrada, .formulario-operacional { padding: 1.1rem; border: 1px solid #d7e0ec; border-radius: 12px; background: #fff; box-shadow: 0 6px 20px rgba(15, 23, 42, .05); }
+.operacional-entrada textarea { width: 100%; min-height: 230px; resize: vertical; box-sizing: border-box; margin: .85rem 0; padding: .8rem; border: 1px solid #cbd5e1; border-radius: 8px; color: #0f172a; }
+.operacional-entrada .botao-primario { width: 100%; }
+.cabecalho-secao-operacional { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.cabecalho-secao-operacional h2 { margin: .15rem 0 0; font-size: 1.05rem; }
+.aviso-operacional { color: #64748b; font-size: .75rem; text-align: right; }
+.campos-operacionais { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.campo-operacional { display: grid; gap: .3rem; color: #475569; font-size: .75rem; font-weight: 700; }
+.campo-operacional input, .campo-operacional select { width: 100%; box-sizing: border-box; min-height: 2.35rem; padding: .5rem .6rem; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #0f172a; font: inherit; font-weight: 500; }
+.campo-operacional input[readonly] { background: #f8fafc; color: #64748b; }
+.acoes-operacionais { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+@media (max-width: 820px) { .operacional-corpo { grid-template-columns: 1fr; } .cabecalho-operacional { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 560px) { .painel-operacional { width: min(100% - 1rem, 1180px); margin: .5rem auto; } .campos-operacionais { grid-template-columns: 1fr; } .cabecalho-secao-operacional { align-items: flex-start; flex-direction: column; } .aviso-operacional { text-align: left; } .acoes-operacionais { flex-direction: column-reverse; } .acoes-operacionais button { width: 100%; } }
+
 /* Barra de Pesquisa no Histórico */
 .painel-historico {
   margin-top: 12px;

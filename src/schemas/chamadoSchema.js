@@ -33,3 +33,25 @@ export const esquemaChamadoEstruturado = zodValidacao.object({
   retratacaoFinal: textoCampo.default('AGENDAMENTO'),
   resumoTentativas: zodValidacao.string().trim().max(2000).default('Nao informado')
 })
+
+const textoOperacional = zodValidacao.string().trim().max(1000).default('')
+
+export const esquemaDadosOperacionais = zodValidacao.object({
+  protocolo: textoOperacional,
+  assistencia: textoOperacional,
+  outraAssist: textoOperacional,
+  servico: textoOperacional,
+  cidade: textoOperacional,
+  uf: zodValidacao.string().trim().max(2).default(''),
+  cliente: textoOperacional,
+  dataHoraSolicitacao: zodValidacao.string().trim().max(40).default(''),
+  dataHoraRetorno: zodValidacao.string().trim().max(40).default(''),
+  porQuePedimosAuxilio: textoOperacional,
+  houveAtuacaoRede: textoOperacional,
+  retornoAuxilio: textoOperacional,
+  servicoBaseIndicada: textoOperacional,
+  resolucaoAcionamento: textoOperacional,
+  baseAcionada: textoOperacional,
+  respondidoPor: textoOperacional,
+  adm: textoOperacional
+})

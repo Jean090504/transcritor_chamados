@@ -1,8 +1,9 @@
-import { extrairDadosChamado } from '../services/aiService.js'
-import { esquemaChamadoEstruturado } from '../schemas/chamadoSchema.js'
+import { extrairDadosChamado, extrairDadosOperacionais } from '../services/aiService.js'
+import { esquemaChamadoEstruturado, esquemaDadosOperacionais } from '../schemas/chamadoSchema.js'
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
 import { contarChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
+import { prepararRegistroOperacional, salvarRegistroOperacional } from '../services/operacionalService.js'
 
 function dataAtualSaoPaulo() {
   const partes = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
@@ -33,6 +34,27 @@ export const preVisualizarChamado = async (requisicao, resposta) => {
     const existente = await existeProtocolo(username, dados.protocolo)
     return resposta.json({ sucesso: true, dados, duplicado: Boolean(existente), chamadoDuplicado: existente?.id || null, username })
   } catch (erro) { console.error('Falha ao analisar chamado:', erro); return resposta.status(500).json({ sucesso: false, erro: 'Falha ao analisar chamado.' }) }
+}
+
+export const preVisualizarOperacional = async (requisicao, resposta) => {
+  try {
+    const dados = esquemaDadosOperacionais.parse(await extrairDadosOperacionais(requisicao.body.textoManual))
+    return resposta.json({ sucesso: true, dados: prepararRegistroOperacional(dados, requisicao.usuario) })
+  } catch (erro) {
+    console.error('Falha ao analisar registro operacional:', erro)
+    return resposta.status(500).json({ sucesso: false, erro: 'Falha ao analisar o chamado operacional.' })
+  }
+}
+
+export const gravarOperacional = async (requisicao, resposta) => {
+  try {
+    const dados = esquemaDadosOperacionais.parse(requisicao.body.dados)
+    const resultado = await salvarRegistroOperacional(dados, requisicao.usuario)
+    return resposta.json({ sucesso: true, mensagem: 'Registro enviado para a planilha operacional.', ...resultado })
+  } catch (erro) {
+    console.error('Falha ao enviar registro operacional:', erro)
+    return resposta.status(500).json({ sucesso: false, erro: 'Falha ao enviar o registro para a planilha.' })
+  }
 }
 
 export const gravarChamado = async (requisicao, resposta) => {

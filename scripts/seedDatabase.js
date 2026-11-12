@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { prisma } from '../src/services/prisma.js'
+import { USUARIOS_OPERACIONAIS_INICIAIS } from '../src/config/usuariosOperacionaisIniciais.js'
 
 function carregarUsuarios() {
   const arquivoLocal = path.resolve(process.cwd(), 'data', 'users.json')
@@ -9,7 +10,12 @@ function carregarUsuarios() {
   return Array.isArray(configurados) ? configurados : []
 }
 
-const usuarios = carregarUsuarios()
+const usuariosConfigurados = carregarUsuarios()
+const usernamesConfigurados = new Set(usuariosConfigurados.map((usuario) => usuario.username))
+const usuarios = [
+  ...usuariosConfigurados,
+  ...USUARIOS_OPERACIONAIS_INICIAIS.filter((usuario) => !usernamesConfigurados.has(usuario.username))
+]
 
 if (!usuarios.length) {
   throw new Error('Nenhum usuário encontrado. Configure AUTH_USERS_JSON ou data/users.json.')

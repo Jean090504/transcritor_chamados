@@ -119,3 +119,62 @@ export async function extrairDadosChamado(textoBruto) {
 
   throw new Error('Todos os modelos da linha Flash falharam. Verifique a cota ou chave de API.')
 }
+
+export async function extrairDadosOperacionais(textoBruto) {
+  const chave = chaveAnalise(`operacional:${textoBruto}`)
+  const resultadoEmCache = cacheAnalises.get(chave)
+  if (resultadoEmCache && resultadoEmCache.expiraEm > Date.now()) return resultadoEmCache.dados
+  if (resultadoEmCache) cacheAnalises.delete(chave)
+
+  const instrucaoExtracao = `
+    Analise o chamado abaixo e retorne somente JSON válido, sem markdown. Este registro será enviado para uma planilha operacional.
+    Extraia os campos abaixo. Se algo não estiver no texto, use uma string vazia. Não invente dados.
+    - protocolo: protocolo completo, preservando o sufixo /barra quando existir, por exemplo 72224206/1.
+    - assistencia: seguradora, assistência ou produto.
+    - outraAssist: outra assistência citada, ou vazio.
+    - servico: serviço solicitado.
+    - cidade: somente a cidade.
+    - uf: somente a sigla do estado.
+    - cliente: nome do cliente.
+    - dataHoraSolicitacao: data e hora da solicitação em YYYY-MM-DDTHH:mm.
+    - dataHoraRetorno: data e hora do retorno em YYYY-MM-DDTHH:mm.
+    - porQuePedimosAuxilio: motivo do pedido de auxílio.
+    - houveAtuacaoRede: SIM, NÃO ou descrição objetiva.
+    - retornoAuxilio: retorno recebido do auxílio.
+    - servicoBaseIndicada: serviço acionado com a base indicada.
+    - resolucaoAcionamento: como o acionamento foi resolvido.
+    - baseAcionada: base acionada.
+    Use o fuso de Brasília (America/Sao_Paulo), datas brasileiras e horário de 24 horas. O número depois da barra do protocolo é a barra do atendimento e nunca é duração.
+
+    Texto do chamado:
+    ${textoBruto}
+  `
+  const configuracaoSchema = {
+    responseMimeType: 'application/json',
+    responseSchema: {
+      type: SchemaType.OBJECT,
+      properties: {
+        protocolo: { type: SchemaType.STRING }, assistencia: { type: SchemaType.STRING }, outraAssist: { type: SchemaType.STRING },
+        servico: { type: SchemaType.STRING }, cidade: { type: SchemaType.STRING }, uf: { type: SchemaType.STRING },
+        cliente: { type: SchemaType.STRING }, dataHoraSolicitacao: { type: SchemaType.STRING }, dataHoraRetorno: { type: SchemaType.STRING },
+        porQuePedimosAuxilio: { type: SchemaType.STRING }, houveAtuacaoRede: { type: SchemaType.STRING }, retornoAuxilio: { type: SchemaType.STRING },
+        servicoBaseIndicada: { type: SchemaType.STRING }, resolucaoAcionamento: { type: SchemaType.STRING }, baseAcionada: { type: SchemaType.STRING }
+      },
+      required: ['protocolo', 'assistencia', 'outraAssist', 'servico', 'cidade', 'uf', 'cliente', 'dataHoraSolicitacao', 'dataHoraRetorno', 'porQuePedimosAuxilio', 'houveAtuacaoRede', 'retornoAuxilio', 'servicoBaseIndicada', 'resolucaoAcionamento', 'baseAcionada']
+    }
+  }
+  const modelosDisponiveis = [configuracaoAmbiente.MODELO_GEMINI, 'gemini-3.5-flash'].filter((nomeModelo, indice, modelos) => nomeModelo && modelos.indexOf(nomeModelo) === indice)
+  for (const nomeModelo of modelosDisponiveis) {
+    try {
+      const modeloGemini = clienteInteligenciaArtificial.getGenerativeModel({ model: nomeModelo, generationConfig: configuracaoSchema })
+      const resultadoGeracao = await modeloGemini.generateContent(instrucaoExtracao, { timeout: 20000 })
+      const dados = JSON.parse(resultadoGeracao.response.text())
+      registrarAnaliseCache(chave, dados)
+      return dados
+    } catch (erro) {
+      if (erro.status === 429 || erro.status === 503 || erro.status === 404) continue
+      throw erro
+    }
+  }
+  throw new Error('Todos os modelos da linha Flash falharam. Verifique a cota ou chave de API.')
+}

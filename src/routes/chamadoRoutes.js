@@ -1,9 +1,9 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAutenticacao, listarUsuariosPublicos, solicitarResetSenha, listarSolicitacoesReset, aprovarSolicitacaoReset, rejeitarSolicitacaoReset } from '../services/authService.js'
-import { preVisualizarChamado, gravarChamado, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
+import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAcessoOperacional, exigirAutenticacao, listarUsuariosPublicos, solicitarResetSenha, listarSolicitacoesReset, aprovarSolicitacaoReset, rejeitarSolicitacaoReset } from '../services/authService.js'
+import { preVisualizarChamado, gravarChamado, preVisualizarOperacional, gravarOperacional, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
-import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaUsername, esquemaLogin, esquemaNovaSenha } from '../schemas/chamadoSchema.js'
+import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaDadosOperacionais, esquemaUsername, esquemaLogin, esquemaNovaSenha } from '../schemas/chamadoSchema.js'
 import { limitadorAnalise, limitadorAutenticacao, limitadorGravacao } from '../middlewares/rateLimiter.js'
 import { asyncHandler } from '../middlewares/asyncHandler.js'
 
@@ -90,6 +90,8 @@ roteador.get('/dashboard', exigirAutenticacao, exigirAcessoDashboard, validarReq
 roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoDashboard, asyncHandler(detalhesAnalista))
 
 roteador.use(exigirAutenticacao)
+roteador.post('/operacional/previsualizar', exigirAcessoOperacional, limitadorAnalise, validarRequisicao(esquemaTextoEntrada), preVisualizarOperacional)
+roteador.post('/operacional/gravar', exigirAcessoOperacional, limitadorGravacao, validarRequisicao(z.object({ dados: esquemaDadosOperacionais })), gravarOperacional)
 roteador.get('/abas', asyncHandler(listarAbas))
 roteador.post('/previsualizar', limitadorAnalise, validarRequisicao(esquemaTextoEntrada.extend({ username: esquemaUsername.optional() })), preVisualizarChamado)
 roteador.post('/gravar', limitadorGravacao, validarRequisicao(esquemaGravacaoFinal), gravarChamado)

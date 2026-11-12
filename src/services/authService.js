@@ -121,6 +121,7 @@ export async function autenticarUsuario(username, senha) {
     aba: usuarioBase.aba || null,
     acessoGlobal: papel === 'root',
     acessoDashboard: papel === 'root' || papel === 'supervisor',
+    acessoOperacional: papel === 'operacional',
     precisaTrocarSenha: configurado.trocarSenha !== false,
     tokenVersao: configurado.tokenVersao
   }
@@ -135,7 +136,7 @@ export async function alterarSenha(username, novaSenha) {
     where: { username },
     data: { senhaHash: criarHashSenha(novaSenha), trocarSenha: false, tokenVersao: { increment: 1 } }
   })
-  return jwt.sign({ sub: username, nome: atualizado.nome, papel: atualizado.papel, aba: atualizado.aba || null, acessoGlobal: atualizado.papel === 'root', acessoDashboard: atualizado.papel === 'root' || atualizado.papel === 'supervisor', precisaTrocarSenha: false, tokenVersao: atualizado.tokenVersao }, configuracaoAmbiente.JWT_SECRET, { expiresIn: '8h' })
+  return jwt.sign({ sub: username, nome: atualizado.nome, papel: atualizado.papel, aba: atualizado.aba || null, acessoGlobal: atualizado.papel === 'root', acessoDashboard: atualizado.papel === 'root' || atualizado.papel === 'supervisor', acessoOperacional: atualizado.papel === 'operacional', precisaTrocarSenha: false, tokenVersao: atualizado.tokenVersao }, configuracaoAmbiente.JWT_SECRET, { expiresIn: '8h' })
 }
 
 export async function exigirAutenticacao(requisicao, resposta, proximo) {
@@ -178,5 +179,10 @@ export function exigirAcessoGlobal(requisicao, resposta, proximo) {
 
 export function exigirAcessoDashboard(requisicao, resposta, proximo) {
   if (!requisicao.usuario?.acessoDashboard) return resposta.status(403).json({ erro: 'Acesso permitido somente para supervisores ou root.' })
+  return proximo()
+}
+
+export function exigirAcessoOperacional(requisicao, resposta, proximo) {
+  if (!requisicao.usuario?.acessoOperacional) return resposta.status(403).json({ erro: 'Acesso permitido somente para usuários operacionais.' })
   return proximo()
 }

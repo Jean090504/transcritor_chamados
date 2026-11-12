@@ -13,6 +13,8 @@ const usuarios = [
   { username: 'root', nome: 'ADMINISTRADOR', papel: 'root', aba: null },
   { username: 'sarah.fernandes', nome: 'SARAH SILVA DA COSTA FERNANDES', papel: 'supervisor', aba: null },
   { username: 'junaide.auzeni', nome: 'JUNAIDE AUZENI DE SOUSA', papel: 'supervisor', aba: null },
+  { username: 'elaine.marreiros', nome: 'ELAINE MARREIROS', papel: 'operacional', aba: null },
+  { username: 'flavio.marcolino', nome: 'FLAVIO MARCOLINO', papel: 'operacional', aba: null },
   ...ANALISTAS.map((analista) => ({ ...analista, papel: 'analista' }))
 ]
 

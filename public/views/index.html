@@ -140,6 +140,24 @@
     <div id="listaAnalistasDashboard" class="grade-analistas grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
     <button id="botaoAtualizarDashboard" class="botao-secundario mx-auto block" type="button">Atualizar</button>
   </section>
+  <section id="painelOperacional" class="painel-operacional oculto" aria-labelledby="tituloOperacional">
+    <header class="cabecalho-operacional">
+      <div class="info-cabecalho"><img class="logo-cabecalho" src="/assets/logo-transcritor.png" alt="" aria-hidden="true" /><div><span class="rotulo-dashboard">Registro operacional</span><h1 id="tituloOperacional">Atendimento de auxílio</h1><p id="subtituloOperacional"></p></div></div>
+      <button id="botaoSairOperacional" class="botao-secundario" type="button">Sair</button>
+    </header>
+    <div class="operacional-corpo">
+      <section class="operacional-entrada">
+        <div class="cabecalho-texto"><label for="textoOperacional">Texto do atendimento</label><button id="botaoColarOperacional" class="botao-secundario" type="button">Colar</button></div>
+        <textarea id="textoOperacional" rows="9" placeholder="Cole aqui o texto do atendimento para preencher os dados automaticamente..."></textarea>
+        <button id="botaoAnalisarOperacional" class="botao-primario" type="button">Analisar atendimento</button>
+      </section>
+      <form id="formularioOperacional" class="formulario-operacional oculto">
+        <div class="cabecalho-secao-operacional"><div><span class="rotulo-dashboard">Conferência</span><h2>Revise antes de enviar</h2></div><span class="aviso-operacional">Tempo e faixa são calculados automaticamente</span></div>
+        <div class="campos-operacionais" id="camposOperacionais"></div>
+        <div class="acoes-operacionais"><button id="botaoLimparOperacional" class="botao-secundario" type="button">Limpar</button><button id="botaoEnviarOperacional" class="botao-primario" type="submit">Enviar para planilha</button></div>
+      </form>
+    </div>
+  </section>
   <div class="circulo-luz luz-1"></div>
   <div class="circulo-luz luz-2"></div>
 
