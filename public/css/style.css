@@ -925,7 +925,7 @@ textarea:focus {
   background: rgba(220, 38, 38, 0.1);
 }
 /* Autenticação e seleção de aba */
-.tela-login { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; overflow: auto; background-color: var(--cor-fundo, #f5f8fc); background-image: linear-gradient(90deg, rgba(245, 248, 252, .78), rgba(255, 255, 255, .3) 46%, rgba(245, 248, 252, .76)), url('/assets/fundo-login-operacional.png'); background-position: center; background-size: cover; background-repeat: no-repeat; }
+.tela-login { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; overflow: auto; background-color: #e8f7f0; background-image: linear-gradient(90deg, rgba(0, 151, 97, .62), rgba(18, 125, 93, .24) 26%, rgba(255, 255, 255, .16) 48%, rgba(37, 99, 235, .2) 76%, rgba(15, 83, 68, .46)), url('/assets/fundo-login-operacional.png'); background-position: center; background-size: cover; background-repeat: no-repeat; background-blend-mode: multiply, normal; }
 .tela-login.oculto { display: none; }
 .cartao-login { width: min(92vw, 390px); display: grid; gap: .7rem; padding: 2rem; border-radius: 12px; background: color-mix(in srgb, var(--cor-cartao, #fff) 93%, transparent); box-shadow: 0 20px 60px rgba(15, 23, 42, .16); backdrop-filter: blur(8px); }
 .campo-senha { position: relative; display: flex; align-items: center; }
