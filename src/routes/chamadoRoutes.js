@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAcessoOperacional, exigirAutenticacao, listarUsuariosPublicos, solicitarResetSenha, listarSolicitacoesReset, aprovarSolicitacaoReset, rejeitarSolicitacaoReset } from '../services/authService.js'
-import { preVisualizarChamado, gravarChamado, preVisualizarOperacional, gravarOperacional, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
+import { preVisualizarChamado, gravarChamado, preVisualizarOperacional, gravarOperacional, historicoOperacional, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
 import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaDadosOperacionais, esquemaUsername, esquemaLogin, esquemaNovaSenha } from '../schemas/chamadoSchema.js'
 import { limitadorAnalise, limitadorAutenticacao, limitadorGravacao } from '../middlewares/rateLimiter.js'
@@ -11,6 +11,15 @@ const roteador = Router()
 const esquemaGravacaoFinal = z.object({ dados: esquemaChamadoEstruturado, username: esquemaUsername.optional() })
 const esquemaDesfazer = z.object({ id: z.string().uuid(), username: esquemaUsername.optional() })
 const esquemaSincronizar = z.object({ username: esquemaUsername.optional() })
+const esquemaHistoricoOperacional = z.object({ limite: z.coerce.number().int().min(1).max(50).optional() })
+const esquemaDadosOperacionaisFinais = esquemaDadosOperacionais.superRefine((dados, contexto) => {
+  const obrigatorios = [['protocolo', 'protocolo'], ['assistencia', 'assistência'], ['servico', 'serviço'], ['cidade', 'cidade'], ['uf', 'UF'], ['cliente', 'cliente'], ['dataHoraSolicitacao', 'data e hora da solicitação'], ['dataHoraRetorno', 'data e hora do retorno']]
+  obrigatorios.forEach(([campo, rotulo]) => {
+    if (!String(dados[campo] || '').trim()) contexto.addIssue({ code: z.ZodIssueCode.custom, path: [campo], message: `Informe ${rotulo}.` })
+  })
+  if (dados.uf && dados.uf.length !== 2) contexto.addIssue({ code: z.ZodIssueCode.custom, path: ['uf'], message: 'A UF deve ter 2 letras.' })
+  if (dados.dataHoraSolicitacao && dados.dataHoraRetorno && Date.parse(dados.dataHoraRetorno) < Date.parse(dados.dataHoraSolicitacao)) contexto.addIssue({ code: z.ZodIssueCode.custom, path: ['dataHoraRetorno'], message: 'O retorno não pode ser anterior à solicitação.' })
+})
 const esquemaIdReset = z.object({ id: z.string().uuid() })
 const esquemaDataDashboard = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.')
 const esquemaPeriodoDashboard = z.object({ inicio: esquemaDataDashboard.optional(), fim: esquemaDataDashboard.optional() }).superRefine((periodo, contexto) => {
@@ -90,7 +99,8 @@ roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoD
 
 roteador.use(exigirAutenticacao)
 roteador.post('/operacional/previsualizar', exigirAcessoOperacional, limitadorAnalise, validarRequisicao(esquemaTextoEntrada), preVisualizarOperacional)
-roteador.post('/operacional/gravar', exigirAcessoOperacional, limitadorGravacao, validarRequisicao(z.object({ dados: esquemaDadosOperacionais })), gravarOperacional)
+roteador.get('/operacional/historico', exigirAcessoOperacional, validarRequisicao(esquemaHistoricoOperacional, 'query'), asyncHandler(historicoOperacional))
+roteador.post('/operacional/gravar', exigirAcessoOperacional, limitadorGravacao, validarRequisicao(z.object({ dados: esquemaDadosOperacionaisFinais, idempotencia: z.string().uuid() })), gravarOperacional)
 roteador.get('/abas', asyncHandler(listarAbas))
 roteador.post('/previsualizar', limitadorAnalise, validarRequisicao(esquemaTextoEntrada.extend({ username: esquemaUsername.optional() })), preVisualizarChamado)
 roteador.post('/gravar', limitadorGravacao, validarRequisicao(esquemaGravacaoFinal), gravarChamado)

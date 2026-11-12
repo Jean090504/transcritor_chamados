@@ -3,7 +3,7 @@ import { esquemaChamadoEstruturado, esquemaDadosOperacionais } from '../schemas/
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
 import { contarChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
-import { prepararRegistroOperacional, salvarRegistroOperacional } from '../services/operacionalService.js'
+import { listarHistoricoOperacional, salvarRegistroOperacionalSeguro } from '../services/operacionalRegistroService.js'
 
 function dataAtualSaoPaulo() {
   const partes = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
@@ -49,12 +49,18 @@ export const preVisualizarOperacional = async (requisicao, resposta) => {
 export const gravarOperacional = async (requisicao, resposta) => {
   try {
     const dados = esquemaDadosOperacionais.parse(requisicao.body.dados)
-    const resultado = await salvarRegistroOperacional(dados, requisicao.usuario)
+    const resultado = await salvarRegistroOperacionalSeguro(dados, requisicao.usuario, requisicao.body.idempotencia)
     return resposta.json({ sucesso: true, mensagem: 'Registro enviado para a planilha operacional.', ...resultado })
   } catch (erro) {
+    if (erro.codigo === 'ENVIO_EM_PROCESSAMENTO') return resposta.status(409).json({ sucesso: false, erro: 'Este envio já está sendo processado. Aguarde alguns segundos e atualize o histórico.' })
     console.error('Falha ao enviar registro operacional:', erro)
     return resposta.status(500).json({ sucesso: false, erro: 'Falha ao enviar o registro para a planilha.' })
   }
+}
+
+export const historicoOperacional = async (requisicao, resposta) => {
+  const historico = await listarHistoricoOperacional(requisicao.usuario.sub, requisicao.query.limite)
+  return resposta.json({ sucesso: true, historico })
 }
 
 export const gravarChamado = async (requisicao, resposta) => {

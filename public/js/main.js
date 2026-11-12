@@ -244,7 +244,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const botaoEnviarOperacional = document.getElementById('botaoEnviarOperacional')
     const subtituloOperacional = document.getElementById('subtituloOperacional')
     const identidadeOperacional = document.getElementById('identidadeOperacional')
+    const listaHistoricoOperacional = document.getElementById('listaHistoricoOperacional')
+    const mensagemHistoricoOperacional = document.getElementById('mensagemHistoricoOperacional')
+    const botaoAtualizarHistoricoOperacional = document.getElementById('botaoAtualizarHistoricoOperacional')
     const nomeAdmOperacional = usuarioAtual.nome.includes('FLAVIO') ? 'FLAVIO MARCOLINO' : usuarioAtual.nome.includes('ELAINE') ? 'ELAINE MARREIROS' : usuarioAtual.nome
+    const chaveRascunhoOperacional = `rascunho_operacional:${usuarioAtual.sub}`
+    let idempotenciaOperacional = null
+    const criarIdempotenciaOperacional = () => window.crypto?.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (caractere) => { const aleatorio = Math.random() * 16 | 0; const valor = caractere === 'x' ? aleatorio : aleatorio & 3 | 8; return valor.toString(16) })
     const campos = [
       ['protocolo', 'Protocolo', 'text'], ['assistencia', 'Assistência', 'text'], ['barra', 'Barra', 'text', true], ['outraAssist', 'Outra assist.', 'text'],
       ['servico', 'Serviço', 'text'], ['cidade', 'Cidade', 'text'], ['uf', 'UF', 'text'], ['cliente', 'Cliente', 'text'],
@@ -272,6 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           barra.value = correspondencia ? correspondencia[1] : ''
         }
         atualizarTempoOperacional()
+        salvarRascunhoOperacional()
       })
       campoElementos.set(chave, campo)
       grupo.append(campo)
@@ -288,19 +295,95 @@ document.addEventListener('DOMContentLoaded', async () => {
       campoElementos.get('tempoRetorno').value = total
       campoElementos.get('faixaRetorno').value = faixa
     }
+    const obterDadosOperacionais = () => Object.fromEntries([...campoElementos.entries()].map(([chave, campo]) => [chave, campo.value]))
+    const salvarRascunhoOperacional = () => {
+      const dados = obterDadosOperacionais()
+      if (!textoOperacional.value.trim() && !dados.protocolo) {
+        localStorage.removeItem(chaveRascunhoOperacional)
+        return
+      }
+      localStorage.setItem(chaveRascunhoOperacional, JSON.stringify({ texto: textoOperacional.value, dados, idempotencia: idempotenciaOperacional }))
+    }
+    const validarDadosOperacionais = (dados) => {
+      const obrigatorios = [['protocolo', 'protocolo'], ['assistencia', 'assistência'], ['servico', 'serviço'], ['cidade', 'cidade'], ['uf', 'UF'], ['cliente', 'cliente'], ['dataHoraSolicitacao', 'data e hora da solicitação'], ['dataHoraRetorno', 'data e hora do retorno']]
+      const ausentes = obrigatorios.filter(([chave]) => !String(dados[chave] || '').trim()).map(([, rotulo]) => rotulo)
+      if (ausentes.length) return `Preencha: ${ausentes.join(', ')}.`
+      if (String(dados.uf).trim().length !== 2) return 'A UF deve ter 2 letras.'
+      if (Date.parse(dados.dataHoraRetorno) < Date.parse(dados.dataHoraSolicitacao)) return 'A data do retorno não pode ser anterior à solicitação.'
+      return null
+    }
+    const formatarDataHistorico = (valor) => {
+      const data = new Date(valor)
+      return Number.isNaN(data.getTime()) ? '' : data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+    }
+    const carregarHistoricoOperacional = async () => {
+      try {
+        const resposta = await requisicaoAutenticada('/api/operacional/historico?limite=20')
+        const resultado = await resposta.json()
+        if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível carregar o histórico.')
+        listaHistoricoOperacional.replaceChildren()
+        if (!resultado.historico.length) {
+          mensagemHistoricoOperacional.textContent = 'Nenhum envio realizado ainda.'
+          return
+        }
+        mensagemHistoricoOperacional.textContent = ''
+        resultado.historico.forEach((item) => {
+          const cartao = criarElemento('article', ['item-historico-operacional'])
+          const informacoes = criarElemento('div', ['informacoes-historico-operacional'])
+          const titulo = criarElemento('strong', [], item.protocolo || 'Protocolo não informado')
+          const detalhe = criarElemento('span', [], `${item.assistencia || 'Assistência não informada'} · ${item.servico || 'Serviço não informado'}`)
+          const data = criarElemento('time', [], formatarDataHistorico(item.criadoEm))
+          informacoes.append(titulo, detalhe, data)
+          const acoes = criarElemento('div', ['acoes-historico-operacional'])
+          const status = criarElemento('span', [`status-historico-${String(item.status).toLowerCase()}`], item.status === 'ENVIADO' ? 'Enviado' : item.status === 'FALHA' ? 'Falhou' : 'Processando')
+          acoes.append(status)
+          if (item.status === 'FALHA') {
+            const tentarNovamente = criarElemento('button', ['botao-secundario'], 'Tentar novamente')
+            tentarNovamente.type = 'button'
+            tentarNovamente.addEventListener('click', () => {
+              preencherCamposOperacionais(item.dados)
+              idempotenciaOperacional = item.chaveIdempotencia
+              formularioOperacional.classList.remove('oculto')
+              formularioOperacional.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              mensagemHistoricoOperacional.textContent = 'Envio recuperado. Revise os dados e tente novamente.'
+            })
+            acoes.append(tentarNovamente)
+          }
+          cartao.append(informacoes, acoes)
+          listaHistoricoOperacional.append(cartao)
+        })
+      } catch (erro) {
+        mensagemHistoricoOperacional.textContent = erro.message
+      }
+    }
     const preencherCamposOperacionais = (dados) => {
       campos.forEach(([chave]) => { if (campoElementos.has(chave)) campoElementos.get(chave).value = dados[chave] || '' })
       campoElementos.get('respondidoPor').value = usuarioAtual.nome
       campoElementos.get('adm').value = nomeAdmOperacional
       atualizarTempoOperacional()
+      salvarRascunhoOperacional()
     }
     identidadeOperacional.textContent = `Adm - ${nomeAdmOperacional}`
     subtituloOperacional.textContent = `Adm - ${nomeAdmOperacional} · envio independente para a planilha operacional`
     painelOperacional.classList.remove('oculto')
     document.body.classList.remove('sessao-carregando')
+    const rascunhoSalvo = JSON.parse(localStorage.getItem(chaveRascunhoOperacional) || 'null')
+    if (rascunhoSalvo) {
+      textoOperacional.value = rascunhoSalvo.texto || ''
+      idempotenciaOperacional = rascunhoSalvo.idempotencia || null
+      if (rascunhoSalvo.dados && Object.values(rascunhoSalvo.dados).some(Boolean)) {
+        preencherCamposOperacionais(rascunhoSalvo.dados)
+        formularioOperacional.classList.remove('oculto')
+      }
+      mensagemHistoricoOperacional.textContent = 'Rascunho restaurado automaticamente.'
+    }
+    textoOperacional.addEventListener('input', salvarRascunhoOperacional)
+    botaoAtualizarHistoricoOperacional?.addEventListener('click', carregarHistoricoOperacional)
+    carregarHistoricoOperacional()
     botaoAnalisarOperacional.addEventListener('click', async () => {
       const texto = textoOperacional.value.trim()
       if (texto.length < 20) { mostrarModalMensagem('Texto insuficiente', 'Cole um atendimento com pelo menos 20 caracteres.'); return }
+      if (!idempotenciaOperacional) idempotenciaOperacional = criarIdempotenciaOperacional()
       botaoAnalisarOperacional.disabled = true
       botaoAnalisarOperacional.textContent = 'Analisando...'
       try {
@@ -313,13 +396,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
     formularioOperacional.addEventListener('submit', async (evento) => {
       evento.preventDefault()
-      const dados = Object.fromEntries([...campoElementos.entries()].map(([chave, campo]) => [chave, campo.value]))
+      const dados = obterDadosOperacionais()
+      const erroValidacao = validarDadosOperacionais(dados)
+      if (erroValidacao) { mostrarModalMensagem('Revise os dados', erroValidacao); return }
+      if (!idempotenciaOperacional) idempotenciaOperacional = criarIdempotenciaOperacional()
       botaoEnviarOperacional.disabled = true
       try {
-        const resposta = await requisicaoAutenticada('/api/operacional/gravar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dados }) })
+        const resposta = await requisicaoAutenticada('/api/operacional/gravar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dados, idempotencia: idempotenciaOperacional }) })
         const resultado = await resposta.json()
         if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível enviar o registro.')
-        mostrarModalMensagem('Registro enviado', 'O atendimento foi enviado para a aba operacional da planilha.')
+        mostrarModalMensagem(resultado.duplicado ? 'Registro já enviado' : 'Registro enviado', resultado.duplicado ? 'Este atendimento já estava registrado e não foi duplicado.' : 'O atendimento foi enviado para a aba operacional da planilha.')
         textoOperacional.value = ''
         formularioOperacional.reset()
         campoElementos.get('respondidoPor').value = usuarioAtual.nome
@@ -327,10 +413,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         campoElementos.get('barra').value = ''
         campoElementos.get('tempoRetorno').value = 'Não informado'
         campoElementos.get('faixaRetorno').value = 'Não informado'
-      } catch (erro) { mostrarModalMensagem('Falha no envio', erro.message) } finally { botaoEnviarOperacional.disabled = false }
+        localStorage.removeItem(chaveRascunhoOperacional)
+        idempotenciaOperacional = null
+        carregarHistoricoOperacional()
+      } catch (erro) { mostrarModalMensagem('Falha no envio', erro.message); carregarHistoricoOperacional() } finally { botaoEnviarOperacional.disabled = false }
     })
     document.getElementById('botaoColarOperacional')?.addEventListener('click', async () => { try { textoOperacional.value = await navigator.clipboard.readText(); textoOperacional.focus() } catch { mostrarModalMensagem('Não foi possível colar', 'Permita o acesso à área de transferência no navegador.') } })
-    document.getElementById('botaoLimparOperacional')?.addEventListener('click', () => { formularioOperacional.reset(); formularioOperacional.classList.add('oculto'); textoOperacional.value = ''; campoElementos.get('respondidoPor').value = usuarioAtual.nome; campoElementos.get('adm').value = nomeAdmOperacional })
+    document.getElementById('botaoLimparOperacional')?.addEventListener('click', () => { formularioOperacional.reset(); formularioOperacional.classList.add('oculto'); textoOperacional.value = ''; campoElementos.get('respondidoPor').value = usuarioAtual.nome; campoElementos.get('adm').value = nomeAdmOperacional; localStorage.removeItem(chaveRascunhoOperacional); idempotenciaOperacional = null; carregarHistoricoOperacional() })
     document.getElementById('botaoSairOperacional')?.addEventListener('click', () => { sessionStorage.removeItem('token_jwt'); window.location.reload() })
     return
   }

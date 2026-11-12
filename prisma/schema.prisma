@@ -19,6 +19,7 @@ model Usuario {
   atualizadoEm DateTime @updatedAt
   chamados   Chamado[]
   solicitacoesReset SolicitacaoResetSenha[]
+  registrosOperacionais RegistroOperacional[]
 }
 
 model Chamado {
@@ -56,4 +57,21 @@ model SolicitacaoResetSenha {
 
   @@index([username, status])
   @@index([status, solicitadoEm])
+}
+
+model RegistroOperacional {
+  id                String   @id @default(uuid())
+  chaveIdempotencia String   @unique
+  username          String
+  protocolo         String   @default("")
+  status            String   @default("PROCESSANDO")
+  dados             Json
+  linhaPlanilha     String?
+  erro              String?
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+  usuario           Usuario  @relation(fields: [username], references: [username], onDelete: Cascade)
+
+  @@index([username, criadoEm])
+  @@index([username, status])
 }
