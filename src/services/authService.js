@@ -145,8 +145,9 @@ export async function exigirAutenticacao(requisicao, resposta, proximo) {
   if (!token) return resposta.status(401).json({ erro: 'AutenticaÃ§Ã£o necessÃ¡ria.' })
   try {
     requisicao.usuario = jwt.verify(token, configuracaoAmbiente.JWT_SECRET)
-    const usuarioAtual = await prisma.usuario.findUnique({ where: { username: requisicao.usuario.sub }, select: { tokenVersao: true } })
+    const usuarioAtual = await prisma.usuario.findUnique({ where: { username: requisicao.usuario.sub }, select: { tokenVersao: true, nome: true, papel: true, aba: true, trocarSenha: true } })
     if (!usuarioAtual || usuarioAtual.tokenVersao !== requisicao.usuario.tokenVersao) return resposta.status(401).json({ erro: 'SessÃ£o expirada. Entre novamente.' })
+    requisicao.usuario = { ...requisicao.usuario, nome: usuarioAtual.nome, papel: usuarioAtual.papel, aba: usuarioAtual.aba || null, acessoGlobal: usuarioAtual.papel === 'root', acessoDashboard: usuarioAtual.papel === 'root' || usuarioAtual.papel === 'supervisor', acessoOperacional: usuarioAtual.papel === 'operacional', precisaTrocarSenha: usuarioAtual.trocarSenha !== false }
     ultimaAtividade.set(requisicao.usuario.sub, Date.now())
     return proximo()
   } catch {
