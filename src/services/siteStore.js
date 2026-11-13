@@ -40,8 +40,8 @@ function normalizarStatus(valor) {
 
 function classificarAtendimento(chamado) {
   const base = normalizarStatus(chamado.baseAcionada)
-  const estado = normalizarStatus(chamado.retratacaoFinal || chamado.retratacaoInicial)
-  if (/cancelad/.test(`${base} ${estado}`)) return 'cancelados'
+  const estado = normalizarStatus([chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
+  if (/cancelad|reembols/.test(`${base} ${estado}`)) return 'cancelados'
   if ((base && !/nao acionad|nao informado|sem acionamento/.test(base)) || estado.includes('acionad')) return 'acionados'
   return 'pendentes'
 }

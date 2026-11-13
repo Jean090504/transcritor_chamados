@@ -655,7 +655,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const base = normalizar(chamado.baseAcionada)
       const estado = normalizar([chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
       const baseAcionada = base && !base.includes('nao acionad') && !base.includes('nao informado')
-      if (estado.includes('cancelad') || estado.includes('nao acionad') || estado.includes('sem acionamento')) return { classe: 'status-vermelho', texto: 'Não acionado ou cancelado' }
+      if (estado.includes('cancelad') || estado.includes('reembols') || estado.includes('nao acionad') || estado.includes('sem acionamento')) return { classe: 'status-vermelho', texto: 'Não acionado ou cancelado' }
       if (baseAcionada || estado.includes('acionad')) return { classe: 'status-verde', texto: 'Acionado' }
       if (estado.includes('agend')) return { classe: 'status-laranja', texto: 'Agendamento' }
       if (base.includes('nao acionad')) return { classe: 'status-vermelho', texto: 'Não acionado ou cancelado' }
