@@ -50,6 +50,7 @@ export async function solicitarResetSenha(username) {
 }
 
 export async function listarSolicitacoesReset(usuario) {
+  // O root vê todos os pedidos; cada supervisor vê apenas os seus analistas.
   const usernames = usuario?.papel === 'root'
     ? undefined
     : obterAnalistasVisiveis(usuario).map((analista) => analista.username)

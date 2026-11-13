@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { prisma } from '../src/services/prisma.js'
 import { USUARIOS_OPERACIONAIS_INICIAIS } from '../src/config/usuariosOperacionaisIniciais.js'
+import { USUARIOS_ANALISTAS_INICIAIS } from '../src/config/usuariosAnalistasIniciais.js'
 
 function carregarUsuarios() {
   const arquivoLocal = path.resolve(process.cwd(), 'data', 'users.json')
@@ -11,9 +12,12 @@ function carregarUsuarios() {
 }
 
 const usuariosConfigurados = carregarUsuarios()
-const usernamesConfigurados = new Set(usuariosConfigurados.map((usuario) => usuario.username))
+const usernamesIniciaisAnalistas = new Set(USUARIOS_ANALISTAS_INICIAIS.map((usuario) => usuario.username))
+const usuariosConfiguradosSemReset = usuariosConfigurados.filter((usuario) => !usernamesIniciaisAnalistas.has(usuario.username))
+const usernamesConfigurados = new Set(usuariosConfiguradosSemReset.map((usuario) => usuario.username))
 const usuarios = [
-  ...usuariosConfigurados,
+  ...usuariosConfiguradosSemReset,
+  ...USUARIOS_ANALISTAS_INICIAIS,
   ...USUARIOS_OPERACIONAIS_INICIAIS.filter((usuario) => !usernamesConfigurados.has(usuario.username))
 ]
 
