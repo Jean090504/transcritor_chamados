@@ -20,7 +20,15 @@ const equipeSarah = [
   { username: 'gelis.souza', nome: 'GELIS SOUZA', aba: 'Gelis Souza' },
   { username: 'jeane.moreira', nome: 'JEANE MOREIRA', aba: 'Jeane Moreira' },
   { username: 'josenilda.lima', nome: 'JOSENILDA LIMA', aba: 'Josenilda Lima' },
-  { username: 'maria.carolina', nome: 'MARIA CAROLINA', aba: 'Maria Carolina' }
+  { username: 'maria.carolina', nome: 'MARIA CAROLINA', aba: 'Maria Carolina' },
+  { username: 'alana.coelho', nome: 'ALANA COELHO', aba: 'Alana Coelho' },
+  { username: 'amanda.lima', nome: 'AMANDA LIMA', aba: 'Amanda Lima' },
+  { username: 'andre.marques', nome: 'ANDRE MARQUES', aba: 'Andre Marques' },
+  { username: 'barbara.sabrina', nome: 'BARBARA SABRINA', aba: 'Barbara Sabrina' },
+  { username: 'gabriela.carmo', nome: 'GABRIELA CARMO', aba: 'Gabriela Carmo' },
+  { username: 'maria.souza', nome: 'MARIA SOUZA', aba: 'Maria Souza' },
+  { username: 'paola.santos', nome: 'PAOLA SANTOS', aba: 'Paola Santos' },
+  { username: 'tatiana.silva', nome: 'TATIANA SILVA', aba: 'Tatiana Silva' }
 ]
 
 const equipeJunaide = [
