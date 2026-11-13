@@ -54,6 +54,9 @@ export async function garantirAbasPlanilha(nomesAbas, cabecalho) {
 }
 
 export async function contarAtendimentosPorData(nomeAba, data) {
+  // TODO(manutenção): este módulo ainda contém o fluxo antigo direto na planilha.
+  // O fluxo atual grava no PostgreSQL; remover ou migrar estes métodos quando não
+  // houver mais consumidores para evitar duas fontes de verdade.
   const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
   const resposta = await servicoPlanilhas.spreadsheets.values.get({
     spreadsheetId: configuracaoAmbiente.IDENTIFICADOR_PLANILHA,

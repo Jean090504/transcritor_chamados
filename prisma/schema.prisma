@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Usuario {
@@ -43,6 +43,8 @@ model Chamado {
 
   @@index([username])
   @@index([dataAtendimento])
+  // TODO(performance): o dashboard filtra por usuário(s) e data; medir e avaliar
+  // um índice composto [username, dataAtendimento] quando o volume crescer.
   @@index([username, protocolo])
 }
 

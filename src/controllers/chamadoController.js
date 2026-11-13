@@ -105,6 +105,8 @@ export const dashboardSarah = async (requisicao, resposta) => {
     const status = obterStatusAnalistas()
       .filter((analista) => obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username))
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
+    // TODO(performance): esta montagem faz 2 consultas por analista. Substituir por
+    // agregações agrupadas por username/data para evitar N+1 quando a equipe crescer.
     const analistas = await Promise.all(status.map(async (analista) => ({
       ...analista,
       totalChamados: (await listarChamados(analista.username)).length,
@@ -118,12 +120,16 @@ export const dashboardSarah = async (requisicao, resposta) => {
     const statusAtendimentosHoje = await contarStatusAtendimentosHoje(usernamesVisiveis, data)
     const resumoPeriodo = await obterResumoPeriodo(usernamesVisiveis, inicio, fim)
     const usernames = new Set(analistas.map((analista) => analista.username))
+    // TODO(performance): não carregar todos os chamados e filtrá-los em memória.
+    // Criar uma contagem agrupada no banco usando apenas os usernames visíveis.
     const totalGeral = (await todosChamados()).filter((chamado) => usernames.has(chamado.username)).length
     return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo, ultimosSeteDias, analistas })
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
 }
 
 export const detalhesAnalista = async (requisicao, resposta) => {
+  // TODO(manutenção): as duas guardas abaixo verificam a mesma condição. Manter
+  // uma única validação para reduzir duplicidade quando esta rota for alterada.
   const analista = obterAnalista(requisicao.params.username)
   if (analista && !obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
   if (!analista || !obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })

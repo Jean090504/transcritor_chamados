@@ -1,5 +1,6 @@
 # Dependências
 node_modules/
+src/generated/prisma/
 
 # Arquivos de variáveis de ambiente e chaves privadas
 .env

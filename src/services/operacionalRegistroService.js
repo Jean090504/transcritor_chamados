@@ -48,6 +48,9 @@ export async function salvarRegistroOperacionalSeguro(dados, usuario, chaveIdemp
   const nomeAba = configuracaoAmbiente.ABA_OPERACIONAL
   const servicoPlanilhas = google.sheets({ version: 'v4', auth: autenticacaoGoogle })
   try {
+    // TODO(performance): obter abas e reescrever o cabeçalho a cada envio gera
+    // chamadas externas desnecessárias. Cachear a estrutura/cabeçalho e atualizar
+    // somente após uma mudança de configuração ou quando a aba estiver ausente.
     const abasAtuais = await obterAbasPlanilha()
     if (!abasAtuais.some((aba) => aba.title === nomeAba)) {
       await servicoPlanilhas.spreadsheets.batchUpdate({
@@ -72,6 +75,9 @@ export async function salvarRegistroOperacionalSeguro(dados, usuario, chaveIdemp
       insertDataOption: 'INSERT_ROWS',
       requestBody: { values: [valores] }
     })
+    // TODO(confiabilidade): se o append funcionar e o processo cair antes deste
+    // update, o registro ficará PROCESSANDO e uma nova tentativa pode duplicar a
+    // linha. Criar reconciliação por chaveIdempotencia/linha antes de liberar retry.
     const linha = resposta.data.updates?.updatedRange || null
     const finalizado = await prisma.registroOperacional.update({ where: { id: reserva.id }, data: { status: 'ENVIADO', linhaPlanilha: linha, erro: null } })
     return { registro, linha, aba: nomeAba, historico: resumirHistorico(finalizado) }

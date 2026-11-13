@@ -5,6 +5,9 @@ function serializarChamado(chamado) {
 }
 
 export async function listarChamados(username) {
+  // TODO(performance): endpoints de histórico/detalhes retornam a coleção inteira.
+  // Adicionar paginação e selecionar somente os campos necessários para evitar
+  // respostas e uso de memória proporcionais a todo o histórico do analista.
   const chamados = await prisma.chamado.findMany({
     where: { username },
     orderBy: { criadoEm: 'desc' }
@@ -13,6 +16,8 @@ export async function listarChamados(username) {
 }
 
 export async function todosChamados() {
+  // TODO(performance): usado hoje apenas para contar no dashboard, mas retorna
+  // todas as colunas e linhas. Preferir count/groupBy quando esse uso for mantido.
   const chamados = await prisma.chamado.findMany({ orderBy: { criadoEm: 'desc' } })
   return chamados.map(serializarChamado)
 }

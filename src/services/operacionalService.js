@@ -69,6 +69,9 @@ export function prepararRegistroOperacional(dados, usuario) {
   }
 }
 
+// TODO(manutenção): esta é uma implementação legada sem idempotência e não é
+// usada pelas rotas atuais. Remover após confirmar que nenhum consumidor externo
+// importa esta função, ou delegá-la ao fluxo seguro de operacionalRegistroService.
 export async function salvarRegistroOperacional(dados, usuario) {
   if (!configuracaoAmbiente.IDENTIFICADOR_PLANILHA) throw new Error('SPREADSHEET_ID não configurado.')
   const registro = prepararRegistroOperacional(dados, usuario)
