@@ -12,7 +12,15 @@ const equipeSarah = [
   { username: 'leidiane.silva', nome: 'Leidiane Maria Da Silva', aba: 'Leidiane Silva' },
   { username: 'paula.rodrigues', nome: 'Paula Amanda Rodrigues', aba: 'Paula Rodrigues' },
   { username: 'wesley.sena', nome: 'WESLEY ANDRADE SENA', aba: 'Wesley Sena' },
-  { username: 'jean.asilva', nome: 'JEAN COSTA ALVES DA SILVA', aba: 'Jean Costa' }
+  { username: 'jean.asilva', nome: 'JEAN COSTA ALVES DA SILVA', aba: 'Jean Costa' },
+  { username: 'andrezza.cavalcanti', nome: 'ANDREZZA CAVALCANTI', aba: 'Andrezza Cavalcanti' },
+  { username: 'cristiane.oliveira', nome: 'CRISTIANE OLIVEIRA', aba: 'Cristiane Oliveira' },
+  { username: 'deborah.luna', nome: 'DEBORAH LUNA', aba: 'Deborah Luna' },
+  { username: 'edigleide.lins', nome: 'EDIGLEIDE LINS', aba: 'Edigleide Lins' },
+  { username: 'gelis.souza', nome: 'GELIS SOUZA', aba: 'Gelis Souza' },
+  { username: 'jeane.moreira', nome: 'JEANE MOREIRA', aba: 'Jeane Moreira' },
+  { username: 'josenilda.lima', nome: 'JOSENILDA LIMA', aba: 'Josenilda Lima' },
+  { username: 'maria.carolina', nome: 'MARIA CAROLINA', aba: 'Maria Carolina' }
 ]
 
 const equipeJunaide = [
