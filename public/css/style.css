@@ -461,8 +461,12 @@ textarea:focus {
 .filtro-status-historico-analista .opcoes-seletor-status-dashboard { z-index: 30; }
 .filtro-status-historico-analista select { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .filtro-data-historico-analista { display: grid; gap: .35rem; color: var(--cor-texto-secundario); font-size: .75rem; font-weight: 700; }
-.filtro-data-historico-analista input { width: 100%; box-sizing: border-box; min-height: 2.7rem; padding: .65rem .7rem; border: 1px solid var(--cor-borda); border-radius: 10px; color: var(--cor-texto-principal); background: var(--cor-cartao); font: inherit; cursor: pointer; }
-.filtro-data-historico-analista input:focus { border-color: #0b67d1; outline: 3px solid rgba(11, 103, 209, .14); }
+.filtro-data-historico-analista input { width: 100%; box-sizing: border-box; min-height: 2.7rem; padding: .65rem .7rem; border: 1px solid #bfdbfe; border-radius: 10px; color: var(--cor-texto-principal); background: linear-gradient(135deg, rgba(239, 246, 255, .8), var(--cor-cartao)); font: inherit; font-weight: 700; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.filtro-data-historico-analista input:hover { border-color: #0b67d1; box-shadow: 0 5px 14px rgba(11, 103, 209, .12); transform: translateY(-1px); }
+.filtro-data-historico-analista input:focus { border-color: #0b67d1; outline: none; box-shadow: 0 0 0 3px rgba(11, 103, 209, .16), 0 5px 14px rgba(11, 103, 209, .1); }
+.filtro-data-historico-analista input::-webkit-calendar-picker-indicator { padding: .25rem; border-radius: 6px; cursor: pointer; opacity: .75; filter: saturate(1.25); transition: background .15s ease, opacity .15s ease; }
+.filtro-data-historico-analista input::-webkit-calendar-picker-indicator:hover { opacity: 1; background: rgba(11, 103, 209, .12); }
+body.dark-mode .filtro-data-historico-analista input { border-color: #3b82f6; color: #cbd5e1; background: linear-gradient(135deg, rgba(23, 37, 84, .75), #111827); color-scheme: dark; }
 
 .item-historico {
   display: flex;
