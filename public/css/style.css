@@ -115,10 +115,10 @@ body {
   transition: all 0.3s ease;
 }
 
-.layout-transcritor { display: grid; grid-template-columns: minmax(150px, .65fr) minmax(520px, 2.35fr) minmax(250px, .9fr); gap: 1rem; align-items: start; }
+.layout-transcritor { display: grid; grid-template-columns: minmax(150px, .65fr) minmax(520px, 2.35fr) minmax(250px, .9fr); gap: 1rem; align-items: stretch; }
 .layout-transcritor .painel-metricas { grid-column: 1; display: flex; flex-direction: column; gap: .75rem; margin: 0; }
 .layout-transcritor .card-metrica { min-height: 92px; }
-.layout-transcritor .area-formulario { position: relative; grid-column: 2; min-width: 0; padding: 1.25rem; border: 1px solid var(--cor-borda); border-radius: 10px; background: var(--cor-cartao); }
+.layout-transcritor .area-formulario { position: relative; grid-column: 2 / -1; min-width: 0; display: flex; flex-direction: column; box-sizing: border-box; padding: 1.25rem; border: 1px solid var(--cor-borda); border-radius: 10px; background: var(--cor-cartao); }
 .layout-transcritor .coluna-historico { grid-column: 1 / -1; min-width: 0; }
 .layout-transcritor .coluna-historico .container-historico { position: static; width: auto; box-sizing: border-box; margin: 0; padding: 1rem; border: 1px solid var(--cor-borda); border-radius: 10px; background: var(--cor-cartao); }
 .grupo-historico-dia { display: grid; gap: .45rem; }
@@ -221,6 +221,9 @@ body {
 
 .textarea-wrapper {
   position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
   margin-bottom: 18px;
 }
 
@@ -239,6 +242,8 @@ textarea {
   background: var(--cor-cartao);
   transition: all 0.2s ease;
 }
+
+.area-formulario #textoChamado { flex: 1; min-height: 300px; box-sizing: border-box; }
 
 #textoChamado {
   scrollbar-width: thin;
