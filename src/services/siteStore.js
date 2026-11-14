@@ -41,7 +41,12 @@ function normalizarStatus(valor) {
 function classificarAtendimento(chamado) {
   const base = normalizarStatus(chamado.baseAcionada)
   const estado = normalizarStatus([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas, chamado.observacao].filter(Boolean).join(' '))
-  if (/cancel|reembols/.test(estado)) return 'cancelados'
+  const retratacaoFinal = normalizarStatus(chamado.retratacaoFinal)
+  const cancelamentoExplicito = /cancel/.test(estado)
+  const agendamentoConfirmado = /agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)
+  if (cancelamentoExplicito) return 'cancelados'
+  if (agendamentoConfirmado) return 'pendentes'
+  if (/reembols/.test(estado)) return 'cancelados'
   if (/agendad|agendament|\bagenda\b/.test(estado)) return 'pendentes'
   const baseAcionada = base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)
   const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)

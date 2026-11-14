@@ -719,8 +719,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const normalizar = (valor) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       const base = normalizar(chamado.baseAcionada)
       const estado = normalizar([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas, chamado.observacao].filter(Boolean).join(' '))
+      const retratacaoFinal = normalizar(chamado.retratacaoFinal)
       const baseAcionada = base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)
-      if (/cancel|reembols/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
+      const cancelamentoExplicito = /cancel/.test(estado)
+      const agendamentoConfirmado = /agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)
+      if (cancelamentoExplicito) return { classe: 'status-vermelho', texto: 'Cancelado' }
+      if (agendamentoConfirmado) return { classe: 'status-laranja', texto: 'Agendamento' }
+      if (/reembols/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
       if (/agendad|agendament|\bagenda\b/.test(estado)) return { classe: 'status-laranja', texto: 'Agendamento' }
       const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
       if (baseAcionada || acionamentoConfirmado) return { classe: 'status-verde', texto: 'Acionado' }
@@ -1017,12 +1022,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
       const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-      if (texto.includes('cancel') || texto.includes('reembols') || texto.includes('agendad') || texto.includes('agendament') || texto.includes('sem base acionad') || texto.includes('nao acionad') || texto.includes('sem acionamento')) return false
+      const retratacaoFinal = String(item.retratacaoFinal || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      if (texto.includes('cancel') || texto.includes('reembols') || texto.includes('agendad') || texto.includes('agendament') || /\bag\s*\d{1,2}\b/.test(retratacaoFinal) || texto.includes('sem base acionad') || texto.includes('nao acionad') || texto.includes('sem acionamento')) return false
       return base && !base.includes('nao acionad') && !base.includes('nao informado') && !base.includes('sem acionamento') && !base.includes('sem base')
     }).length
     const canceladosHoje = atendimentosHoje.filter((item) => {
       const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-      return texto.includes('cancel') || texto.includes('reembols')
+      const retratacaoFinal = String(item.retratacaoFinal || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      return texto.includes('cancel') || (texto.includes('reembols') && !/agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal))
     }).length
     const pendentesHoje = Math.max(atendimentosHoje.length - acionadosHoje - canceladosHoje, 0)
     const taxaAcionamento = atendimentosHoje.length
