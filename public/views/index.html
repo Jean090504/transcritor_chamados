@@ -392,7 +392,29 @@
   <!-- Container de Toasts Flutuantes -->
   <div id="containerToasts" class="container-toasts" aria-live="polite"></div>
 
-  <footer class="assinatura-aplicacao">Criado por <a href="https://jeancosta.com.br" target="_blank" rel="noopener noreferrer">Jean Costa</a></footer>
+  <footer class="assinatura-aplicacao">
+    <span>Plataforma de análise e acompanhamento de chamados</span>
+    <span class="assinatura-separador">•</span>
+    <button id="botaoAjudaPlataforma" type="button">Como usar a plataforma</button>
+    <span class="assinatura-separador">•</span>
+    <span>Criado por <a href="https://jeancosta.com.br" target="_blank" rel="noopener noreferrer">Jean Costa</a></span>
+  </footer>
+
+  <div id="modalAjudaPlataforma" class="modal-fundo modal-ajuda-plataforma oculto" role="dialog" aria-modal="true" aria-labelledby="tituloAjudaPlataforma">
+    <div class="modal-conteudo">
+      <header class="modal-cabecalho">
+        <div><span class="rotulo-dashboard">Orientações rápidas</span><h2 id="tituloAjudaPlataforma">Como usar a plataforma</h2></div>
+        <button id="fecharAjudaPlataforma" class="botao-fechar" type="button" aria-label="Fechar">&times;</button>
+      </header>
+      <div class="lista-ajuda-plataforma">
+        <p><strong>1. Cole o texto do chamado</strong><span>Insira o atendimento completo no campo principal.</span></p>
+        <p><strong>2. Analise e revise</strong><span>A plataforma preenche os dados automaticamente. Confira as informações antes de salvar.</span></p>
+        <p><strong>3. Salve o chamado</strong><span>Depois da revisão, clique em “Salvar chamado” para registrar o atendimento.</span></p>
+        <p><strong>4. Consulte o histórico</strong><span>Use a busca para localizar chamados. Também é possível editar ou excluir um registro.</span></p>
+        <p><strong>5. Mantenha os dados corretos</strong><span>Atualize as informações sempre que houver alguma mudança no atendimento.</span></p>
+      </div>
+    </div>
+  </div>
 
   <script src="/js/main.js" defer></script>
 </body>

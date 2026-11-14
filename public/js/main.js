@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const botaoFecharMensagemSistema = document.getElementById('botaoFecharMensagemSistema')
   const botaoEsqueciSenha = document.getElementById('botaoEsqueciSenha')
   const botaoVoltarLogin = document.getElementById('botaoVoltarLogin')
+  const modalAjudaPlataforma = document.getElementById('modalAjudaPlataforma')
+  const fecharAjudaPlataforma = () => modalAjudaPlataforma.classList.add('oculto')
+  document.getElementById('botaoAjudaPlataforma')?.addEventListener('click', () => modalAjudaPlataforma.classList.remove('oculto'))
+  document.getElementById('fecharAjudaPlataforma')?.addEventListener('click', fecharAjudaPlataforma)
+  modalAjudaPlataforma?.addEventListener('click', (evento) => { if (evento.target === modalAjudaPlataforma) fecharAjudaPlataforma() })
   const seletorAba = document.getElementById('seletorAba')
   const botaoSair = document.getElementById('botaoSair')
   const criarElemento = (tag, classes = [], texto = '') => {
