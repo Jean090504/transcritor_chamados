@@ -41,8 +41,11 @@ function normalizarStatus(valor) {
 function classificarAtendimento(chamado) {
   const base = normalizarStatus(chamado.baseAcionada)
   const estado = normalizarStatus([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
-  if (/cancelad|reembols/.test(`${base} ${estado}`)) return 'cancelados'
-  if ((base && !/nao acionad|nao informado|sem acionamento/.test(base)) || estado.includes('acionad')) return 'acionados'
+  if (/cancelad|reembols/.test(estado)) return 'cancelados'
+  if (/agendad|agendament|\bagenda\b/.test(estado)) return 'pendentes'
+  const baseAcionada = base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)
+  const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
+  if (baseAcionada || acionamentoConfirmado) return 'acionados'
   return 'pendentes'
 }
 
@@ -51,7 +54,7 @@ export async function contarStatusAtendimentosHoje(usernames, data) {
   if (!usernames?.length) return resultado
   const chamados = await prisma.chamado.findMany({
     where: { dataAtendimento: data, username: { in: usernames } },
-    select: { baseAcionada: true, retratacaoInicial: true, retratacaoFinal: true }
+    select: { servico: true, previaServico: true, baseAcionada: true, retratacaoInicial: true, retratacaoFinal: true, resumoTentativas: true }
   })
   chamados.forEach((chamado) => { resultado[classificarAtendimento(chamado)] += 1 })
   return resultado
@@ -72,7 +75,7 @@ export async function obterResumoPeriodo(usernames, inicio, fim) {
 
   const chamados = await prisma.chamado.findMany({
     where: { dataAtendimento: { gte: inicio, lte: fim }, username: { in: usernames } },
-    select: { dataAtendimento: true, baseAcionada: true, retratacaoInicial: true, retratacaoFinal: true }
+    select: { dataAtendimento: true, servico: true, previaServico: true, baseAcionada: true, retratacaoInicial: true, retratacaoFinal: true, resumoTentativas: true }
   })
   const porData = new Map(serieDiaria.map((item) => [item.data, item]))
   const resumo = { total: chamados.length, acionados: 0, agendados: 0, cancelados: 0 }
