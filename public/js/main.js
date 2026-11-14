@@ -766,6 +766,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   const botaoCancelarModal = document.getElementById('botaoCancelarModal')
   const botaoConfirmarGravacao = document.getElementById('botaoConfirmarGravacao')
   const avisoDuplicadoModal = document.getElementById('avisoDuplicadoModal')
+  let chamadoEmEdicao = null
+  const modalExclusaoChamado = document.getElementById('modalExclusaoChamado')
+  const protocoloConfirmacaoExclusao = document.getElementById('protocoloConfirmacaoExclusao')
+  const dataConfirmacaoExclusao = document.getElementById('dataConfirmacaoExclusao')
+  const erroConfirmacaoExclusao = document.getElementById('erroConfirmacaoExclusao')
+  const botaoConfirmarExclusao = document.getElementById('botaoConfirmarExclusao')
+  let chamadoParaExcluir = null
+  const fecharModalExclusao = () => { modalExclusaoChamado.classList.add('oculto'); chamadoParaExcluir = null }
+  const abrirModalExclusao = (chamado) => {
+    chamadoParaExcluir = chamado
+    protocoloConfirmacaoExclusao.value = ''
+    dataConfirmacaoExclusao.value = ''
+    erroConfirmacaoExclusao.textContent = ''
+    erroConfirmacaoExclusao.classList.add('oculto')
+    modalExclusaoChamado.classList.remove('oculto')
+    protocoloConfirmacaoExclusao.focus()
+  }
+  document.getElementById('fecharModalExclusao').addEventListener('click', fecharModalExclusao)
+  document.getElementById('botaoCancelarExclusao').addEventListener('click', fecharModalExclusao)
+  modalExclusaoChamado.addEventListener('click', (evento) => { if (evento.target === modalExclusaoChamado) fecharModalExclusao() })
+  botaoConfirmarExclusao.addEventListener('click', async () => {
+    if (!chamadoParaExcluir) return
+    const dataHoje = formatarDataBrasilia()
+    if (protocoloConfirmacaoExclusao.value.trim() !== String(chamadoParaExcluir.protocolo || '').trim() || dataConfirmacaoExclusao.value !== dataHoje) {
+      erroConfirmacaoExclusao.textContent = 'Digite o protocolo exatamente como aparece e selecione a data de hoje.'
+      erroConfirmacaoExclusao.classList.remove('oculto')
+      return
+    }
+    botaoConfirmarExclusao.disabled = true
+    try {
+      const resposta = await requisicaoAutenticada(`/api/chamados/${encodeURIComponent(chamadoParaExcluir.linha)}`, { method: 'DELETE' })
+      const resultado = await resposta.json()
+      if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível excluir o chamado.')
+      const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]').filter((item) => item.linha !== chamadoParaExcluir.linha)
+      localStorage.setItem('historico_chamados', JSON.stringify(historico))
+      const protocolo = chamadoParaExcluir.protocolo
+      fecharModalExclusao()
+      carregarHistorico()
+      dispararToast('Chamado excluído', `O protocolo ${protocolo} foi removido do banco e do dashboard.`, 'aviso')
+    } catch (erro) {
+      erroConfirmacaoExclusao.textContent = erro.message
+      erroConfirmacaoExclusao.classList.remove('oculto')
+    } finally { botaoConfirmarExclusao.disabled = false }
+  })
 
   // Campos do Modal
   const campoProtocolo = document.getElementById('campoProtocolo')
@@ -1035,10 +1079,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       botaoExcluirItem.textContent = '✕'
       botaoExcluirItem.addEventListener('click', (e) => {
         e.stopPropagation()
-        removerDoHistorico(item.protocolo)
+        abrirModalExclusao(item)
       })
 
-      containerDireita.append(hora, botaoExcluirItem)
+      const botaoEditarItem = document.createElement('button')
+      botaoEditarItem.type = 'button'
+      botaoEditarItem.className = 'botao-editar-item-historico'
+      botaoEditarItem.title = 'Editar chamado'
+      botaoEditarItem.textContent = 'Editar'
+      botaoEditarItem.addEventListener('click', (e) => {
+        e.stopPropagation()
+        chamadoEmEdicao = item.linha || null
+        abrirModalComDados(item, false, item.linha)
+      })
+
+      containerDireita.append(hora, botaoEditarItem, botaoExcluirItem)
       card.append(detalhes, containerDireita)
       grupo.appendChild(card)
       })
@@ -1239,6 +1294,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const resposta = await res.json()
       if (!res.ok) throw new Error(resposta.erro || 'Falha ao analisar chamado.')
 
+      chamadoEmEdicao = null
       abrirModalComDados(resposta.dados, resposta.duplicado, resposta.chamadoDuplicado)
     } catch (erro) {
       dispararToast('Erro na Análise', erro.message, 'erro')
@@ -1267,10 +1323,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     botaoConfirmarGravacao.textContent = 'A formatar e gravar...'
 
     try {
-      const res = await requisicaoAutenticada('/api/gravar', {
-        method: 'POST',
+      const emEdicao = Boolean(chamadoEmEdicao)
+      const res = await requisicaoAutenticada(emEdicao ? `/api/chamados/${encodeURIComponent(chamadoEmEdicao)}` : '/api/gravar', {
+        method: emEdicao ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dados: dadosParaGravar, username: abaAtual() })
+        body: JSON.stringify(emEdicao ? { dados: dadosParaGravar } : { dados: dadosParaGravar, username: abaAtual() })
       })
 
       const resposta = await res.json()
@@ -1279,6 +1336,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       fecharModalEdicao()
       
       const idChamado = resposta.id
+      if (emEdicao) {
+        const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+        localStorage.setItem('historico_chamados', JSON.stringify(historico.map((item) => item.linha === chamadoEmEdicao ? { ...item, ...dadosParaGravar } : item)))
+        chamadoEmEdicao = null
+        carregarHistorico()
+        dispararToast('Chamado atualizado', `Protocolo ${dadosParaGravar.protocolo} atualizado no sistema.`, 'sucesso')
+      } else {
 
       dispararToast(
         'Gravação Concluída',
@@ -1291,6 +1355,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       )
 
       adicionarAoHistorico(dadosParaGravar, idChamado)
+      }
       campoTexto.value = ''
       atualizarContador()
     } catch (erro) {

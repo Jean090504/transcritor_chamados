@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAcessoOperacional, exigirAutenticacao, listarUsuariosPublicos, solicitarResetSenha, listarSolicitacoesReset, aprovarSolicitacaoReset, rejeitarSolicitacaoReset } from '../services/authService.js'
-import { preVisualizarChamado, gravarChamado, preVisualizarOperacional, gravarOperacional, historicoOperacional, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista, editarChamado } from '../controllers/chamadoController.js'
+import { preVisualizarChamado, gravarChamado, preVisualizarOperacional, gravarOperacional, historicoOperacional, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista, editarChamado, excluirChamado } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
 import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaDadosOperacionais, esquemaUsername, esquemaLogin, esquemaNovaSenha } from '../schemas/chamadoSchema.js'
 import { limitadorAnalise, limitadorAutenticacao, limitadorGravacao } from '../middlewares/rateLimiter.js'
@@ -36,6 +36,7 @@ const esquemaPeriodoDashboard = z.object({ inicio: esquemaDataDashboard.optional
   }
 })
 const esquemaEdicaoChamado = z.object({ dados: esquemaChamadoEstruturado })
+const esquemaIdChamado = z.object({ id: z.string().uuid() })
 
 roteador.post('/auth/login', limitadorAutenticacao, validarRequisicao(esquemaLogin), async (requisicao, resposta) => {
   try {
@@ -98,6 +99,8 @@ roteador.post('/auth/solicitacoes-reset/:id/rejeitar', exigirAutenticacao, exigi
 roteador.get('/dashboard', exigirAutenticacao, exigirAcessoDashboard, validarRequisicao(esquemaPeriodoDashboard, 'query'), asyncHandler(dashboardSarah))
 roteador.get('/dashboard/analistas/:username', exigirAutenticacao, exigirAcessoDashboard, asyncHandler(detalhesAnalista))
 roteador.put('/dashboard/analistas/:username/chamados/:id', exigirAutenticacao, exigirAcessoDashboard, validarRequisicao(z.object({ username: esquemaUsername, id: z.string().uuid() }), 'params'), validarRequisicao(esquemaEdicaoChamado), asyncHandler(editarChamado))
+roteador.put('/chamados/:id', exigirAutenticacao, validarRequisicao(esquemaIdChamado, 'params'), validarRequisicao(esquemaEdicaoChamado), asyncHandler(editarChamado))
+roteador.delete('/chamados/:id', exigirAutenticacao, validarRequisicao(esquemaIdChamado, 'params'), asyncHandler(excluirChamado))
 
 roteador.use(exigirAutenticacao)
 roteador.post('/operacional/previsualizar', exigirAcessoOperacional, limitadorAnalise, validarRequisicao(esquemaTextoEntrada), preVisualizarOperacional)

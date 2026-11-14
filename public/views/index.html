@@ -375,6 +375,20 @@
     </div>
   </div>
 
+  <div id="modalExclusaoChamado" class="modal-fundo oculto" role="dialog" aria-modal="true" aria-labelledby="tituloExclusaoChamado">
+    <div class="modal-conteudo modal-confirmacao-exclusao">
+      <header class="modal-cabecalho">
+        <h2 id="tituloExclusaoChamado">Excluir chamado</h2>
+        <button type="button" id="fecharModalExclusao" class="botao-fechar" aria-label="Fechar">&times;</button>
+      </header>
+      <p>Essa ação excluirá o chamado do banco e do dashboard. Para confirmar, digite exatamente o protocolo e a data de hoje.</p>
+      <label class="campo-confirmacao-exclusao"><span>Protocolo</span><input id="protocoloConfirmacaoExclusao" type="text" autocomplete="off"></label>
+      <label class="campo-confirmacao-exclusao"><span>Data de hoje</span><input id="dataConfirmacaoExclusao" type="date"></label>
+      <p id="erroConfirmacaoExclusao" class="erro-confirmacao-exclusao oculto"></p>
+      <footer class="modal-rodape"><button type="button" id="botaoCancelarExclusao" class="botao-secundario">Cancelar</button><button type="button" id="botaoConfirmarExclusao" class="botao-perigo">Excluir chamado</button></footer>
+    </div>
+  </div>
+
   <!-- Container de Toasts Flutuantes -->
   <div id="containerToasts" class="container-toasts" aria-live="polite"></div>
 

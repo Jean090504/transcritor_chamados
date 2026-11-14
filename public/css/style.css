@@ -460,6 +460,15 @@ textarea:focus {
   border-radius: 6px;
   font-size: 0.8rem;
 }
+.botao-editar-item-historico { border: 1px solid var(--cor-borda); border-radius: 4px; padding: .2rem .4rem; color: var(--cor-texto-secundario); background: transparent; font-size: .7rem; cursor: pointer; }
+.botao-editar-item-historico:hover { border-color: #0b67d1; color: #0b67d1; }
+.modal-confirmacao-exclusao { max-width: 460px; }
+.modal-confirmacao-exclusao > p { color: var(--cor-texto-secundario); line-height: 1.5; }
+.campo-confirmacao-exclusao { display: grid; gap: .35rem; margin-top: .8rem; color: var(--cor-texto-secundario); font-size: .78rem; font-weight: 700; }
+.campo-confirmacao-exclusao input { box-sizing: border-box; width: 100%; padding: .65rem .7rem; border: 1px solid var(--cor-borda); border-radius: 6px; color: var(--cor-texto-principal); background: var(--cor-cartao); font: inherit; }
+.erro-confirmacao-exclusao { color: #b91c1c !important; font-size: .8rem; }
+.botao-perigo { border: 1px solid #b91c1c; border-radius: 5px; padding: .6rem .9rem; color: #fff; background: #b91c1c; cursor: pointer; font-weight: 700; }
+.botao-perigo:hover { background: #991b1b; }
 
 /* Modal */
 .modal-fundo {

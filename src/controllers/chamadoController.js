@@ -150,3 +150,11 @@ export const editarChamado = async (requisicao, resposta) => {
     return resposta.status(500).json({ erro: 'Falha ao atualizar o chamado.' })
   }
 }
+
+export const excluirChamado = async (requisicao, resposta) => {
+  const username = usernameAlvo(requisicao, requisicao.params.username)
+  if (!username || !obterAnalista(username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
+  const removido = await apagarChamado(username, requisicao.params.id)
+  if (!removido) return resposta.status(404).json({ erro: 'Chamado não encontrado.' })
+  return resposta.json({ sucesso: true })
+}
