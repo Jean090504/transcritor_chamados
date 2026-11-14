@@ -903,6 +903,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const listaHistorico = document.getElementById('listaHistorico')
   const totalHistorico = document.getElementById('totalHistorico')
   const campoPesquisaHistorico = document.getElementById('campoPesquisaHistorico')
+  const filtroStatusHistorico = document.getElementById('filtroStatusHistorico')
+  const seletorStatusHistorico = document.getElementById('seletorStatusHistorico')
+  const botaoStatusHistorico = document.getElementById('botaoStatusHistorico')
+  const opcoesStatusHistorico = document.getElementById('opcoesStatusHistorico')
   const botaoSincronizar = document.getElementById('botaoSincronizar')
   const botaoLimparHistorico = document.getElementById('botaoLimparHistorico')
 
@@ -1070,15 +1074,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // 6. Histórico e Consulta Rápida (Filtro Dinâmico + Botão Excluir)
-  function renderizarListaHistorico(filtro = '') {
+  function classificarHistorico(item) {
+    const normalizar = (valor) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    const estado = normalizar([item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].filter(Boolean).join(' '))
+    const retratacaoFinal = normalizar(item.retratacaoFinal)
+    if (/cancel/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
+    if (/agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)) return { classe: 'status-laranja', texto: 'Agendamento' }
+    if (/reembols/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
+    const base = normalizar(item.baseAcionada)
+    if (base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)) return { classe: 'status-verde', texto: 'Acionado' }
+    return { classe: 'status-laranja', texto: 'Agendamento' }
+  }
+
+  function renderizarListaHistorico(filtro = '', statusFiltro = filtroStatusHistorico?.value || 'todos') {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
     totalHistorico.textContent = historico.length
     listaHistorico.replaceChildren()
 
     const termo = filtro.trim().toLowerCase()
     const filtrados = historico.filter((item) => {
-      if (!termo) return true
-      return (
+      const status = classificarHistorico(item)
+      const correspondeStatus = statusFiltro === 'todos' || status.classe === statusFiltro
+      if (!termo) return correspondeStatus
+      return correspondeStatus && (
         item.protocolo.toLowerCase().includes(termo) ||
         item.seguradora.toLowerCase().includes(termo) ||
         item.servico.toLowerCase().includes(termo) ||
@@ -1111,7 +1129,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       grupo.appendChild(tituloDia)
       itens.forEach((item) => {
       const card = document.createElement('div')
-      card.className = 'item-historico'
+      const status = classificarHistorico(item)
+      card.className = `item-historico ${status.classe}`
 
       const detalhes = document.createElement('div')
       detalhes.className = 'item-historico-detalhes'
@@ -1132,6 +1151,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       hora.style.color = 'var(--cor-texto-secundario)'
       hora.style.fontSize = '0.75rem'
       hora.textContent = item.dataHora
+
+      const etiquetaStatus = document.createElement('span')
+      etiquetaStatus.className = `status-item-historico ${status.classe}`
+      etiquetaStatus.textContent = status.texto
 
       const botaoExcluirItem = document.createElement('button')
       botaoExcluirItem.type = 'button'
@@ -1154,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         abrirModalComDados(item, false, item.linha)
       })
 
-      containerDireita.append(hora, botaoEditarItem, botaoExcluirItem)
+      containerDireita.append(etiquetaStatus, hora, botaoEditarItem, botaoExcluirItem)
       card.append(detalhes, containerDireita)
       grupo.appendChild(card)
       })
@@ -1195,7 +1218,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (campoPesquisaHistorico) {
     campoPesquisaHistorico.addEventListener('input', (e) => {
-      renderizarListaHistorico(e.target.value)
+      renderizarListaHistorico(e.target.value, filtroStatusHistorico?.value || 'todos')
+    })
+  }
+
+  const fecharOpcoesStatusHistorico = () => {
+    if (!opcoesStatusHistorico || !botaoStatusHistorico || !seletorStatusHistorico) return
+    opcoesStatusHistorico.hidden = true
+    botaoStatusHistorico.setAttribute('aria-expanded', 'false')
+    seletorStatusHistorico.classList.remove('aberto')
+  }
+  if (botaoStatusHistorico && opcoesStatusHistorico && seletorStatusHistorico && filtroStatusHistorico) {
+    botaoStatusHistorico.addEventListener('click', () => {
+      const aberto = !opcoesStatusHistorico.hidden
+      opcoesStatusHistorico.hidden = aberto
+      botaoStatusHistorico.setAttribute('aria-expanded', String(!aberto))
+      seletorStatusHistorico.classList.toggle('aberto', !aberto)
+    })
+    opcoesStatusHistorico.querySelectorAll('[data-value]').forEach((opcao) => {
+      opcao.addEventListener('click', () => {
+        filtroStatusHistorico.value = opcao.dataset.value
+        botaoStatusHistorico.querySelector('span').textContent = opcao.querySelector('span').textContent
+        opcoesStatusHistorico.querySelectorAll('[data-value]').forEach((item) => item.setAttribute('aria-selected', String(item === opcao)))
+        fecharOpcoesStatusHistorico()
+        renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico.value)
+      })
+    })
+    document.addEventListener('click', (evento) => {
+      if (!seletorStatusHistorico.contains(evento.target)) fecharOpcoesStatusHistorico()
     })
   }
 
