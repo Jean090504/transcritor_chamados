@@ -746,7 +746,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         topo.append(avatar, status)
         const nome = criarElemento('strong', [], analista.nome)
         const rodape = criarElemento('div', ['card-analista-rodape'])
-        rodape.append(criarElemento('span', [], 'Hoje'), criarElemento('b', [], String(analista.atendimentosHoje)))
+        const statusHoje = analista.statusHoje || { acionados: 0, pendentes: 0, cancelados: 0 }
+        const resumoStatus = criarElemento('small', ['card-analista-status'], `${statusHoje.acionados} acionados · ${statusHoje.pendentes} agendados · ${statusHoje.cancelados} cancelado${statusHoje.cancelados === 1 ? '' : 's'}`)
+        rodape.append(criarElemento('span', [], 'Hoje'), criarElemento('b', [], String(analista.atendimentosHoje)), resumoStatus)
         card.append(topo, nome, rodape)
         return card
       }))
@@ -884,7 +886,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       totalResumo.append(criarElemento('strong', [], String(dados.total)))
       const hojeResumo = criarElemento('div', ['resumo-detalhes-item'], 'Atendidos hoje')
       hojeResumo.append(criarElemento('strong', [], String(dados.atendimentosHoje)))
-      resumoDetalhes.replaceChildren(totalResumo, hojeResumo)
+      const statusHoje = dados.statusHoje || { acionados: 0, pendentes: 0, cancelados: 0 }
+      const acionadosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Acionados hoje')
+      acionadosResumo.append(criarElemento('strong', [], String(statusHoje.acionados)))
+      const agendadosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Agendados hoje')
+      agendadosResumo.append(criarElemento('strong', [], String(statusHoje.pendentes)))
+      const canceladosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Cancelados hoje')
+      canceladosResumo.append(criarElemento('strong', [], String(statusHoje.cancelados)))
+      resumoDetalhes.replaceChildren(totalResumo, hojeResumo, acionadosResumo, agendadosResumo, canceladosResumo)
       listaDetalhes.replaceChildren(...(dados.chamados.length ? dados.chamados.map((chamado, indice) => {
         const status = classificarChamado(chamado)
         const item = criarElemento('article', ['item-detalhe-chamado', status.classe])
@@ -1142,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       const retratacaoFinal = String(item.retratacaoFinal || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       if (texto.includes('cancel') || texto.includes('reembols') || texto.includes('agendad') || texto.includes('agendament') || /\bag\s*\d{1,2}\b/.test(retratacaoFinal) || texto.includes('sem base acionad') || texto.includes('nao acionad') || texto.includes('sem acionamento')) return false
-      return base && !base.includes('nao acionad') && !base.includes('nao informado') && !base.includes('sem acionamento') && !base.includes('sem base')
+      return (base && !base.includes('nao acionad') && !base.includes('nao informado') && !base.includes('sem acionamento') && !base.includes('sem base')) || (/\bacionad[oa]s?\b/.test(texto) && !/sem base acionad|nao acionad|sem acionamento/.test(texto))
     }).length
     const canceladosHoje = atendimentosHoje.filter((item) => {
       const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -1196,7 +1205,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (/agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)) return { classe: 'status-laranja', texto: 'Agendamento' }
     if (/reembols/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
     const base = normalizar(item.baseAcionada)
-    if (base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)) return { classe: 'status-verde', texto: 'Acionado' }
+    const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
+    if ((base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)) || acionamentoConfirmado) return { classe: 'status-verde', texto: 'Acionado' }
     return { classe: 'status-laranja', texto: 'Agendamento' }
   }
 

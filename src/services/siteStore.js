@@ -38,7 +38,7 @@ function normalizarStatus(valor) {
     .trim()
 }
 
-function classificarAtendimento(chamado) {
+export function classificarAtendimento(chamado) {
   const base = normalizarStatus(chamado.baseAcionada)
   const estado = normalizarStatus([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas, chamado.observacao].filter(Boolean).join(' '))
   const retratacaoFinal = normalizarStatus(chamado.retratacaoFinal)
@@ -54,15 +54,23 @@ function classificarAtendimento(chamado) {
   return 'pendentes'
 }
 
-export async function contarStatusAtendimentosHoje(usernames, data) {
+async function contarStatusChamados(where) {
   const resultado = { acionados: 0, pendentes: 0, cancelados: 0 }
-  if (!usernames?.length) return resultado
   const chamados = await prisma.chamado.findMany({
-    where: { dataAtendimento: data, username: { in: usernames } },
+    where,
     select: { servico: true, previaServico: true, baseAcionada: true, retratacaoInicial: true, retratacaoFinal: true, resumoTentativas: true, observacao: true }
   })
   chamados.forEach((chamado) => { resultado[classificarAtendimento(chamado)] += 1 })
   return resultado
+}
+
+export async function contarStatusChamadosHoje(username, data) {
+  return contarStatusChamados({ username, dataAtendimento: data })
+}
+
+export async function contarStatusAtendimentosHoje(usernames, data) {
+  if (!usernames?.length) return { acionados: 0, pendentes: 0, cancelados: 0 }
+  return contarStatusChamados({ dataAtendimento: data, username: { in: usernames } })
 }
 
 function adicionarDias(data, quantidade) {

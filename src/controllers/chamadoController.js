@@ -2,7 +2,7 @@ import { extrairDadosChamado, extrairDadosOperacionais } from '../services/aiSer
 import { esquemaChamadoEstruturado, esquemaDadosOperacionais } from '../schemas/chamadoSchema.js'
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
-import { contarChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, atualizarChamado, todosChamados } from '../services/siteStore.js'
+import { contarChamadosHoje, contarStatusChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, atualizarChamado, todosChamados } from '../services/siteStore.js'
 import { prepararRegistroOperacional } from '../services/operacionalService.js'
 import { listarHistoricoOperacional, salvarRegistroOperacionalSeguro } from '../services/operacionalRegistroService.js'
 
@@ -110,7 +110,8 @@ export const dashboardSarah = async (requisicao, resposta) => {
     const analistas = await Promise.all(status.map(async (analista) => ({
       ...analista,
       totalChamados: (await listarChamados(analista.username)).length,
-      atendimentosHoje: await contarChamadosHoje(analista.username, data)
+      atendimentosHoje: await contarChamadosHoje(analista.username, data),
+      statusHoje: await contarStatusChamadosHoje(analista.username, data)
     })))
     const ultimosSeteDias = await Promise.all(Array.from({ length: 7 }, async (_, indice) => {
       const dia = dataSaoPauloComDeslocamento(6 - indice)
@@ -134,7 +135,8 @@ export const detalhesAnalista = async (requisicao, resposta) => {
   if (analista && !obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
   if (!analista || !obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
   const chamados = await listarChamados(analista.username)
-  return resposta.json({ analista, chamados, total: chamados.length, atendimentosHoje: await contarChamadosHoje(analista.username, dataAtualSaoPaulo()) })
+  const data = dataAtualSaoPaulo()
+  return resposta.json({ analista, chamados, total: chamados.length, atendimentosHoje: await contarChamadosHoje(analista.username, data), statusHoje: await contarStatusChamadosHoje(analista.username, data) })
 }
 
 export const editarChamado = async (requisicao, resposta) => {
