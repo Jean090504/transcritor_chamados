@@ -1222,8 +1222,12 @@ body.dark-mode.modo-analista .card-metrica { background: linear-gradient(145deg,
 .busca-assistencias-dashboard { display: grid; gap: .3rem; margin: .8rem 0 1rem; color: #64748b; font-size: .75rem; font-weight: 700; }
 .busca-assistencias-dashboard input { width: 100%; box-sizing: border-box; padding: .65rem .75rem; border: 1px solid #cbd5e1; border-radius: 6px; color: #1e293b; background: #fff; font: inherit; }
 .filtros-assistencias-dashboard { display: grid; grid-template-columns: minmax(0, 1fr) 180px; align-items: end; gap: .75rem; }
-.filtro-status-assistencias-dashboard { display: grid; gap: .3rem; margin: .8rem 0 1rem; color: #64748b; font-size: .75rem; font-weight: 700; }
-.filtro-status-assistencias-dashboard select { width: 100%; box-sizing: border-box; padding: .65rem .75rem; border: 1px solid #cbd5e1; border-radius: 6px; color: #1e293b; background: #fff; font: inherit; cursor: pointer; }
+.filtro-status-assistencias-dashboard { display: grid; gap: .35rem; margin: .8rem 0 1rem; color: #64748b; font-size: .75rem; font-weight: 700; }
+.filtro-status-assistencias-dashboard span { display: flex; align-items: center; gap: .35rem; }
+.filtro-status-assistencias-dashboard span::before { content: ''; width: .45rem; height: .45rem; border-radius: 50%; background: #0b67d1; box-shadow: 0 0 0 3px rgba(11, 103, 209, .12); }
+.filtro-status-assistencias-dashboard select { width: 100%; box-sizing: border-box; appearance: none; padding: .7rem 2.45rem .7rem .85rem; border: 1px solid #bfdbfe; border-radius: 10px; color: #1e293b; background-color: #fff; background-image: linear-gradient(45deg, transparent 50%, #0b67d1 50%), linear-gradient(135deg, #0b67d1 50%, transparent 50%); background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; box-shadow: 0 3px 10px rgba(15, 63, 112, .08); font: inherit; font-weight: 700; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.filtro-status-assistencias-dashboard select:hover { border-color: #0b67d1; box-shadow: 0 5px 14px rgba(11, 103, 209, .14); transform: translateY(-1px); }
+.filtro-status-assistencias-dashboard select:focus { outline: none; border-color: #0b67d1; box-shadow: 0 0 0 3px rgba(11, 103, 209, .18), 0 5px 14px rgba(11, 103, 209, .12); }
 .lista-geral-assistencias-dashboard { display: grid; gap: .65rem; max-height: 480px; overflow-y: auto; }
 .item-lista-geral-dashboard { padding: .85rem 1rem; border: 1px solid #e2e8f0; border-left: 5px solid #f59e0b; border-radius: 8px; background: #fff; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
 .item-lista-geral-dashboard.status-verde { border-left-color: #16a34a; }
@@ -1235,7 +1239,8 @@ body.dark-mode.modo-analista .card-metrica { background: linear-gradient(145deg,
 .mensagem-lista-geral-dashboard { color: #64748b; text-align: center; }
 body.dark-mode .lista-geral-dashboard { border-color: #334155; background: linear-gradient(145deg, #111827 0%, #12231f 100%); }
 body.dark-mode .busca-assistencias-dashboard input, body.dark-mode .item-lista-geral-dashboard { border-color: #334155; color: #cbd5e1; background: #111827; }
-body.dark-mode .filtro-status-assistencias-dashboard select { border-color: #334155; color: #cbd5e1; background: #111827; }
+body.dark-mode .filtro-status-assistencias-dashboard span::before { background: #60a5fa; box-shadow: 0 0 0 3px rgba(96, 165, 250, .14); }
+body.dark-mode .filtro-status-assistencias-dashboard select { border-color: #3b82f6; color: #cbd5e1; background-color: #111827; background-image: linear-gradient(45deg, transparent 50%, #60a5fa 50%), linear-gradient(135deg, #60a5fa 50%, transparent 50%); box-shadow: 0 3px 10px rgba(0, 0, 0, .2); }
 body.dark-mode .item-lista-geral-topo time, body.dark-mode .item-lista-geral-detalhes, body.dark-mode .mensagem-lista-geral-dashboard { color: #94a3b8; }
 @media (max-width: 640px) { .filtros-assistencias-dashboard { grid-template-columns: 1fr; gap: 0; } }
 .resumo-detalhes-analista { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
