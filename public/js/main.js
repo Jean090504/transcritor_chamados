@@ -42,6 +42,91 @@ document.addEventListener('DOMContentLoaded', async () => {
     const correspondencia = texto.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/)
     return correspondencia ? `${correspondencia[3]}/${correspondencia[2]}/${correspondencia[1]}` : texto
   }
+  const criarCalendarioData = (input) => {
+    if (!input || input.dataset.calendarioPersonalizado) return
+    input.dataset.calendarioPersonalizado = 'true'
+    const seletor = document.createElement('div')
+    seletor.className = 'seletor-data-historico'
+    const botao = document.createElement('button')
+    botao.className = 'botao-data-historico'
+    botao.type = 'button'
+    botao.setAttribute('aria-haspopup', 'dialog')
+    botao.setAttribute('aria-expanded', 'false')
+    botao.append(document.createElement('span'), Object.assign(document.createElement('i'), { ariaHidden: 'true' }))
+    const calendario = document.createElement('div')
+    calendario.className = 'calendario-historico'
+    calendario.setAttribute('role', 'dialog')
+    calendario.setAttribute('aria-label', 'Selecionar data')
+    calendario.hidden = true
+    const cabecalho = document.createElement('div')
+    cabecalho.className = 'cabecalho-calendario-historico'
+    const anterior = document.createElement('button')
+    anterior.type = 'button'
+    anterior.setAttribute('aria-label', 'Mês anterior')
+    anterior.textContent = '‹'
+    const titulo = document.createElement('strong')
+    const seguinte = document.createElement('button')
+    seguinte.type = 'button'
+    seguinte.setAttribute('aria-label', 'Próximo mês')
+    seguinte.textContent = '›'
+    cabecalho.append(anterior, titulo, seguinte)
+    const semana = document.createElement('div')
+    semana.className = 'dias-semana-calendario'
+    'DSTQQSS'.split('').forEach((dia) => semana.appendChild(document.createElement('span')).textContent = dia)
+    const dias = document.createElement('div')
+    dias.className = 'dias-calendario-historico'
+    const rodape = document.createElement('div')
+    rodape.className = 'rodape-calendario-historico'
+    const limpar = document.createElement('button')
+    limpar.type = 'button'
+    limpar.textContent = 'Limpar'
+    const hojeBotao = document.createElement('button')
+    hojeBotao.type = 'button'
+    hojeBotao.textContent = 'Hoje'
+    rodape.append(limpar, hojeBotao)
+    calendario.append(cabecalho, semana, dias, rodape)
+    const valorInicial = input.value
+    const mesInicial = valorInicial ? new Date(`${valorInicial}T12:00:00`) : new Date()
+    let mesAtual = mesInicial
+    input.parentNode.insertBefore(seletor, input)
+    seletor.append(botao, calendario, input)
+    const formatarData = (data) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`
+    const atualizarBotao = () => { botao.querySelector('span').textContent = input.value ? formatarDataPtBr(input.value) : 'Selecionar data' }
+    const fechar = () => { calendario.hidden = true; botao.setAttribute('aria-expanded', 'false'); seletor.classList.remove('aberto') }
+    const renderizar = () => {
+      const ano = mesAtual.getFullYear()
+      const mes = mesAtual.getMonth()
+      titulo.textContent = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(mesAtual)
+      dias.replaceChildren()
+      const primeiroDia = new Date(ano, mes, 1).getDay()
+      const quantidadeDias = new Date(ano, mes + 1, 0).getDate()
+      const quantidadeDiasAnterior = new Date(ano, mes, 0).getDate()
+      for (let indice = 0; indice < 42; indice += 1) {
+        const deslocamento = indice - primeiroDia + 1
+        const dia = document.createElement('button')
+        dia.type = 'button'
+        dia.className = 'dia-calendario-historico'
+        let data
+        if (deslocamento < 1) { data = new Date(ano, mes - 1, quantidadeDiasAnterior + deslocamento); dia.classList.add('outro-mes') }
+        else if (deslocamento > quantidadeDias) { data = new Date(ano, mes + 1, deslocamento - quantidadeDias); dia.classList.add('outro-mes') }
+        else data = new Date(ano, mes, deslocamento)
+        const valor = formatarData(data)
+        dia.textContent = String(data.getDate())
+        if (valor === formatarData(new Date())) dia.classList.add('hoje')
+        if (valor === input.value) dia.classList.add('selecionado')
+        dia.addEventListener('click', () => { input.value = valor; atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
+        dias.appendChild(dia)
+      }
+    }
+    botao.addEventListener('click', () => { const aberto = !calendario.hidden; calendario.hidden = aberto; botao.setAttribute('aria-expanded', String(!aberto)); seletor.classList.toggle('aberto', !aberto); if (!aberto) renderizar() })
+    anterior.addEventListener('click', () => { mesAtual.setMonth(mesAtual.getMonth() - 1); renderizar() })
+    seguinte.addEventListener('click', () => { mesAtual.setMonth(mesAtual.getMonth() + 1); renderizar() })
+    limpar.addEventListener('click', () => { input.value = ''; atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
+    hojeBotao.addEventListener('click', () => { const hoje = new Date(); mesAtual = hoje; input.value = formatarData(hoje); atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
+    document.addEventListener('click', (evento) => { if (!seletor.contains(evento.target)) fechar() })
+    input._atualizarCalendario = () => { atualizarBotao(); if (input.value) mesAtual = new Date(`${input.value}T12:00:00`) }
+    atualizarBotao()
+  }
   const criarIconeOlho = (visivel) => {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     svg.setAttribute('viewBox', '0 0 24 24')
@@ -439,6 +524,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const seletorStatusDashboard = document.getElementById('seletorStatusDashboard')
     const botaoStatusAssistenciasDashboard = document.getElementById('botaoStatusAssistenciasDashboard')
     const opcoesStatusAssistenciasDashboard = document.getElementById('opcoesStatusAssistenciasDashboard')
+    criarCalendarioData(dataInicioDashboard)
+    criarCalendarioData(dataFimDashboard)
     const listaGeralAssistenciasDashboard = document.getElementById('listaGeralAssistenciasDashboard')
     const contadorListaGeralDashboard = document.getElementById('contadorListaGeralDashboard')
     let dataReferenciaDashboard = ''
@@ -629,6 +716,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('totalAtendimentosCanceladosHoje').textContent = dados.statusAtendimentosHoje.cancelados
       dataInicioDashboard.value = dados.periodo.inicio
       dataFimDashboard.value = dados.periodo.fim
+      dataInicioDashboard._atualizarCalendario?.()
+      dataFimDashboard._atualizarCalendario?.()
       renderizarGraficoVolume(dados.resumoPeriodo.serieDiaria)
       renderizarGraficoStatus(dados.resumoPeriodo.serieDiaria)
       const analistasOrdenados = [...dados.analistas].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
@@ -691,6 +780,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const periodo = obterPeriodoAtalho(botao.dataset.periodo)
         dataInicioDashboard.value = periodo.inicio
         dataFimDashboard.value = periodo.fim
+        dataInicioDashboard._atualizarCalendario?.()
+        dataFimDashboard._atualizarCalendario?.()
         document.querySelectorAll('.botao-periodo-dashboard').forEach((item) => item.classList.remove('periodo-ativo'))
         botao.classList.add('periodo-ativo')
         await aplicarPeriodo(periodo.inicio, periodo.fim)
@@ -840,11 +931,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const erroConfirmacaoExclusao = document.getElementById('erroConfirmacaoExclusao')
   const botaoConfirmarExclusao = document.getElementById('botaoConfirmarExclusao')
   let chamadoParaExcluir = null
+  criarCalendarioData(dataConfirmacaoExclusao)
   const fecharModalExclusao = () => { modalExclusaoChamado.classList.add('oculto'); chamadoParaExcluir = null }
   const abrirModalExclusao = (chamado) => {
     chamadoParaExcluir = chamado
     protocoloConfirmacaoExclusao.value = ''
     dataConfirmacaoExclusao.value = ''
+    dataConfirmacaoExclusao._atualizarCalendario?.()
     erroConfirmacaoExclusao.textContent = ''
     erroConfirmacaoExclusao.classList.add('oculto')
     modalExclusaoChamado.classList.remove('oculto')
