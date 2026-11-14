@@ -1349,9 +1349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `Protocolo ${dadosParaGravar.protocolo} salvo no sistema em ${resposta.dataAtendimento}.`,
         'sucesso',
         30000,
-        {
-          onDesfazer: idChamado ? () => executarDesfazer(idChamado, dadosParaGravar.protocolo) : null
-        }
+        {}
       )
 
       adicionarAoHistorico(dadosParaGravar, idChamado)
