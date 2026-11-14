@@ -461,12 +461,35 @@ textarea:focus {
 .filtro-status-historico-analista .opcoes-seletor-status-dashboard { z-index: 30; }
 .filtro-status-historico-analista select { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .filtro-data-historico-analista { display: grid; gap: .35rem; color: var(--cor-texto-secundario); font-size: .75rem; font-weight: 700; }
-.filtro-data-historico-analista input { width: 100%; box-sizing: border-box; min-height: 2.7rem; padding: .65rem .7rem; border: 1px solid #bfdbfe; border-radius: 10px; color: var(--cor-texto-principal); background: linear-gradient(135deg, rgba(239, 246, 255, .8), var(--cor-cartao)); font: inherit; font-weight: 700; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
-.filtro-data-historico-analista input:hover { border-color: #0b67d1; box-shadow: 0 5px 14px rgba(11, 103, 209, .12); transform: translateY(-1px); }
-.filtro-data-historico-analista input:focus { border-color: #0b67d1; outline: none; box-shadow: 0 0 0 3px rgba(11, 103, 209, .16), 0 5px 14px rgba(11, 103, 209, .1); }
-.filtro-data-historico-analista input::-webkit-calendar-picker-indicator { padding: .25rem; border-radius: 6px; cursor: pointer; opacity: .75; filter: saturate(1.25); transition: background .15s ease, opacity .15s ease; }
-.filtro-data-historico-analista input::-webkit-calendar-picker-indicator:hover { opacity: 1; background: rgba(11, 103, 209, .12); }
-body.dark-mode .filtro-data-historico-analista input { border-color: #3b82f6; color: #cbd5e1; background: linear-gradient(135deg, rgba(23, 37, 84, .75), #111827); color-scheme: dark; }
+.seletor-data-historico { position: relative; }
+.botao-data-historico { display: flex; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; min-height: 2.7rem; padding: .65rem .7rem; border: 1px solid #bfdbfe; border-radius: 10px; color: var(--cor-texto-principal); background: linear-gradient(135deg, rgba(239, 246, 255, .8), var(--cor-cartao)); font: inherit; font-weight: 700; text-align: left; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.botao-data-historico i { width: .48rem; height: .48rem; border-right: 2px solid #0b67d1; border-bottom: 2px solid #0b67d1; transform: rotate(45deg) translateY(-2px); transition: transform .15s ease; }
+.seletor-data-historico.aberto .botao-data-historico i { transform: rotate(225deg) translate(-2px, -2px); }
+.botao-data-historico:hover, .seletor-data-historico.aberto .botao-data-historico { border-color: #0b67d1; box-shadow: 0 5px 14px rgba(11, 103, 209, .12); transform: translateY(-1px); }
+.calendario-historico { position: absolute; z-index: 35; top: calc(100% + .45rem); right: 0; width: 250px; padding: .7rem; border: 1px solid #bfdbfe; border-radius: 12px; background: #fff; box-shadow: 0 12px 28px rgba(15, 63, 112, .18); }
+.calendario-historico[hidden] { display: none; }
+.cabecalho-calendario-historico { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .55rem; color: #1e3a8a; }
+.cabecalho-calendario-historico strong { font-size: .8rem; text-transform: capitalize; }
+.cabecalho-calendario-historico button, .rodape-calendario-historico button { border: 0; border-radius: 7px; padding: .3rem .5rem; color: #0b67d1; background: #eff6ff; font: inherit; font-weight: 800; cursor: pointer; }
+.cabecalho-calendario-historico button { font-size: 1.15rem; line-height: 1; }
+.cabecalho-calendario-historico button:hover, .rodape-calendario-historico button:hover { background: #dbeafe; }
+.dias-semana-calendario, .dias-calendario-historico { display: grid; grid-template-columns: repeat(7, 1fr); gap: .2rem; text-align: center; }
+.dias-semana-calendario { margin-bottom: .25rem; color: #64748b; font-size: .65rem; font-weight: 800; }
+.dia-calendario-historico { min-height: 1.8rem; border: 0; border-radius: 7px; color: #1e293b; background: transparent; font: inherit; font-size: .72rem; cursor: pointer; }
+.dia-calendario-historico:hover, .dia-calendario-historico.hoje { color: #0b67d1; background: #eff6ff; }
+.dia-calendario-historico.selecionado { color: #fff; background: #0b67d1; font-weight: 800; }
+.dia-calendario-historico.outro-mes { color: #b6c2d1; }
+.rodape-calendario-historico { display: flex; justify-content: space-between; margin-top: .55rem; padding-top: .5rem; border-top: 1px solid #e2e8f0; }
+.filtro-data-historico-analista > .seletor-data-historico > input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+body.dark-mode .botao-data-historico { border-color: #3b82f6; color: #cbd5e1; background: linear-gradient(135deg, rgba(23, 37, 84, .75), #111827); }
+body.dark-mode .botao-data-historico i { border-color: #60a5fa; }
+body.dark-mode .calendario-historico { border-color: #3b82f6; background: #111827; box-shadow: 0 12px 28px rgba(0, 0, 0, .35); }
+body.dark-mode .cabecalho-calendario-historico { color: #bfdbfe; }
+body.dark-mode .dia-calendario-historico { color: #cbd5e1; }
+body.dark-mode .dia-calendario-historico:hover, body.dark-mode .dia-calendario-historico.hoje { color: #93c5fd; background: #172554; }
+body.dark-mode .dia-calendario-historico.selecionado { color: #fff; background: #2563eb; }
+body.dark-mode .dia-calendario-historico.outro-mes { color: #475569; }
+body.dark-mode .rodape-calendario-historico { border-color: #334155; }
 
 .item-historico {
   display: flex;

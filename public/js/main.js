@@ -905,6 +905,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const campoPesquisaHistorico = document.getElementById('campoPesquisaHistorico')
   const filtroStatusHistorico = document.getElementById('filtroStatusHistorico')
   const filtroDataHistorico = document.getElementById('filtroDataHistorico')
+  const seletorDataHistorico = document.getElementById('seletorDataHistorico')
+  const botaoDataHistorico = document.getElementById('botaoDataHistorico')
+  const calendarioHistorico = document.getElementById('calendarioHistorico')
+  const mesAtualHistorico = document.getElementById('mesAtualHistorico')
+  const diasCalendarioHistorico = document.getElementById('diasCalendarioHistorico')
+  const mesAnteriorHistorico = document.getElementById('mesAnteriorHistorico')
+  const mesSeguinteHistorico = document.getElementById('mesSeguinteHistorico')
+  const limparDataHistorico = document.getElementById('limparDataHistorico')
+  const hojeDataHistorico = document.getElementById('hojeDataHistorico')
   const seletorStatusHistorico = document.getElementById('seletorStatusHistorico')
   const botaoStatusHistorico = document.getElementById('botaoStatusHistorico')
   const opcoesStatusHistorico = document.getElementById('opcoesStatusHistorico')
@@ -1223,8 +1232,81 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderizarListaHistorico(e.target.value, filtroStatusHistorico?.value || 'todos', filtroDataHistorico?.value || '')
     })
   }
-  if (filtroDataHistorico) {
-    filtroDataHistorico.addEventListener('change', () => renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico?.value || 'todos', filtroDataHistorico.value))
+  let mesCalendarioHistorico = new Date()
+  const formatarDataCalendario = (data) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`
+  const atualizarTextoDataHistorico = () => {
+    const valor = filtroDataHistorico?.value
+    botaoDataHistorico.querySelector('span').textContent = valor ? valor.split('-').reverse().join('/') : 'Selecionar data'
+  }
+  const renderizarCalendarioHistorico = () => {
+    const ano = mesCalendarioHistorico.getFullYear()
+    const mes = mesCalendarioHistorico.getMonth()
+    mesAtualHistorico.textContent = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(mesCalendarioHistorico)
+    diasCalendarioHistorico.replaceChildren()
+    const primeiroDia = new Date(ano, mes, 1).getDay()
+    const quantidadeDias = new Date(ano, mes + 1, 0).getDate()
+    const quantidadeDiasAnterior = new Date(ano, mes, 0).getDate()
+    for (let indice = 0; indice < 42; indice += 1) {
+      const deslocamento = indice - primeiroDia + 1
+      const dia = document.createElement('button')
+      dia.type = 'button'
+      dia.className = 'dia-calendario-historico'
+      let data
+      if (deslocamento < 1) {
+        data = new Date(ano, mes - 1, quantidadeDiasAnterior + deslocamento)
+        dia.classList.add('outro-mes')
+      } else if (deslocamento > quantidadeDias) {
+        data = new Date(ano, mes + 1, deslocamento - quantidadeDias)
+        dia.classList.add('outro-mes')
+      } else {
+        data = new Date(ano, mes, deslocamento)
+      }
+      const valor = formatarDataCalendario(data)
+      dia.textContent = String(data.getDate())
+      dia.dataset.date = valor
+      if (valor === formatarDataCalendario(new Date())) dia.classList.add('hoje')
+      if (valor === filtroDataHistorico.value) dia.classList.add('selecionado')
+      dia.addEventListener('click', () => {
+        filtroDataHistorico.value = valor
+        atualizarTextoDataHistorico()
+        fecharCalendarioHistorico()
+        renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico?.value || 'todos', valor)
+      })
+      diasCalendarioHistorico.appendChild(dia)
+    }
+  }
+  const fecharCalendarioHistorico = () => {
+    calendarioHistorico.hidden = true
+    botaoDataHistorico.setAttribute('aria-expanded', 'false')
+    seletorDataHistorico.classList.remove('aberto')
+  }
+  if (filtroDataHistorico && botaoDataHistorico && calendarioHistorico) {
+    botaoDataHistorico.addEventListener('click', () => {
+      const aberto = !calendarioHistorico.hidden
+      calendarioHistorico.hidden = aberto
+      botaoDataHistorico.setAttribute('aria-expanded', String(!aberto))
+      seletorDataHistorico.classList.toggle('aberto', !aberto)
+      if (!aberto) renderizarCalendarioHistorico()
+    })
+    mesAnteriorHistorico.addEventListener('click', () => { mesCalendarioHistorico.setMonth(mesCalendarioHistorico.getMonth() - 1); renderizarCalendarioHistorico() })
+    mesSeguinteHistorico.addEventListener('click', () => { mesCalendarioHistorico.setMonth(mesCalendarioHistorico.getMonth() + 1); renderizarCalendarioHistorico() })
+    limparDataHistorico.addEventListener('click', () => {
+      filtroDataHistorico.value = ''
+      atualizarTextoDataHistorico()
+      fecharCalendarioHistorico()
+      renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico?.value || 'todos', '')
+    })
+    hojeDataHistorico.addEventListener('click', () => {
+      const hoje = new Date()
+      filtroDataHistorico.value = formatarDataCalendario(hoje)
+      mesCalendarioHistorico = hoje
+      atualizarTextoDataHistorico()
+      fecharCalendarioHistorico()
+      renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico?.value || 'todos', filtroDataHistorico.value)
+    })
+    document.addEventListener('click', (evento) => {
+      if (!seletorDataHistorico.contains(evento.target)) fecharCalendarioHistorico()
+    })
   }
 
   const fecharOpcoesStatusHistorico = () => {
