@@ -448,6 +448,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const subtituloDashboard = document.getElementById('subtituloDashboard')
     const campoBuscaAssistenciasDashboard = document.getElementById('campoBuscaAssistenciasDashboard')
     const filtroStatusAssistenciasDashboard = document.getElementById('filtroStatusAssistenciasDashboard')
+    const seletorStatusDashboard = document.getElementById('seletorStatusDashboard')
+    const botaoStatusAssistenciasDashboard = document.getElementById('botaoStatusAssistenciasDashboard')
+    const opcoesStatusAssistenciasDashboard = document.getElementById('opcoesStatusAssistenciasDashboard')
     const listaGeralAssistenciasDashboard = document.getElementById('listaGeralAssistenciasDashboard')
     const contadorListaGeralDashboard = document.getElementById('contadorListaGeralDashboard')
     let dataReferenciaDashboard = ''
@@ -483,7 +486,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       }))
     }
     campoBuscaAssistenciasDashboard.addEventListener('input', () => renderizarListaGeralAssistencias(campoBuscaAssistenciasDashboard.value))
-    filtroStatusAssistenciasDashboard.addEventListener('change', () => renderizarListaGeralAssistencias(campoBuscaAssistenciasDashboard.value, filtroStatusAssistenciasDashboard.value))
+    const fecharOpcoesStatusDashboard = () => {
+      opcoesStatusAssistenciasDashboard.hidden = true
+      botaoStatusAssistenciasDashboard.setAttribute('aria-expanded', 'false')
+      seletorStatusDashboard.classList.remove('aberto')
+    }
+    botaoStatusAssistenciasDashboard.addEventListener('click', () => {
+      const aberto = !opcoesStatusAssistenciasDashboard.hidden
+      opcoesStatusAssistenciasDashboard.hidden = aberto
+      botaoStatusAssistenciasDashboard.setAttribute('aria-expanded', String(!aberto))
+      seletorStatusDashboard.classList.toggle('aberto', !aberto)
+    })
+    opcoesStatusAssistenciasDashboard.querySelectorAll('[data-value]').forEach((opcao) => {
+      opcao.addEventListener('click', () => {
+        filtroStatusAssistenciasDashboard.value = opcao.dataset.value
+        botaoStatusAssistenciasDashboard.querySelector('span').textContent = opcao.querySelector('span').textContent
+        opcoesStatusAssistenciasDashboard.querySelectorAll('[data-value]').forEach((item) => item.setAttribute('aria-selected', String(item === opcao)))
+        fecharOpcoesStatusDashboard()
+        renderizarListaGeralAssistencias(campoBuscaAssistenciasDashboard.value, filtroStatusAssistenciasDashboard.value)
+      })
+    })
+    document.addEventListener('click', (evento) => {
+      if (!seletorStatusDashboard.contains(evento.target)) fecharOpcoesStatusDashboard()
+    })
     const nomePerfil = usuarioAtual.papel === 'root'
       ? 'Root'
       : `Supervisora ${usuarioAtual.sub.split('.').map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join(' ')}`

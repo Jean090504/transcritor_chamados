@@ -145,7 +145,19 @@
       <div class="cabecalho-lista-dashboard"><div><span class="rotulo-dashboard">Histórico completo</span><h2 id="tituloListaGeralDashboard">Todas as assistências</h2></div><span id="contadorListaGeralDashboard" class="data-dashboard"></span></div>
       <div class="filtros-assistencias-dashboard">
         <label class="busca-assistencias-dashboard" for="campoBuscaAssistenciasDashboard"><span>Pesquisar assistência</span><input id="campoBuscaAssistenciasDashboard" type="search" placeholder="Protocolo, seguradora, serviço ou analista..." /></label>
-        <label class="filtro-status-assistencias-dashboard" for="filtroStatusAssistenciasDashboard"><span>Status</span><select id="filtroStatusAssistenciasDashboard"><option value="todos">Todos</option><option value="status-laranja">Agendados</option><option value="status-verde">Acionados</option><option value="status-vermelho">Cancelados</option></select></label>
+        <div class="filtro-status-assistencias-dashboard">
+          <span>Status</span>
+          <div class="seletor-status-dashboard" id="seletorStatusDashboard">
+            <button id="botaoStatusAssistenciasDashboard" class="botao-seletor-status-dashboard" type="button" aria-haspopup="listbox" aria-expanded="false"><span>Todos</span><i aria-hidden="true"></i></button>
+            <div id="opcoesStatusAssistenciasDashboard" class="opcoes-seletor-status-dashboard" role="listbox" hidden>
+              <button type="button" role="option" aria-selected="true" data-value="todos" data-status="todos"><span>Todos</span><small>Todas as assistências</small></button>
+              <button type="button" role="option" aria-selected="false" data-value="status-laranja" data-status="agendado"><span>Agendados</span><small>Programados para atendimento</small></button>
+              <button type="button" role="option" aria-selected="false" data-value="status-verde" data-status="acionado"><span>Acionados</span><small>Atendimentos realizados</small></button>
+              <button type="button" role="option" aria-selected="false" data-value="status-vermelho" data-status="cancelado"><span>Cancelados</span><small>Solicitações canceladas</small></button>
+            </div>
+            <select id="filtroStatusAssistenciasDashboard" tabindex="-1" aria-hidden="true"><option value="todos">Todos</option><option value="status-laranja">Agendados</option><option value="status-verde">Acionados</option><option value="status-vermelho">Cancelados</option></select>
+          </div>
+        </div>
       </div>
       <div id="listaGeralAssistenciasDashboard" class="lista-geral-assistencias-dashboard"></div>
     </section>
