@@ -28,7 +28,8 @@ const equipeSarah = [
   { username: 'gabriela.carmo', nome: 'GABRIELA CARMO', aba: 'Gabriela Carmo' },
   { username: 'maria.souza', nome: 'MARIA SOUZA', aba: 'Maria Souza' },
   { username: 'paola.santos', nome: 'PAOLA SANTOS', aba: 'Paola Santos' },
-  { username: 'tatiana.silva', nome: 'TATIANA SILVA', aba: 'Tatiana Silva' }
+  { username: 'tatiana.silva', nome: 'TATIANA SILVA', aba: 'Tatiana Silva' },
+  { username: 'camila.raissa', nome: 'CAMILA RAISSA GOMES DA SILVA', aba: 'Camila Raissa' }
 ]
 
 const equipeJunaide = [
