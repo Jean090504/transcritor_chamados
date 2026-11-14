@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sessionStorage.setItem('manter_sessao_apos_recarga', '1')
         window.location.reload()
       } catch {
-        mostrarModalMensagem('Sistema indisponível', 'A API não está respondendo. Inicie o servidor e tente novamente.')
+        mostrarModalMensagem('Não foi possível conectar', 'Verifique sua conexão e tente novamente em instantes.')
       }
     })
     formularioEsqueciSenha?.addEventListener('submit', async (evento) => {
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         mostrarModalMensagem('Solicitação enviada', dados.mensagem)
         formularioEsqueciSenha.reset()
       } catch {
-        mostrarModalMensagem('Sistema indisponível', 'Não foi possível enviar a solicitação. Tente novamente em instantes.')
+        mostrarModalMensagem('Não foi possível enviar', 'Tente novamente em instantes.')
       }
     })
     return
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const data = criarElemento('time', [], formatarDataHistorico(item.criadoEm))
           informacoes.append(titulo, detalhe, data)
           const acoes = criarElemento('div', ['acoes-historico-operacional'])
-          const status = criarElemento('span', [`status-historico-${String(item.status).toLowerCase()}`], item.status === 'ENVIADO' ? 'Enviado' : item.status === 'FALHA' ? 'Falhou' : 'Processando')
+          const status = criarElemento('span', [`status-historico-${String(item.status).toLowerCase()}`], item.status === 'ENVIADO' ? 'Enviado' : item.status === 'FALHA' ? 'Não enviado' : 'Enviando')
           acoes.append(status)
           if (item.status === 'FALHA') {
             const tentarNovamente = criarElemento('button', ['botao-secundario'], 'Tentar novamente')
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               idempotenciaOperacional = item.chaveIdempotencia
               formularioOperacional.classList.remove('oculto')
               formularioOperacional.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              mensagemHistoricoOperacional.textContent = 'Envio recuperado. Revise os dados e tente novamente.'
+        mensagemHistoricoOperacional.textContent = 'Você pode revisar os dados e tentar enviar novamente.'
             })
             acoes.append(tentarNovamente)
           }
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           listaHistoricoOperacional.append(cartao)
         })
       } catch (erro) {
-        mensagemHistoricoOperacional.textContent = erro.message
+      mensagemHistoricoOperacional.textContent = 'Não foi possível carregar os envios. Tente atualizar novamente.'
       }
     }
     const preencherCamposOperacionais = (dados) => {
@@ -699,7 +699,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const resposta = await requisicaoAutenticada(`/api/dashboard/analistas/${encodeURIComponent(usernameEmEdicao)}/chamados/${encodeURIComponent(chamadoEmEdicao.id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dados }) })
         const resultado = await resposta.json()
         if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível salvar as alterações.')
-        mostrarModalMensagem('Chamado atualizado', 'As alterações foram salvas no banco e já serão refletidas no dashboard.')
+        mostrarModalMensagem('Chamado atualizado', 'As alterações foram salvas com sucesso.')
         fecharDetalhesChamado()
         await carregarDashboard()
         await abrirDetalhesAnalista(usernameEmEdicao)
@@ -1147,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     botaoSincronizar.addEventListener('click', async () => {
       botaoSincronizar.disabled = true
       await sincronizarComPlanilhaReal()
-      dispararToast('Histórico atualizado', 'Os dados do sistema foram atualizados.', 'sucesso', 2000)
+      dispararToast('Histórico atualizado', 'As informações foram atualizadas.', 'sucesso', 2000)
       botaoSincronizar.disabled = false
     })
   }
@@ -1257,7 +1257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (duplicado) {
       avisoDuplicadoModal.textContent = `Atenção: O protocolo "${campoProtocolo.value}" já existe no histórico do sistema (registro ${linha})!`
       avisoDuplicadoModal.classList.remove('oculto')
-      dispararToast('Duplicado Identificado', `Protocolo ${campoProtocolo.value} já está na linha ${linha}.`, 'aviso', 4000)
+      dispararToast('Protocolo já cadastrado', 'Confira os dados antes de continuar.', 'aviso', 4000)
     } else {
       avisoDuplicadoModal.classList.add('oculto')
     }
