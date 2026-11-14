@@ -878,18 +878,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         containerAcoes.appendChild(elLink)
       }
 
-      if (opcoes.onDesfazer) {
-        const botaoUndo = document.createElement('button')
-        botaoUndo.type = 'button'
-        botaoUndo.className = 'botao-desfazer-toast'
-        botaoUndo.textContent = 'Desfazer (Undo)'
-        botaoUndo.addEventListener('click', () => {
-          removerToast()
-          opcoes.onDesfazer()
-        })
-        containerAcoes.appendChild(botaoUndo)
-      }
-
       corpo.appendChild(containerAcoes)
     }
 
@@ -1060,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const subLinha = document.createElement('span')
       subLinha.className = 'item-historico-sub'
-      subLinha.textContent = `${item.servico} | Base: ${item.baseAcionada || 'N/D'}`
+      subLinha.textContent = `${item.servico} | Base: ${item.baseAcionada || 'Não informada'}`
 
       detalhes.append(linhaPrincipal, subLinha)
 
