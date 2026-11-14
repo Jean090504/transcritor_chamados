@@ -804,7 +804,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const protocolo = chamadoParaExcluir.protocolo
       fecharModalExclusao()
       carregarHistorico()
-      dispararToast('Chamado excluído', `O protocolo ${protocolo} foi removido do banco e do dashboard.`, 'aviso')
+      dispararToast('Chamado excluído', `O protocolo ${protocolo} foi excluído com sucesso.`, 'aviso')
     } catch (erro) {
       erroConfirmacaoExclusao.textContent = erro.message
       erroConfirmacaoExclusao.classList.remove('oculto')
