@@ -568,6 +568,10 @@ textarea:focus {
 }
 .assinatura-aplicacao { position: fixed; right: 0; bottom: 0; left: 0; z-index: 200; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .35rem .65rem; padding: .85rem 1rem; border-top: 1px solid rgba(148, 163, 184, .24); color: rgba(71, 85, 105, .9); background: rgba(255, 255, 255, .88); font-size: .9rem; font-weight: 500; letter-spacing: .01em; text-align: center; backdrop-filter: blur(8px); }
 .assinatura-aplicacao a, .assinatura-aplicacao button { color: #075985; font-weight: 800; text-decoration: none; }
+.assinatura-pos-login { display: none; align-items: center; justify-content: center; flex-wrap: wrap; gap: .35rem .65rem; }
+.assinatura-login { display: inline; }
+.modo-analista .assinatura-login, .modo-dashboard .assinatura-login, .modo-administrativo .assinatura-login { display: none; }
+.modo-analista .assinatura-pos-login, .modo-dashboard .assinatura-pos-login, .modo-administrativo .assinatura-pos-login { display: inline-flex; }
 .assinatura-aplicacao button { border: 0; padding: 0; background: transparent; font: inherit; cursor: pointer; }
 .assinatura-aplicacao a:hover, .assinatura-aplicacao a:focus-visible, .assinatura-aplicacao button:hover, .assinatura-aplicacao button:focus-visible { text-decoration: underline; }
 .assinatura-separador { color: #94a3b8; }
