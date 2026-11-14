@@ -219,6 +219,8 @@ body {
   color: var(--cor-texto-principal);
 }
 
+#botaoSair, #botaoSairDashboard, #botaoSairOperacional { min-width: 82px; min-height: 2.5rem; padding: .65rem 1rem; font-weight: 700; }
+
 .textarea-wrapper {
   position: relative;
   display: flex;
