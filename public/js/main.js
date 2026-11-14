@@ -447,13 +447,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const graficoComparativoStatus = document.getElementById('graficoComparativoStatus')
     const subtituloDashboard = document.getElementById('subtituloDashboard')
     const campoBuscaAssistenciasDashboard = document.getElementById('campoBuscaAssistenciasDashboard')
+    const filtroStatusAssistenciasDashboard = document.getElementById('filtroStatusAssistenciasDashboard')
     const listaGeralAssistenciasDashboard = document.getElementById('listaGeralAssistenciasDashboard')
     const contadorListaGeralDashboard = document.getElementById('contadorListaGeralDashboard')
     let dataReferenciaDashboard = ''
     let chamadosDashboard = []
-    const renderizarListaGeralAssistencias = (filtro = '') => {
+    const renderizarListaGeralAssistencias = (filtro = '', statusFiltro = filtroStatusAssistenciasDashboard.value) => {
       const termo = String(filtro || '').trim().toLowerCase()
-      const chamadosFiltrados = chamadosDashboard.filter((chamado) => [chamado.protocolo, chamado.seguradora, chamado.servico, chamado.baseAcionada, chamado.nome, chamado.observacao].join(' ').toLowerCase().includes(termo))
+      const chamadosFiltrados = chamadosDashboard.filter((chamado) => {
+        const status = classificarChamado(chamado)
+        const correspondeStatus = statusFiltro === 'todos' || status.classe === statusFiltro
+        const correspondeBusca = [chamado.protocolo, chamado.seguradora, chamado.servico, chamado.baseAcionada, chamado.nome, chamado.observacao].join(' ').toLowerCase().includes(termo)
+        return correspondeStatus && correspondeBusca
+      })
       contadorListaGeralDashboard.textContent = `${chamadosFiltrados.length} assistência${chamadosFiltrados.length === 1 ? '' : 's'}`
       if (!chamadosFiltrados.length) {
         listaGeralAssistenciasDashboard.replaceChildren(criarElemento('p', ['mensagem-lista-geral-dashboard'], termo ? 'Nenhuma assistência encontrada.' : 'Nenhuma assistência registrada ainda.'))
@@ -477,6 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }))
     }
     campoBuscaAssistenciasDashboard.addEventListener('input', () => renderizarListaGeralAssistencias(campoBuscaAssistenciasDashboard.value))
+    filtroStatusAssistenciasDashboard.addEventListener('change', () => renderizarListaGeralAssistencias(campoBuscaAssistenciasDashboard.value, filtroStatusAssistenciasDashboard.value))
     const nomePerfil = usuarioAtual.papel === 'root'
       ? 'Root'
       : `Supervisora ${usuarioAtual.sub.split('.').map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join(' ')}`
