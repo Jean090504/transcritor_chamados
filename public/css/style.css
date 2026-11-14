@@ -1178,6 +1178,11 @@ body.modo-administrativo .campos-operacionais { grid-template-columns: repeat(2,
 .botao-periodo-dashboard:hover, .botao-periodo-dashboard.periodo-ativo { border-color: #2563eb; color: #1d4ed8; background: #eff6ff; }
 .campo-periodo-dashboard { display: grid; gap: .25rem; color: #64748b; font-size: .75rem; font-weight: 700; }
 .campo-periodo-dashboard input { min-height: 2.15rem; padding: .4rem .55rem; border: 1px solid #cbd5e1; border-radius: 4px; color: #1e293b; background: #fff; }
+.campos-periodo-dashboard .campo-periodo-dashboard { min-width: 155px; }
+.campos-periodo-dashboard .seletor-data-historico { width: 155px; }
+.campos-periodo-dashboard .botao-data-historico { min-height: 2.15rem; padding: .45rem .55rem; border-color: #cbd5e1; border-radius: 8px; background: #fff; font-size: .75rem; }
+.campos-periodo-dashboard .botao-data-historico:hover, .campos-periodo-dashboard .seletor-data-historico.aberto .botao-data-historico { border-color: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, .12); }
+.campos-periodo-dashboard .calendario-historico { left: 0; right: auto; }
 .campos-periodo-dashboard .botao-primario { width: auto; min-height: 2.15rem; padding: .45rem .8rem; border-radius: 4px; box-shadow: none; }
 .erro-periodo-dashboard { margin: .55rem 0 0; color: #b91c1c; font-size: .78rem; }
 .cabecalho-secao-dashboard, .cabecalho-lista-dashboard { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
@@ -1251,6 +1256,7 @@ body.modo-administrativo .campos-operacionais { grid-template-columns: repeat(2,
 
 body.dark-mode .painel-sarah { background: linear-gradient(135deg, #0b1220 0%, #0c211e 52%, #0b1728 100%); }
 body.dark-mode .metrica-dashboard, body.dark-mode .grafico-dashboard, body.dark-mode .filtros-dashboard, body.dark-mode .card-analista { background: linear-gradient(145deg, #111827 0%, #12231f 100%); }
+body.dark-mode .campos-periodo-dashboard .botao-data-historico { border-color: #187b94; background: #10222b; }
 body.dark-mode .avatar-analista { background: linear-gradient(135deg, #123b59, #124633); color: #b9f5df; }
 
 /* Ambiente do analista com a paleta da marca e fundo próprio. */
@@ -1267,7 +1273,7 @@ body.dark-mode.modo-analista { background-color: #0b171b; background-image: radi
 body.dark-mode.modo-analista .container-aplicacao { box-shadow: 0 16px 40px rgba(0, 0, 0, .28); }
 body.dark-mode.modo-analista .card-metrica { background: linear-gradient(145deg, #111827, #12231f); }
 @media (max-width: 760px) { .metricas-dashboard { grid-template-columns: repeat(2, 1fr); } .cabecalho-secao-dashboard, .cabecalho-lista-dashboard { align-items: flex-start; flex-direction: column; } }
-@media (max-width: 640px) { .campos-periodo-dashboard { align-items: stretch; flex-direction: column; } .campo-periodo-dashboard input, .campos-periodo-dashboard .botao-primario { width: 100%; box-sizing: border-box; } .legenda-grafico-status { justify-content: flex-start; } }
+@media (max-width: 640px) { .campos-periodo-dashboard { align-items: stretch; flex-direction: column; } .campo-periodo-dashboard, .campos-periodo-dashboard .seletor-data-historico, .campo-periodo-dashboard input, .campos-periodo-dashboard .botao-primario { width: 100%; box-sizing: border-box; } .legenda-grafico-status { justify-content: flex-start; } }
 @media (max-width: 640px) { .cabecalho-solicitacoes-reset, .item-solicitacao-reset { align-items: flex-start; flex-direction: column; } .acoes-solicitacao-reset { width: 100%; justify-content: stretch; } .acoes-solicitacao-reset button { flex: 1; } }
 @media (max-width: 980px) { .card-analista { max-width: calc(33.333% - .55rem); } }
 @media (max-width: 680px) { .card-analista { max-width: calc(50% - .4rem); } }
