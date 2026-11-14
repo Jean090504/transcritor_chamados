@@ -31,7 +31,8 @@ export const esquemaChamadoEstruturado = zodValidacao.object({
   horarioMarcado: textoCampo.default('Nao informado'),
   retratacaoInicial: textoCampo.default('AGENDAMENTO'),
   retratacaoFinal: textoCampo.default('AGENDAMENTO'),
-  resumoTentativas: zodValidacao.string().trim().max(2000).default('Nao informado')
+  resumoTentativas: zodValidacao.string().trim().max(2000).default('Nao informado'),
+  observacao: zodValidacao.string().trim().max(2000).default('')
 })
 
 const textoOperacional = zodValidacao.string().trim().max(1000).default('')

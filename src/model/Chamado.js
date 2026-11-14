@@ -84,6 +84,7 @@ export class Chamado {
     this.retratacaoInicial = limparEspacos(dados.retratacaoInicial || dados.retratacao_inicial || 'AGENDAMENTO')
     this.retratacaoFinal = limparEspacos(dados.retratacaoFinal || dados.retratacao_final || 'AGENDAMENTO')
     this.resumoTentativas = String(dados.resumoTentativas || dados.resumo_tentativas || 'Nao informado').trim()
+    this.observacao = String(dados.observacao || '').trim()
   }
 
   converterParaLinhaPlanilha() {

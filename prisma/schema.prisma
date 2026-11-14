@@ -37,6 +37,7 @@ model Chamado {
   retratacaoInicial  String
   retratacaoFinal    String
   resumoTentativas   String
+  observacao         String   @default("")
   dataAtendimento    String
   criadoEm           DateTime @default(now())
   usuario            Usuario  @relation(fields: [username], references: [username], onDelete: Cascade)

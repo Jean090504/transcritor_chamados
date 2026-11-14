@@ -141,6 +141,11 @@
     <section class="grafico-dashboard"><div class="cabecalho-secao-dashboard"><div><span class="rotulo-dashboard">Distribuição dos status</span><h2>Acionados x agendados x cancelados</h2></div><div class="legenda-grafico-status"><span><i class="ponto-status-acionado"></i>Acionados</span><span><i class="ponto-status-agendado"></i>Agendados</span><span><i class="ponto-status-cancelado"></i>Cancelados</span></div></div><div id="graficoComparativoStatus" class="grafico-comparativo-status"></div></section>
     <div class="cabecalho-lista-dashboard"><div><span class="rotulo-dashboard">Equipe</span><h2>Analistas</h2></div><div class="legenda-status" aria-label="Legenda dos status"><span><i class="legenda-ponto ponto-laranja"></i>Agendamento</span><span><i class="legenda-ponto ponto-verde"></i>Acionado</span><span><i class="legenda-ponto ponto-vermelho"></i>Cancelado</span></div></div>
     <div id="listaAnalistasDashboard" class="grade-analistas grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
+    <section class="lista-geral-dashboard" aria-labelledby="tituloListaGeralDashboard">
+      <div class="cabecalho-lista-dashboard"><div><span class="rotulo-dashboard">Histórico completo</span><h2 id="tituloListaGeralDashboard">Todas as assistências</h2></div><span id="contadorListaGeralDashboard" class="data-dashboard"></span></div>
+      <label class="busca-assistencias-dashboard" for="campoBuscaAssistenciasDashboard"><span>Pesquisar assistência</span><input id="campoBuscaAssistenciasDashboard" type="search" placeholder="Protocolo, seguradora, serviço ou analista..." /></label>
+      <div id="listaGeralAssistenciasDashboard" class="lista-geral-assistencias-dashboard"></div>
+    </section>
     <button id="botaoAtualizarDashboard" class="botao-secundario mx-auto block" type="button">Atualizar</button>
   </section>
   <section id="painelOperacional" class="painel-operacional oculto" aria-labelledby="tituloOperacional">
@@ -365,6 +370,10 @@
         <div class="campo-grupo campo-span-2">
           <label for="campoResumoTentativas">Resumo Tentativas</label>
           <textarea id="campoResumoTentativas" rows="4"></textarea>
+        </div>
+        <div class="campo-grupo campo-span-2">
+          <label for="campoObservacao">Observação</label>
+          <textarea id="campoObservacao" rows="4" placeholder="Inclua informações adicionais importantes sobre o chamado."></textarea>
         </div>
       </form>
 

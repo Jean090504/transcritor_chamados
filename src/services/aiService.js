@@ -71,6 +71,7 @@ export async function extrairDadosChamado(textoBruto) {
     - retratacaoFinal: Texto presente em "[ RETRATACAO ] -> FINAL :". Se vazio ou ausente, retorne "AGENDAMENTO".
     - resumoTentativas: Resumo de todas as bases contactadas. Cada base DEVE começar obrigatoriamente numa nova linha usando quebra de linha real (\\n). Formato por linha:
       NOME DA BASE: T1 STATUS, T2 STATUS
+    - observacao: Informações adicionais importantes que não se encaixem nos outros campos. Se não houver, retorne texto vazio.
 
     Datas devem permanecer no padrão brasileiro DD/MM e horários no padrão 24 horas HH:mm.
     Considere como referência a data e hora de Brasília: ${horarioBrasilia}.
@@ -95,7 +96,8 @@ export async function extrairDadosChamado(textoBruto) {
         horarioMarcado: { type: SchemaType.STRING },
         retratacaoInicial: { type: SchemaType.STRING },
         retratacaoFinal: { type: SchemaType.STRING },
-        resumoTentativas: { type: SchemaType.STRING }
+        resumoTentativas: { type: SchemaType.STRING },
+        observacao: { type: SchemaType.STRING }
       },
       required: [
         'protocolo',

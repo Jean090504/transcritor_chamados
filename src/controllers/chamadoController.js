@@ -122,8 +122,8 @@ export const dashboardSarah = async (requisicao, resposta) => {
     const usernames = new Set(analistas.map((analista) => analista.username))
     // TODO(performance): não carregar todos os chamados e filtrá-los em memória.
     // Criar uma contagem agrupada no banco usando apenas os usernames visíveis.
-    const totalGeral = (await todosChamados()).filter((chamado) => usernames.has(chamado.username)).length
-    return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo, ultimosSeteDias, analistas })
+    const chamadosVisiveis = (await todosChamados()).filter((chamado) => usernames.has(chamado.username))
+    return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral: chamadosVisiveis.length, chamados: chamadosVisiveis, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo, ultimosSeteDias, analistas })
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
 }
 

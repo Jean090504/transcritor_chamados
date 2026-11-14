@@ -1218,6 +1218,21 @@ body.dark-mode.modo-analista .card-metrica { background: linear-gradient(145deg,
 @media (max-width: 680px) { .card-analista { max-width: calc(50% - .4rem); } }
 @media (max-width: 480px) { .card-analista { max-width: 100%; } }
 .modal-conteudo-detalhes { max-width: 850px; }
+.lista-geral-dashboard { max-width: 1100px; margin: 0 auto 1.5rem; padding: 1.1rem 1.25rem; border: 1px solid rgba(11, 103, 209, .2); border-radius: 8px; background: linear-gradient(145deg, #fff 0%, #fbfefd 100%); }
+.busca-assistencias-dashboard { display: grid; gap: .3rem; margin: .8rem 0 1rem; color: #64748b; font-size: .75rem; font-weight: 700; }
+.busca-assistencias-dashboard input { width: 100%; box-sizing: border-box; padding: .65rem .75rem; border: 1px solid #cbd5e1; border-radius: 6px; color: #1e293b; background: #fff; font: inherit; }
+.lista-geral-assistencias-dashboard { display: grid; gap: .65rem; max-height: 480px; overflow-y: auto; }
+.item-lista-geral-dashboard { padding: .85rem 1rem; border: 1px solid #e2e8f0; border-left: 5px solid #f59e0b; border-radius: 8px; background: #fff; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.item-lista-geral-dashboard.status-verde { border-left-color: #16a34a; }
+.item-lista-geral-dashboard.status-vermelho { border-left-color: #dc2626; }
+.item-lista-geral-dashboard:hover, .item-lista-geral-dashboard:focus { border-color: #2563eb; box-shadow: 0 4px 14px rgba(37, 99, 235, .12); transform: translateY(-1px); outline: none; }
+.item-lista-geral-topo { display: flex; justify-content: space-between; gap: .75rem; margin-bottom: .45rem; }
+.item-lista-geral-topo time { color: #64748b; font-size: .75rem; }
+.item-lista-geral-detalhes { display: flex; flex-wrap: wrap; gap: .35rem .85rem; color: #64748b; font-size: .78rem; }
+.mensagem-lista-geral-dashboard { color: #64748b; text-align: center; }
+body.dark-mode .lista-geral-dashboard { border-color: #334155; background: linear-gradient(145deg, #111827 0%, #12231f 100%); }
+body.dark-mode .busca-assistencias-dashboard input, body.dark-mode .item-lista-geral-dashboard { border-color: #334155; color: #cbd5e1; background: #111827; }
+body.dark-mode .item-lista-geral-topo time, body.dark-mode .item-lista-geral-detalhes, body.dark-mode .mensagem-lista-geral-dashboard { color: #94a3b8; }
 .resumo-detalhes-analista { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .resumo-detalhes-item { flex: 1; min-width: 150px; padding: .85rem 1rem; border-radius: 10px; background: #eff6ff; color: #1e3a8a; }
 .resumo-detalhes-item strong { display: block; font-size: 1.2rem; margin-top: .2rem; }

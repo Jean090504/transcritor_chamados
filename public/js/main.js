@@ -446,7 +446,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     const erroPeriodoDashboard = document.getElementById('erroPeriodoDashboard')
     const graficoComparativoStatus = document.getElementById('graficoComparativoStatus')
     const subtituloDashboard = document.getElementById('subtituloDashboard')
+    const campoBuscaAssistenciasDashboard = document.getElementById('campoBuscaAssistenciasDashboard')
+    const listaGeralAssistenciasDashboard = document.getElementById('listaGeralAssistenciasDashboard')
+    const contadorListaGeralDashboard = document.getElementById('contadorListaGeralDashboard')
     let dataReferenciaDashboard = ''
+    let chamadosDashboard = []
+    const renderizarListaGeralAssistencias = (filtro = '') => {
+      const termo = String(filtro || '').trim().toLowerCase()
+      const chamadosFiltrados = chamadosDashboard.filter((chamado) => [chamado.protocolo, chamado.seguradora, chamado.servico, chamado.baseAcionada, chamado.nome, chamado.observacao].join(' ').toLowerCase().includes(termo))
+      contadorListaGeralDashboard.textContent = `${chamadosFiltrados.length} assistência${chamadosFiltrados.length === 1 ? '' : 's'}`
+      if (!chamadosFiltrados.length) {
+        listaGeralAssistenciasDashboard.replaceChildren(criarElemento('p', ['mensagem-lista-geral-dashboard'], termo ? 'Nenhuma assistência encontrada.' : 'Nenhuma assistência registrada ainda.'))
+        return
+      }
+      listaGeralAssistenciasDashboard.replaceChildren(...chamadosFiltrados.map((chamado) => {
+        const status = classificarChamado(chamado)
+        const item = criarElemento('article', ['item-lista-geral-dashboard', status.classe])
+        item.tabIndex = 0
+        item.setAttribute('role', 'button')
+        const topo = criarElemento('div', ['item-lista-geral-topo'])
+        topo.append(criarElemento('strong', [], chamado.protocolo || 'Protocolo não informado'), criarElemento('time', [], formatarDataPtBr(chamado.dataAtendimento)))
+        const detalhes = criarElemento('div', ['item-lista-geral-detalhes'])
+        detalhes.append(criarElemento('span', [], chamado.seguradora || 'Seguradora não informada'), criarElemento('span', [], chamado.servico || 'Serviço não informado'), criarElemento('span', [], `Analista: ${chamado.nome || 'Não informado'}`), criarElemento('span', [], `Base: ${chamado.baseAcionada || 'Não informada'}`))
+        if (chamado.observacao) detalhes.append(criarElemento('span', [], `Observação: ${chamado.observacao}`))
+        item.append(topo, detalhes)
+        const abrir = () => abrirDetalhesChamado(chamado)
+        item.addEventListener('click', abrir)
+        item.addEventListener('keydown', (evento) => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrir() } })
+        return item
+      }))
+    }
+    campoBuscaAssistenciasDashboard.addEventListener('input', () => renderizarListaGeralAssistencias(campoBuscaAssistenciasDashboard.value))
     const nomePerfil = usuarioAtual.papel === 'root'
       ? 'Root'
       : `Supervisora ${usuarioAtual.sub.split('.').map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1)).join(' ')}`
@@ -566,6 +596,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const resposta = await requisicaoAutenticada(`/api/dashboard${parametros}`)
       if (!resposta.ok) return
       const dados = await resposta.json()
+      chamadosDashboard = dados.chamados || []
+      renderizarListaGeralAssistencias(campoBuscaAssistenciasDashboard.value)
       dataReferenciaDashboard = dados.data
       document.body.classList.add('modo-dashboard')
       painelSarah.classList.remove('oculto')
@@ -682,21 +714,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         ['PRÉVIA DO SERVIÇO', chamado.previaServico], ['LOCALIDADE', chamado.localidade], ['BASE ACIONADA', chamado.baseAcionada],
         ['DATA MARCADA', chamado.dataMarcada], ['HORÁRIO MARCADO', chamado.horarioMarcado],
         ['RETRATAÇÃO INICIAL', chamado.retratacaoInicial], ['RETRATAÇÃO FINAL', chamado.retratacaoFinal],
-        ['RESUMO TENTATIVAS', chamado.resumoTentativas]
+        ['RESUMO TENTATIVAS', chamado.resumoTentativas], ['OBSERVAÇÃO', chamado.observacao]
       ]
       statusDetalhesChamado.className = `status-detalhe-chamado ${status.classe}`
       statusDetalhesChamado.textContent = status.texto
       camposDetalhesChamado.replaceChildren(...campos.map(([rotulo, valor]) => {
-        const campo = criarElemento('div', ['campo-detalhe-chamado', rotulo === 'RESUMO TENTATIVAS' ? 'campo-detalhe-largo' : ''])
+        const campo = criarElemento('div', ['campo-detalhe-chamado', rotulo === 'RESUMO TENTATIVAS' || rotulo === 'OBSERVAÇÃO' ? 'campo-detalhe-largo' : ''])
         campo.append(criarElemento('span', [], rotulo), criarElemento('strong', [], valor || 'Não informado'))
         return campo
       }))
-      const chaves = ['protocolo', 'seguradora', 'servico', 'previaServico', 'localidade', 'baseAcionada', 'dataMarcada', 'horarioMarcado', 'retratacaoInicial', 'retratacaoFinal', 'resumoTentativas']
+      const chaves = ['protocolo', 'seguradora', 'servico', 'previaServico', 'localidade', 'baseAcionada', 'dataMarcada', 'horarioMarcado', 'retratacaoInicial', 'retratacaoFinal', 'resumoTentativas', 'observacao']
       camposDetalhesChamado.querySelectorAll('.campo-detalhe-chamado').forEach((campo, indice) => {
-        const entrada = document.createElement(chaves[indice] === 'resumoTentativas' ? 'textarea' : 'input')
+        const entrada = document.createElement(chaves[indice] === 'resumoTentativas' || chaves[indice] === 'observacao' ? 'textarea' : 'input')
         entrada.name = chaves[indice]
         entrada.value = chamado[chaves[indice]] || ''
-        if (chaves[indice] === 'resumoTentativas') entrada.rows = 4
+        if (chaves[indice] === 'resumoTentativas' || chaves[indice] === 'observacao') entrada.rows = 4
         campo.replaceChild(entrada, campo.lastElementChild)
       })
       modalDetalhesChamado.classList.remove('oculto')
@@ -833,6 +865,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const campoRetratacaoInicial = document.getElementById('campoRetratacaoInicial')
   const campoRetratacaoFinal = document.getElementById('campoRetratacaoFinal')
   const campoResumoTentativas = document.getElementById('campoResumoTentativas')
+  const campoObservacao = document.getElementById('campoObservacao')
 
   // Tema
   const botaoTema = document.getElementById('botaoTema')
@@ -1022,7 +1055,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.protocolo.toLowerCase().includes(termo) ||
         item.seguradora.toLowerCase().includes(termo) ||
         item.servico.toLowerCase().includes(termo) ||
-        (item.baseAcionada && item.baseAcionada.toLowerCase().includes(termo))
+        (item.baseAcionada && item.baseAcionada.toLowerCase().includes(termo)) ||
+        (item.observacao && item.observacao.toLowerCase().includes(termo))
       )
     })
 
@@ -1114,6 +1148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       servico: dados.servico,
       baseAcionada: dados.baseAcionada,
       previaServico: dados.previaServico,
+      observacao: dados.observacao || '',
       linha: linhaCriada,
       dataHora: formatarHoraBrasilia(),
       dataDia: formatarDataBrasilia()
@@ -1253,6 +1288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     campoRetratacaoInicial.value = sanitizarTexto(dados.retratacaoInicial || '')
     campoRetratacaoFinal.value = sanitizarTexto(dados.retratacaoFinal || '')
     campoResumoTentativas.value = String(dados.resumoTentativas || '').trim()
+    campoObservacao.value = String(dados.observacao || '').trim()
 
     if (duplicado) {
       avisoDuplicadoModal.textContent = `Atenção: O protocolo "${campoProtocolo.value}" já existe no histórico do sistema (registro ${linha})!`
@@ -1316,7 +1352,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       horarioMarcado: sanitizarTexto(campoHorarioMarcado.value).toUpperCase(),
       retratacaoInicial: sanitizarTexto(campoRetratacaoInicial.value),
       retratacaoFinal: sanitizarTexto(campoRetratacaoFinal.value),
-      resumoTentativas: campoResumoTentativas.value.trim()
+      resumoTentativas: campoResumoTentativas.value.trim(),
+      observacao: campoObservacao.value.trim()
     }
 
     botaoConfirmarGravacao.disabled = true

@@ -1,0 +1,1 @@
+ALTER TABLE "Chamado" ADD COLUMN "observacao" TEXT NOT NULL DEFAULT '';
