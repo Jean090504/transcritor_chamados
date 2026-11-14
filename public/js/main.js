@@ -1,14 +1,3 @@
-const atalhosInspecao = new Set(['I', 'J', 'C'])
-document.addEventListener('keydown', (evento) => {
-  const tecla = String(evento.key || '').toUpperCase()
-  const abrirFerramentas = tecla === 'F12' || (evento.ctrlKey && evento.shiftKey && atalhosInspecao.has(tecla))
-  const verCodigo = evento.ctrlKey && !evento.shiftKey && !evento.altKey && tecla === 'U'
-  if (abrirFerramentas || verCodigo) {
-    evento.preventDefault()
-    evento.stopPropagation()
-  }
-})
-
 document.addEventListener('DOMContentLoaded', async () => {
   const telaLogin = document.getElementById('telaLogin')
   const telaEsqueciSenha = document.getElementById('telaEsqueciSenha')
