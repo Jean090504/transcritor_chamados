@@ -904,6 +904,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const totalHistorico = document.getElementById('totalHistorico')
   const campoPesquisaHistorico = document.getElementById('campoPesquisaHistorico')
   const filtroStatusHistorico = document.getElementById('filtroStatusHistorico')
+  const filtroDataHistorico = document.getElementById('filtroDataHistorico')
   const seletorStatusHistorico = document.getElementById('seletorStatusHistorico')
   const botaoStatusHistorico = document.getElementById('botaoStatusHistorico')
   const opcoesStatusHistorico = document.getElementById('opcoesStatusHistorico')
@@ -1086,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { classe: 'status-laranja', texto: 'Agendamento' }
   }
 
-  function renderizarListaHistorico(filtro = '', statusFiltro = filtroStatusHistorico?.value || 'todos') {
+  function renderizarListaHistorico(filtro = '', statusFiltro = filtroStatusHistorico?.value || 'todos', dataFiltro = filtroDataHistorico?.value || '') {
     const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
     totalHistorico.textContent = historico.length
     listaHistorico.replaceChildren()
@@ -1095,8 +1096,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filtrados = historico.filter((item) => {
       const status = classificarHistorico(item)
       const correspondeStatus = statusFiltro === 'todos' || status.classe === statusFiltro
-      if (!termo) return correspondeStatus
-      return correspondeStatus && (
+      const correspondeData = !dataFiltro || item.dataDia === dataFiltro
+      if (!termo) return correspondeStatus && correspondeData
+      return correspondeStatus && correspondeData && (
         item.protocolo.toLowerCase().includes(termo) ||
         item.seguradora.toLowerCase().includes(termo) ||
         item.servico.toLowerCase().includes(termo) ||
@@ -1218,8 +1220,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (campoPesquisaHistorico) {
     campoPesquisaHistorico.addEventListener('input', (e) => {
-      renderizarListaHistorico(e.target.value, filtroStatusHistorico?.value || 'todos')
+      renderizarListaHistorico(e.target.value, filtroStatusHistorico?.value || 'todos', filtroDataHistorico?.value || '')
     })
+  }
+  if (filtroDataHistorico) {
+    filtroDataHistorico.addEventListener('change', () => renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico?.value || 'todos', filtroDataHistorico.value))
   }
 
   const fecharOpcoesStatusHistorico = () => {
@@ -1241,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         botaoStatusHistorico.querySelector('span').textContent = opcao.querySelector('span').textContent
         opcoesStatusHistorico.querySelectorAll('[data-value]').forEach((item) => item.setAttribute('aria-selected', String(item === opcao)))
         fecharOpcoesStatusHistorico()
-        renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico.value)
+        renderizarListaHistorico(campoPesquisaHistorico?.value || '', filtroStatusHistorico.value, filtroDataHistorico?.value || '')
       })
     })
     document.addEventListener('click', (evento) => {
