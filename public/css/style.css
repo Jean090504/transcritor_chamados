@@ -566,12 +566,12 @@ textarea:focus {
 .oculto {
   display: none !important;
 }
-.assinatura-aplicacao { position: fixed; right: 1rem; bottom: .7rem; z-index: 200; color: rgba(71, 85, 105, .82); font-size: .7rem; letter-spacing: .01em; }
-.assinatura-aplicacao a { color: #0b67d1; font-weight: 700; text-decoration: none; }
+.assinatura-aplicacao { position: fixed; right: 0; bottom: 0; left: 0; z-index: 200; padding: .85rem 1rem; border-top: 1px solid rgba(148, 163, 184, .24); color: rgba(71, 85, 105, .9); background: rgba(255, 255, 255, .82); font-size: .95rem; font-weight: 500; letter-spacing: .01em; text-align: center; backdrop-filter: blur(8px); }
+.assinatura-aplicacao a { color: #075985; font-weight: 800; text-decoration: none; }
 .assinatura-aplicacao a:hover, .assinatura-aplicacao a:focus-visible { text-decoration: underline; }
-body.dark-mode .assinatura-aplicacao { color: #94a3b8; }
+body.dark-mode .assinatura-aplicacao { border-top-color: rgba(71, 85, 105, .65); color: #cbd5e1; background: rgba(15, 23, 42, .88); }
 body.dark-mode .assinatura-aplicacao a { color: #7dd3fc; }
-@media (max-width: 560px) { .assinatura-aplicacao { right: .65rem; bottom: .45rem; font-size: .65rem; } }
+@media (max-width: 560px) { .assinatura-aplicacao { padding: .7rem .65rem; font-size: .85rem; } }
 
 /* Container fixo para Toasts no canto superior direito */
 .container-toasts {
