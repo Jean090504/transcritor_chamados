@@ -29,8 +29,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const botaoEsqueciSenha = document.getElementById('botaoEsqueciSenha')
   const botaoVoltarLogin = document.getElementById('botaoVoltarLogin')
   const modalAjudaPlataforma = document.getElementById('modalAjudaPlataforma')
+  const conteudoAjudaPlataforma = document.getElementById('conteudoAjudaPlataforma')
+  const prepararAjudaPlataforma = () => {
+    const perfil = usuarioAtual?.acessoOperacional ? 'operacional' : usuarioAtual?.acessoDashboard ? 'gestao' : 'analista'
+    conteudoAjudaPlataforma?.querySelectorAll('[data-ajuda-perfil]').forEach((bloco) => bloco.classList.toggle('oculto', bloco.dataset.ajudaPerfil !== perfil))
+  }
   const fecharAjudaPlataforma = () => modalAjudaPlataforma.classList.add('oculto')
-  document.getElementById('botaoAjudaPlataforma')?.addEventListener('click', () => modalAjudaPlataforma.classList.remove('oculto'))
+  document.getElementById('botaoAjudaPlataforma')?.addEventListener('click', () => { prepararAjudaPlataforma(); modalAjudaPlataforma.classList.remove('oculto') })
   document.getElementById('fecharAjudaPlataforma')?.addEventListener('click', fecharAjudaPlataforma)
   modalAjudaPlataforma?.addEventListener('click', (evento) => { if (evento.target === modalAjudaPlataforma) fecharAjudaPlataforma() })
   const seletorAba = document.getElementById('seletorAba')

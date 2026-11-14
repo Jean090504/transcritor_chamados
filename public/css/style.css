@@ -573,6 +573,8 @@ textarea:focus {
 .assinatura-separador { color: #94a3b8; }
 .modal-ajuda-plataforma { z-index: 250; }
 .lista-ajuda-plataforma { display: grid; gap: .75rem; }
+.lista-ajuda-plataforma > div { display: grid; gap: .75rem; }
+.lista-ajuda-plataforma > div.oculto { display: none; }
 .lista-ajuda-plataforma p { display: grid; gap: .2rem; margin: 0; padding: .75rem .85rem; border-left: 3px solid #00a6d6; border-radius: 6px; background: #f0f9ff; color: #334155; }
 .lista-ajuda-plataforma strong { color: #075985; }
 .lista-ajuda-plataforma span { line-height: 1.45; }
