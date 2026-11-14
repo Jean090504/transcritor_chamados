@@ -77,21 +77,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     dias.className = 'dias-calendario-historico'
     const rodape = document.createElement('div')
     rodape.className = 'rodape-calendario-historico'
+    const campoHora = input.type === 'datetime-local' ? document.createElement('input') : null
+    if (campoHora) {
+      campoHora.type = 'time'
+      campoHora.className = 'hora-calendario-historico'
+      campoHora.setAttribute('aria-label', 'Horário')
+      campoHora.value = input.value.slice(11, 16)
+    }
     const limpar = document.createElement('button')
     limpar.type = 'button'
     limpar.textContent = 'Limpar'
     const hojeBotao = document.createElement('button')
     hojeBotao.type = 'button'
     hojeBotao.textContent = 'Hoje'
-    rodape.append(limpar, hojeBotao)
+    rodape.append(...(campoHora ? [campoHora] : []), limpar, hojeBotao)
     calendario.append(cabecalho, semana, dias, rodape)
-    const valorInicial = input.value
+    const valorInicial = input.value.slice(0, 10)
     const mesInicial = valorInicial ? new Date(`${valorInicial}T12:00:00`) : new Date()
     let mesAtual = mesInicial
     input.parentNode.insertBefore(seletor, input)
     seletor.append(botao, calendario, input)
     const formatarData = (data) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`
-    const atualizarBotao = () => { botao.querySelector('span').textContent = input.value ? formatarDataPtBr(input.value) : 'Selecionar data' }
+    const atualizarBotao = () => { botao.querySelector('span').textContent = input.value ? `${formatarDataPtBr(input.value.slice(0, 10))}${campoHora?.value ? ` • ${campoHora.value}` : ''}` : 'Selecionar data' }
     const fechar = () => { calendario.hidden = true; botao.setAttribute('aria-expanded', 'false'); seletor.classList.remove('aberto') }
     const renderizar = () => {
       const ano = mesAtual.getFullYear()
@@ -113,18 +120,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const valor = formatarData(data)
         dia.textContent = String(data.getDate())
         if (valor === formatarData(new Date())) dia.classList.add('hoje')
-        if (valor === input.value) dia.classList.add('selecionado')
-        dia.addEventListener('click', () => { input.value = valor; atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
+        if (valor === input.value.slice(0, 10)) dia.classList.add('selecionado')
+        dia.addEventListener('click', () => { input.value = campoHora ? `${valor}T${campoHora.value || '00:00'}` : valor; atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
         dias.appendChild(dia)
       }
     }
     botao.addEventListener('click', () => { const aberto = !calendario.hidden; calendario.hidden = aberto; botao.setAttribute('aria-expanded', String(!aberto)); seletor.classList.toggle('aberto', !aberto); if (!aberto) renderizar() })
     anterior.addEventListener('click', () => { mesAtual.setMonth(mesAtual.getMonth() - 1); renderizar() })
     seguinte.addEventListener('click', () => { mesAtual.setMonth(mesAtual.getMonth() + 1); renderizar() })
-    limpar.addEventListener('click', () => { input.value = ''; atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
-    hojeBotao.addEventListener('click', () => { const hoje = new Date(); mesAtual = hoje; input.value = formatarData(hoje); atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
+    limpar.addEventListener('click', () => { input.value = ''; if (campoHora) campoHora.value = ''; atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
+    hojeBotao.addEventListener('click', () => { const hoje = new Date(); mesAtual = hoje; input.value = campoHora ? `${formatarData(hoje)}T${campoHora.value || '00:00'}` : formatarData(hoje); atualizarBotao(); fechar(); input.dispatchEvent(new Event('change', { bubbles: true })) })
+    campoHora?.addEventListener('change', () => { if (input.value) input.value = `${input.value.slice(0, 10)}T${campoHora.value}`; atualizarBotao(); input.dispatchEvent(new Event('change', { bubbles: true })) })
     document.addEventListener('click', (evento) => { if (!seletor.contains(evento.target)) fechar() })
-    input._atualizarCalendario = () => { atualizarBotao(); if (input.value) mesAtual = new Date(`${input.value}T12:00:00`) }
+    input._atualizarCalendario = () => { if (campoHora) campoHora.value = input.value.slice(11, 16); atualizarBotao(); if (input.value) mesAtual = new Date(`${input.value.slice(0, 10)}T12:00:00`) }
     atualizarBotao()
   }
   const criarIconeOlho = (visivel) => {
@@ -365,6 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       })
       campoElementos.set(chave, campo)
       grupo.append(campo)
+      if (tipo === 'datetime-local') criarCalendarioData(campo)
       return grupo
     }))
     const atualizarTempoOperacional = () => {
@@ -441,6 +450,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const preencherCamposOperacionais = (dados) => {
       campos.forEach(([chave]) => { if (campoElementos.has(chave)) campoElementos.get(chave).value = dados[chave] || '' })
+      campoElementos.forEach((campo) => campo._atualizarCalendario?.())
       campoElementos.get('respondidoPor').value = usuarioAtual.nome
       campoElementos.get('adm').value = nomeAdmOperacional
       atualizarTempoOperacional()
@@ -491,6 +501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         mostrarModalMensagem(resultado.duplicado ? 'Registro já enviado' : 'Registro enviado', resultado.duplicado ? 'Este atendimento já estava registrado e não foi duplicado.' : 'O atendimento foi enviado para a aba operacional da planilha.')
         textoOperacional.value = ''
         formularioOperacional.reset()
+        campoElementos.forEach((campo) => campo._atualizarCalendario?.())
         campoElementos.get('respondidoPor').value = usuarioAtual.nome
         campoElementos.get('adm').value = nomeAdmOperacional
         campoElementos.get('barra').value = ''
@@ -502,7 +513,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch (erro) { mostrarModalMensagem('Falha no envio', erro.message); carregarHistoricoOperacional() } finally { botaoEnviarOperacional.disabled = false }
     })
     document.getElementById('botaoColarOperacional')?.addEventListener('click', async () => { try { textoOperacional.value = await navigator.clipboard.readText(); textoOperacional.focus() } catch { mostrarModalMensagem('Não foi possível colar', 'Permita o acesso à área de transferência no navegador.') } })
-    document.getElementById('botaoLimparOperacional')?.addEventListener('click', () => { formularioOperacional.reset(); formularioOperacional.classList.add('oculto'); textoOperacional.value = ''; campoElementos.get('respondidoPor').value = usuarioAtual.nome; campoElementos.get('adm').value = nomeAdmOperacional; localStorage.removeItem(chaveRascunhoOperacional); idempotenciaOperacional = null; carregarHistoricoOperacional() })
+    document.getElementById('botaoLimparOperacional')?.addEventListener('click', () => { formularioOperacional.reset(); campoElementos.forEach((campo) => campo._atualizarCalendario?.()); formularioOperacional.classList.add('oculto'); textoOperacional.value = ''; campoElementos.get('respondidoPor').value = usuarioAtual.nome; campoElementos.get('adm').value = nomeAdmOperacional; localStorage.removeItem(chaveRascunhoOperacional); idempotenciaOperacional = null; carregarHistoricoOperacional() })
     document.getElementById('botaoSairOperacional')?.addEventListener('click', () => { sessionStorage.removeItem('token_jwt'); window.location.reload() })
     return
   }

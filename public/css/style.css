@@ -480,6 +480,7 @@ textarea:focus {
 .dia-calendario-historico.selecionado { color: #fff; background: #0b67d1; font-weight: 800; }
 .dia-calendario-historico.outro-mes { color: #b6c2d1; }
 .rodape-calendario-historico { display: flex; justify-content: space-between; margin-top: .55rem; padding-top: .5rem; border-top: 1px solid #e2e8f0; }
+.hora-calendario-historico { width: 82px; box-sizing: border-box; padding: .3rem .35rem; border: 1px solid #bfdbfe; border-radius: 7px; color: #1e293b; background: #f8fbff; font: inherit; font-size: .7rem; font-weight: 700; }
 .seletor-data-historico > input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 body.dark-mode .botao-data-historico { border-color: #3b82f6; color: #cbd5e1; background: linear-gradient(135deg, rgba(23, 37, 84, .75), #111827); }
 body.dark-mode .botao-data-historico i { border-color: #60a5fa; }
@@ -490,6 +491,7 @@ body.dark-mode .dia-calendario-historico:hover, body.dark-mode .dia-calendario-h
 body.dark-mode .dia-calendario-historico.selecionado { color: #fff; background: #2563eb; }
 body.dark-mode .dia-calendario-historico.outro-mes { color: #475569; }
 body.dark-mode .rodape-calendario-historico { border-color: #334155; }
+body.dark-mode .hora-calendario-historico { border-color: #3b82f6; color: #cbd5e1; background: #172554; color-scheme: dark; }
 
 .item-historico {
   display: flex;
