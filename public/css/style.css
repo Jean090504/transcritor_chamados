@@ -566,6 +566,12 @@ textarea:focus {
 .oculto {
   display: none !important;
 }
+.assinatura-aplicacao { position: fixed; right: 1rem; bottom: .7rem; z-index: 200; color: rgba(71, 85, 105, .82); font-size: .7rem; letter-spacing: .01em; }
+.assinatura-aplicacao a { color: #0b67d1; font-weight: 700; text-decoration: none; }
+.assinatura-aplicacao a:hover, .assinatura-aplicacao a:focus-visible { text-decoration: underline; }
+body.dark-mode .assinatura-aplicacao { color: #94a3b8; }
+body.dark-mode .assinatura-aplicacao a { color: #7dd3fc; }
+@media (max-width: 560px) { .assinatura-aplicacao { right: .65rem; bottom: .45rem; font-size: .65rem; } }
 
 /* Container fixo para Toasts no canto superior direito */
 .container-toasts {
