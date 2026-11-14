@@ -459,6 +459,7 @@ textarea:focus {
 .filtro-status-historico-analista { display: grid; gap: .35rem; color: var(--cor-texto-secundario); font-size: .75rem; font-weight: 700; }
 .filtro-status-historico-analista .botao-seletor-status-dashboard { border-color: var(--cor-borda); box-shadow: none; }
 .filtro-status-historico-analista .opcoes-seletor-status-dashboard { z-index: 30; }
+.filtro-status-historico-analista select { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .item-historico {
   display: flex;
