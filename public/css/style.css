@@ -220,6 +220,9 @@ body {
 }
 
 #botaoSair, #botaoSairDashboard, #botaoSairOperacional { min-width: 82px; min-height: 2.5rem; padding: .65rem 1rem; font-weight: 700; }
+#botaoSair, #botaoSairDashboard, #botaoSairOperacional { min-width: 90px; min-height: 2.25rem; padding: .5rem .85rem; border: 1px solid rgba(11, 103, 209, .28); border-radius: 8px; color: #0b67d1; background: linear-gradient(135deg, #fff, #f3f8ff); box-shadow: 0 3px 10px rgba(11, 103, 209, .08); font-size: .78rem; font-weight: 800; transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease; }
+#botaoSair:hover, #botaoSairDashboard:hover, #botaoSairOperacional:hover { border-color: #0b67d1; color: #075985; background: linear-gradient(135deg, #eff6ff, #e0f2fe); box-shadow: 0 5px 14px rgba(11, 103, 209, .14); transform: translateY(-1px); }
+body.dark-mode #botaoSair, body.dark-mode #botaoSairDashboard, body.dark-mode #botaoSairOperacional { border-color: #3b82f6; color: #bfdbfe; background: #172554; box-shadow: none; }
 
 .textarea-wrapper {
   position: relative;
