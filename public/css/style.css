@@ -734,6 +734,8 @@ textarea:focus {
 .metrica-taxa .metrica-valor {
   color: #4338ca;
 }
+.metrica-cancelados { border-top: 3px solid #b83232; }
+.metrica-cancelados .metrica-valor { color: #b91c1c; }
 
 .metrica-seguradoras {
   font-size: 0.75rem;
@@ -1172,7 +1174,8 @@ body.modo-analista .cabecalho-cartao { border-bottom-color: rgba(0, 166, 214, .2
 body.modo-analista .card-metrica { border-top: 3px solid #0b67d1; background: linear-gradient(145deg, #fff, #f5fbff); }
 body.modo-analista .card-metrica:nth-child(2) { border-top-color: #00a6d6; }
 body.modo-analista .card-metrica:nth-child(3) { border-top-color: #00c875; }
-body.modo-analista .card-metrica:nth-child(4) { border-top-color: #0b67d1; }
+body.modo-analista .card-metrica:nth-child(4) { border-top-color: #b83232; }
+body.modo-analista .card-metrica:nth-child(5) { border-top-color: #0b67d1; }
 body.modo-analista .area-formulario, body.modo-analista .container-historico { border-color: rgba(11, 103, 209, .2); box-shadow: 0 8px 22px rgba(15, 23, 42, .045); }
 body.dark-mode.modo-analista { background-color: #0b171b; background-image: radial-gradient(circle at 8% 12%, rgba(0, 200, 117, .14), transparent 28%), radial-gradient(circle at 94% 8%, rgba(0, 166, 214, .14), transparent 30%), linear-gradient(135deg, #0b1220 0%, #0c211e 52%, #0b1728 100%); }
 body.dark-mode.modo-analista .container-aplicacao { box-shadow: 0 16px 40px rgba(0, 0, 0, .28); }
@@ -1210,6 +1213,8 @@ body.dark-mode.modo-analista .card-metrica { background: linear-gradient(145deg,
 .campo-detalhe-largo { grid-column: 1 / -1; }
 .campo-detalhe-chamado span { display: block; color: #64748b; font-size: .72rem; font-weight: 800; letter-spacing: .03em; margin-bottom: .3rem; }
 .campo-detalhe-chamado strong { display: block; color: #0f172a; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.campo-detalhe-chamado input, .campo-detalhe-chamado textarea { width: 100%; box-sizing: border-box; padding: .45rem .55rem; border: 1px solid #cbd5e1; border-radius: 6px; color: #0f172a; background: #fff; font: inherit; resize: vertical; }
+.modal-rodape-detalhes { justify-content: flex-end; margin-top: 1rem; }
 @media (max-width: 640px) { .campos-detalhes-chamado { grid-template-columns: 1fr; } }
 .legenda-status { display: flex; align-items: center; gap: .85rem; color: #64748b; font-size: .75rem; }
 .legenda-status span { display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap; }

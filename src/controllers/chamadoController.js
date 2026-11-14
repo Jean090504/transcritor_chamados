@@ -2,7 +2,7 @@ import { extrairDadosChamado, extrairDadosOperacionais } from '../services/aiSer
 import { esquemaChamadoEstruturado, esquemaDadosOperacionais } from '../schemas/chamadoSchema.js'
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
-import { contarChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, todosChamados } from '../services/siteStore.js'
+import { contarChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, atualizarChamado, todosChamados } from '../services/siteStore.js'
 import { prepararRegistroOperacional } from '../services/operacionalService.js'
 import { listarHistoricoOperacional, salvarRegistroOperacionalSeguro } from '../services/operacionalRegistroService.js'
 
@@ -135,4 +135,18 @@ export const detalhesAnalista = async (requisicao, resposta) => {
   if (!analista || !obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
   const chamados = await listarChamados(analista.username)
   return resposta.json({ analista, chamados, total: chamados.length, atendimentosHoje: await contarChamadosHoje(analista.username, dataAtualSaoPaulo()) })
+}
+
+export const editarChamado = async (requisicao, resposta) => {
+  const username = usernameAlvo(requisicao, requisicao.params.username)
+  if (!username || !obterAnalista(username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
+  try {
+    const dados = esquemaChamadoEstruturado.parse(requisicao.body.dados)
+    const chamado = await atualizarChamado(username, requisicao.params.id, dados)
+    if (!chamado) return resposta.status(404).json({ erro: 'Chamado não encontrado.' })
+    return resposta.json({ sucesso: true, dados: chamado })
+  } catch (erro) {
+    console.error('Falha ao editar chamado:', erro)
+    return resposta.status(500).json({ erro: 'Falha ao atualizar o chamado.' })
+  }
 }

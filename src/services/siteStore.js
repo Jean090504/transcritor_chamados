@@ -40,7 +40,7 @@ function normalizarStatus(valor) {
 
 function classificarAtendimento(chamado) {
   const base = normalizarStatus(chamado.baseAcionada)
-  const estado = normalizarStatus([chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
+  const estado = normalizarStatus([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
   if (/cancelad|reembols/.test(`${base} ${estado}`)) return 'cancelados'
   if ((base && !/nao acionad|nao informado|sem acionamento/.test(base)) || estado.includes('acionad')) return 'acionados'
   return 'pendentes'
@@ -103,4 +103,11 @@ export async function salvarChamado(username, nome, dados, dataAtendimento) {
 export async function apagarChamado(username, id) {
   const resultado = await prisma.chamado.deleteMany({ where: { username, id } })
   return resultado.count > 0
+}
+
+export async function atualizarChamado(username, id, dados) {
+  const resultado = await prisma.chamado.updateMany({ where: { username, id }, data: dados })
+  if (!resultado.count) return null
+  const chamado = await prisma.chamado.findFirst({ where: { username, id } })
+  return chamado ? serializarChamado(chamado) : null
 }

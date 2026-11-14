@@ -644,6 +644,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalDetalhesChamado = document.getElementById('modalDetalhesChamado')
     const camposDetalhesChamado = document.getElementById('camposDetalhesChamado')
     const statusDetalhesChamado = document.getElementById('statusDetalhesChamado')
+    const botaoSalvarEdicaoChamado = document.getElementById('botaoSalvarEdicaoChamado')
+    let chamadoEmEdicao = null
+    let usernameEmEdicao = null
     const fecharDetalhes = () => modalDetalhes.classList.add('oculto')
     const fecharDetalhesChamado = () => modalDetalhesChamado.classList.add('oculto')
     document.getElementById('fecharDetalhesAnalista').addEventListener('click', fecharDetalhes)
@@ -653,7 +656,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function classificarChamado(chamado) {
       const normalizar = (valor) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       const base = normalizar(chamado.baseAcionada)
-      const estado = normalizar([chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
+      const estado = normalizar([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas].filter(Boolean).join(' '))
       const baseAcionada = base && !base.includes('nao acionad') && !base.includes('nao informado')
       if (estado.includes('cancelad') || estado.includes('reembols') || estado.includes('nao acionad') || estado.includes('sem acionamento')) return { classe: 'status-vermelho', texto: 'Não acionado ou cancelado' }
       if (baseAcionada || estado.includes('acionad')) return { classe: 'status-verde', texto: 'Acionado' }
@@ -662,6 +665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return { classe: 'status-laranja', texto: 'Agendamento' }
     }
     function abrirDetalhesChamado(chamado) {
+      chamadoEmEdicao = chamado
       const status = classificarChamado(chamado)
       const campos = [
         ['PROTOCOLO', chamado.protocolo], ['SEGURADORA', chamado.seguradora], ['SERVIÇO', chamado.servico],
@@ -677,9 +681,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         campo.append(criarElemento('span', [], rotulo), criarElemento('strong', [], valor || 'Não informado'))
         return campo
       }))
+      const chaves = ['protocolo', 'seguradora', 'servico', 'previaServico', 'localidade', 'baseAcionada', 'dataMarcada', 'horarioMarcado', 'retratacaoInicial', 'retratacaoFinal', 'resumoTentativas']
+      camposDetalhesChamado.querySelectorAll('.campo-detalhe-chamado').forEach((campo, indice) => {
+        const entrada = document.createElement(chaves[indice] === 'resumoTentativas' ? 'textarea' : 'input')
+        entrada.name = chaves[indice]
+        entrada.value = chamado[chaves[indice]] || ''
+        if (chaves[indice] === 'resumoTentativas') entrada.rows = 4
+        campo.replaceChild(entrada, campo.lastElementChild)
+      })
       modalDetalhesChamado.classList.remove('oculto')
     }
+    botaoSalvarEdicaoChamado.addEventListener('click', async () => {
+      if (!chamadoEmEdicao || !usernameEmEdicao) return
+      const dados = Object.fromEntries([...camposDetalhesChamado.querySelectorAll('[name]')].map((campo) => [campo.name, campo.value.trim()]))
+      botaoSalvarEdicaoChamado.disabled = true
+      try {
+        const resposta = await requisicaoAutenticada(`/api/dashboard/analistas/${encodeURIComponent(usernameEmEdicao)}/chamados/${encodeURIComponent(chamadoEmEdicao.id)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dados }) })
+        const resultado = await resposta.json()
+        if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível salvar as alterações.')
+        mostrarModalMensagem('Chamado atualizado', 'As alterações foram salvas no banco e já serão refletidas no dashboard.')
+        fecharDetalhesChamado()
+        await carregarDashboard()
+        await abrirDetalhesAnalista(usernameEmEdicao)
+      } catch (erro) { mostrarModalMensagem('Falha ao atualizar', erro.message) } finally { botaoSalvarEdicaoChamado.disabled = false }
+    })
     async function abrirDetalhesAnalista(username) {
+      usernameEmEdicao = username
       const resposta = await requisicaoAutenticada(`/api/dashboard/analistas/${encodeURIComponent(username)}`)
       if (!resposta.ok) { mostrarModalMensagem('Não foi possível carregar', 'Tente novamente em instantes.'); return }
       const dados = await resposta.json()
@@ -730,6 +757,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const metricaTotal = document.getElementById('metricaTotal')
   const metricaAcionados = document.getElementById('metricaAcionados')
   const metricaPendentes = document.getElementById('metricaPendentes')
+  const metricaCancelados = document.getElementById('metricaCancelados')
   const metricaTaxa = document.getElementById('metricaTaxa')
 
   // Elementos do Modal
@@ -895,7 +923,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         .toLowerCase()
       return base && !base.includes('nao acionad') && !base.includes('nao informado') && !base.includes('sem acionamento')
     }).length
-    const pendentesHoje = Math.max(atendimentosHoje.length - acionadosHoje, 0)
+    const canceladosHoje = atendimentosHoje.filter((item) => {
+      const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      return texto.includes('cancelad') || texto.includes('reembols')
+    }).length
+    const pendentesHoje = Math.max(atendimentosHoje.length - acionadosHoje - canceladosHoje, 0)
     const taxaAcionamento = atendimentosHoje.length
       ? Math.round((acionadosHoje / atendimentosHoje.length) * 100)
       : 0
@@ -903,6 +935,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     metricaTotal.textContent = String(atendimentosHoje.length)
     metricaAcionados.textContent = String(acionadosHoje)
     metricaPendentes.textContent = String(pendentesHoje)
+    metricaCancelados.textContent = String(canceladosHoje)
     metricaTaxa.textContent = `${taxaAcionamento}%`
   }
 
