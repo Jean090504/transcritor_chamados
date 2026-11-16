@@ -50,7 +50,8 @@ export function classificarAtendimento(chamado) {
   if (/agendad|agendament|\bagenda\b/.test(estado)) return 'pendentes'
   const baseAcionada = base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)
   const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
-  if (baseAcionada || acionamentoConfirmado) return 'acionados'
+  const voucherConfirmado = /\bvouchers?\b/.test(estado) && !/sem vouchers?|nao vouchers?/.test(estado)
+  if (baseAcionada || acionamentoConfirmado || voucherConfirmado) return 'acionados'
   return 'pendentes'
 }
 
