@@ -747,11 +747,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         status.prepend(criarElemento('i'))
         topo.append(avatar, status)
         const nome = criarElemento('strong', [], analista.nome)
+        const filtros = criarElemento('div', ['filtros-card-analista'])
+        const campoData = criarElemento('input', ['campo-filtro-card-analista'])
+        campoData.type = 'date'
+        campoData.setAttribute('aria-label', `Filtrar ${analista.nome} por data`)
+        campoData.value = dataReferenciaDashboard
+        const campoMes = criarElemento('input', ['campo-filtro-card-analista'])
+        campoMes.type = 'month'
+        campoMes.setAttribute('aria-label', `Filtrar ${analista.nome} por mês`)
+        const rotuloData = criarElemento('label', [], 'Data')
+        const rotuloMes = criarElemento('label', [], 'Mês')
+        rotuloData.appendChild(campoData)
+        rotuloMes.appendChild(campoMes)
+        filtros.append(rotuloData, rotuloMes)
         const rodape = criarElemento('div', ['card-analista-rodape'])
         const statusHoje = analista.statusHoje || { acionados: 0, pendentes: 0, cancelados: 0 }
         const resumoStatus = criarElemento('small', ['card-analista-status'], `${statusHoje.acionados} acionados · ${statusHoje.pendentes} agendados · ${statusHoje.cancelados} cancelado${statusHoje.cancelados === 1 ? '' : 's'}`)
         rodape.append(criarElemento('span', [], 'Hoje'), criarElemento('b', [], String(analista.atendimentosHoje)), resumoStatus)
-        card.append(topo, nome, rodape)
+        const atualizarResumo = () => {
+          const dataSelecionada = campoData.value
+          const mesSelecionado = campoMes.value
+          const filtrados = chamadosDashboard.filter((chamado) => {
+            if (chamado.username !== analista.username) return false
+            if (dataSelecionada) return chamado.dataAtendimento === dataSelecionada
+            if (mesSelecionado) return String(chamado.dataAtendimento || '').startsWith(mesSelecionado)
+            return true
+          })
+          const resumo = { acionados: 0, pendentes: 0, cancelados: 0 }
+          filtrados.forEach((chamado) => {
+            const status = classificarChamado(chamado).classe
+            const categoria = status === 'status-verde' ? 'acionados' : status === 'status-vermelho' ? 'cancelados' : 'pendentes'
+            resumo[categoria] += 1
+          })
+          rodape.querySelector('span').textContent = dataSelecionada ? formatarDataPtBr(dataSelecionada) : mesSelecionado || 'Todos'
+          rodape.querySelector('b').textContent = String(filtrados.length)
+          resumoStatus.textContent = `${resumo.acionados} acionados · ${resumo.pendentes} agendados · ${resumo.cancelados} cancelados`
+        }
+        campoData.addEventListener('click', (evento) => evento.stopPropagation())
+        campoMes.addEventListener('click', (evento) => evento.stopPropagation())
+        filtros.addEventListener('click', (evento) => evento.stopPropagation())
+        campoData.addEventListener('input', () => { campoMes.value = ''; atualizarResumo() })
+        campoMes.addEventListener('input', () => { campoData.value = ''; atualizarResumo() })
+        card.append(topo, nome, filtros, rodape)
+        atualizarResumo()
         return card
       }))
       listaAnalistas.querySelectorAll('.card-analista').forEach((card) => {
@@ -833,7 +871,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (cancelamentoExplicito) return { classe: 'status-vermelho', texto: 'Cancelado' }
       if (agendamentoConfirmado) return { classe: 'status-laranja', texto: 'Agendamento' }
       if (/reembols/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
-      if (/agendad|agendament|\bagenda\b/.test(estado)) return { classe: 'status-laranja', texto: 'Agendamento' }
       const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
       const voucherConfirmado = /\bvouchers?\b/.test(estado) && !/sem vouchers?|nao vouchers?/.test(estado)
       if (baseAcionada || acionamentoConfirmado || voucherConfirmado) return { classe: 'status-verde', texto: 'Acionado' }

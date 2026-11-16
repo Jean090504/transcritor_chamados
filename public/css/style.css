@@ -1229,6 +1229,9 @@ body.modo-administrativo .campos-operacionais { grid-template-columns: repeat(2,
 .card-analista-topo { display: flex; align-items: center; justify-content: space-between; gap: .65rem; margin-bottom: .9rem; }
 .avatar-analista { width: 2.35rem; height: 2.35rem; display: grid; place-items: center; flex: 0 0 auto; border-radius: 11px; color: #1d4ed8; background: #dbeafe; font-size: .72rem; font-weight: 900; letter-spacing: .03em; }
 .card-analista strong { display: block; margin-bottom: .35rem; overflow-wrap: anywhere; }
+.filtros-card-analista { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; margin-top: .65rem; }
+.filtros-card-analista label { display: grid; gap: .2rem; color: #64748b; font-size: .62rem; font-weight: 700; }
+.campo-filtro-card-analista { width: 100%; box-sizing: border-box; min-width: 0; padding: .35rem; border: 1px solid #d7dde5; border-radius: 6px; color: #334155; background: #fff; font: inherit; font-size: .68rem; }
 .status-analista { display: inline-flex; align-items: center; gap: .35rem; color: #64748b; font-size: .72rem; white-space: nowrap; }
 .status-analista i { width: .42rem; height: .42rem; display: inline-block; border-radius: 50%; background: #94a3b8; }
 .status-analista.status-ativo i { background: #22c55e; box-shadow: 0 0 0 3px #dcfce7; }
@@ -1367,6 +1370,8 @@ body.dark-mode .metrica-dashboard, body.dark-mode .grafico-dashboard, body.dark-
 body.dark-mode .avatar-analista { color: #bfdbfe; background: #1e3a8a; }
 body.dark-mode .card-analista-rodape { border-color: #1e293b; color: #94a3b8; }
 body.dark-mode .card-analista-status { color: #94a3b8; }
+body.dark-mode .filtros-card-analista label { color: #94a3b8; }
+body.dark-mode .campo-filtro-card-analista { border-color: #475569; color: #e2e8f0; background: #1e293b; color-scheme: dark; }
 body.dark-mode .metrica-dashboard span, body.dark-mode .metrica-dashboard small, body.dark-mode .metrica-dashboard strong, body.dark-mode .item-detalhe-campos, body.dark-mode .barra-dia-dashboard { color: #cbd5e1; }
 body.dark-mode .metrica-dashboard strong { color: #f8fafc; }
 body.dark-mode .metrica-destaque, body.dark-mode .metrica-destaque strong, body.dark-mode .metrica-destaque span { color: #fff; }
