@@ -169,6 +169,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
   })
   localStorage.removeItem('token_jwt')
+  // O histórico contém dados operacionais e não deve permanecer no armazenamento do navegador.
+  localStorage.removeItem('historico_chamados')
   const manterSessaoAposFluxo = sessionStorage.getItem('manter_sessao_apos_recarga') === '1'
   sessionStorage.removeItem('manter_sessao_apos_recarga')
   if (!manterSessaoAposFluxo) sessionStorage.removeItem('token_jwt')
@@ -981,11 +983,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const resposta = await requisicaoAutenticada(`/api/chamados/${encodeURIComponent(chamadoParaExcluir.linha)}`, { method: 'DELETE' })
       const resultado = await resposta.json()
       if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível excluir o chamado.')
-      const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]').filter((item) => item.linha !== chamadoParaExcluir.linha)
-      localStorage.setItem('historico_chamados', JSON.stringify(historico))
       const protocolo = chamadoParaExcluir.protocolo
       fecharModalExclusao()
       carregarHistorico()
+      carregarHistoricoBanco()
       dispararToast('Chamado excluído', `O protocolo ${protocolo} foi excluído com sucesso.`, 'aviso')
     } catch (erro) {
       erroConfirmacaoExclusao.textContent = erro.message
@@ -1142,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 4. Métricas do Turno
   function atualizarPainelMetricas() {
-    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+    const historico = Array.isArray(historicoBanco) ? historicoBanco : []
     const hoje = formatarDataBrasilia()
     const atendimentosHoje = historico.filter((item) => !item.dataDia || item.dataDia === hoje)
     const acionadosHoje = atendimentosHoje.filter((item) => {
@@ -1180,20 +1181,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dados = await res.json()
       if (!res.ok) return
 
-      let historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-      const protocolosAtivos = new Set(dados.protocolosAtivos || [])
-
-      // Se a planilha estiver vazia, zera o histórico local
-      if (!dados.totalNaPlanilha || dados.totalNaPlanilha === 0) {
-        localStorage.removeItem('historico_chamados')
+      // A planilha é apenas uma conferência; o histórico oficial vem do banco.
+      if (historicoBanco !== null) {
         carregarHistorico()
-        return
       }
-
-      // Mantém apenas os itens que realmente existem na planilha
-      const historicoAtualizado = historico.filter(item => protocolosAtivos.has(item.protocolo))
-      localStorage.setItem('historico_chamados', JSON.stringify(historicoAtualizado))
-      carregarHistorico()
     } catch {
       // Ignora falhas de conexão de background
     }
@@ -1215,8 +1206,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { classe: 'status-laranja', texto: 'Agendamento' }
   }
 
+  let historicoBanco = null
+
+  const normalizarChamadoParaHistorico = (chamado) => ({
+    ...chamado,
+    linha: chamado.id || chamado.linha,
+    dataHora: chamado.criadoEm ? new Date(chamado.criadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : chamado.dataHora,
+    dataDia: chamado.dataAtendimento || chamado.dataDia
+  })
+
+  async function carregarHistoricoBanco() {
+    try {
+      const resposta = await requisicaoAutenticada('/api/chamados')
+      const resultado = await resposta.json()
+      if (!resposta.ok) throw new Error(resultado.erro || 'Não foi possível carregar os chamados.')
+      historicoBanco = (resultado.chamados || []).map(normalizarChamadoParaHistorico)
+      carregarHistorico()
+    } catch {
+      // Sem banco disponível, não exibe dados potencialmente desatualizados do navegador.
+      if (historicoBanco === null) carregarHistorico()
+    }
+  }
+
   function renderizarListaHistorico(filtro = '', statusFiltro = filtroStatusHistorico?.value || 'todos', dataFiltro = filtroDataHistorico?.value || '') {
-    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
+    const historico = Array.isArray(historicoBanco) ? historicoBanco : []
     totalHistorico.textContent = historico.length
     listaHistorico.replaceChildren()
 
@@ -1320,29 +1333,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     atualizarPainelMetricas()
   }
 
-  function adicionarAoHistorico(dados, linhaCriada) {
-    const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-    historico.unshift({
-      protocolo: dados.protocolo,
-      seguradora: dados.seguradora,
-      servico: dados.servico,
-      baseAcionada: dados.baseAcionada,
-      previaServico: dados.previaServico,
-      observacao: dados.observacao || '',
-      linha: linhaCriada,
-      dataHora: formatarHoraBrasilia(),
-      dataDia: formatarDataBrasilia()
-    })
-
-    if (historico.length > 25) historico.pop()
-    localStorage.setItem('historico_chamados', JSON.stringify(historico))
-    carregarHistorico()
-  }
-
   function removerDoHistorico(protocolo) {
-    let historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-    historico = historico.filter((item) => item.protocolo !== protocolo)
-    localStorage.setItem('historico_chamados', JSON.stringify(historico))
+    historicoBanco = Array.isArray(historicoBanco) ? historicoBanco.filter((item) => item.protocolo !== protocolo) : historicoBanco
     carregarHistorico()
   }
 
@@ -1471,15 +1463,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (botaoLimparHistorico) {
-    botaoLimparHistorico.addEventListener('click', () => {
-      localStorage.removeItem('historico_chamados')
-      carregarHistorico()
-      dispararToast('Histórico Limpo', 'Todos os envios locais foram zerados.', 'aviso', 2000)
+    botaoLimparHistorico.addEventListener('click', async () => {
+      await carregarHistoricoBanco()
+      dispararToast('Histórico atualizado', 'Os registros foram recarregados do banco.', 'sucesso', 2000)
     })
   }
 
   // Inicializa e sincroniza
   carregarHistorico()
+  carregarHistoricoBanco()
   sincronizarComPlanilhaReal()
 
   // Sincroniza e faz Auto-Paste ao focar na janela
@@ -1655,12 +1647,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       fecharModalEdicao()
       
-      const idChamado = resposta.id
       if (emEdicao) {
-        const historico = JSON.parse(localStorage.getItem('historico_chamados') || '[]')
-        localStorage.setItem('historico_chamados', JSON.stringify(historico.map((item) => item.linha === chamadoEmEdicao ? { ...item, ...dadosParaGravar } : item)))
         chamadoEmEdicao = null
-        carregarHistorico()
+        carregarHistoricoBanco()
         dispararToast('Chamado atualizado', `Protocolo ${dadosParaGravar.protocolo} atualizado no sistema.`, 'sucesso')
       } else {
 
@@ -1672,7 +1661,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         {}
       )
 
-      adicionarAoHistorico(dadosParaGravar, idChamado)
+      carregarHistoricoBanco()
       }
       campoTexto.value = ''
       atualizarContador()

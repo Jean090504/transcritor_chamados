@@ -91,6 +91,11 @@ export const sincronizarPlanilha = async (requisicao, resposta) => {
   return resposta.json({ sucesso: true, protocolosAtivos: chamados.map((chamado) => chamado.protocolo), totalNaPlanilha: chamados.length })
 }
 
+export const meusChamados = async (requisicao, resposta) => {
+  const chamados = await listarChamados(requisicao.usuario.sub)
+  return resposta.json({ sucesso: true, chamados })
+}
+
 export const listarAbas = async (requisicao, resposta) => {
   const visiveis = obterAnalistasVisiveis(requisicao.usuario)
   return resposta.json({ abas: visiveis.map((analista) => ({ nome: analista.nome, id: analista.username })) })

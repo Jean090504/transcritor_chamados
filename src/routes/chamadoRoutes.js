@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { autenticarUsuario, alterarSenha, exigirAcessoDashboard, exigirAcessoGlobal, exigirAcessoOperacional, exigirAutenticacao, listarUsuariosPublicos, solicitarResetSenha, listarSolicitacoesReset, aprovarSolicitacaoReset, rejeitarSolicitacaoReset } from '../services/authService.js'
-import { preVisualizarChamado, gravarChamado, preVisualizarOperacional, gravarOperacional, historicoOperacional, desfazerGravacao, sincronizarPlanilha, listarAbas, dashboardSarah, detalhesAnalista, editarChamado, excluirChamado } from '../controllers/chamadoController.js'
+import { preVisualizarChamado, gravarChamado, preVisualizarOperacional, gravarOperacional, historicoOperacional, desfazerGravacao, sincronizarPlanilha, meusChamados, listarAbas, dashboardSarah, detalhesAnalista, editarChamado, excluirChamado } from '../controllers/chamadoController.js'
 import { validarRequisicao } from '../middlewares/validateRequest.js'
 import { esquemaTextoEntrada, esquemaChamadoEstruturado, esquemaDadosOperacionais, esquemaUsername, esquemaLogin, esquemaNovaSenha } from '../schemas/chamadoSchema.js'
 import { limitadorAnalise, limitadorAutenticacao, limitadorGravacao } from '../middlewares/rateLimiter.js'
@@ -111,5 +111,6 @@ roteador.post('/previsualizar', limitadorAnalise, validarRequisicao(esquemaTexto
 roteador.post('/gravar', limitadorGravacao, validarRequisicao(esquemaGravacaoFinal), gravarChamado)
 roteador.post('/desfazer', validarRequisicao(esquemaDesfazer), desfazerGravacao)
 roteador.get('/sincronizar', validarRequisicao(esquemaSincronizar, 'query'), asyncHandler(sincronizarPlanilha))
+roteador.get('/chamados', asyncHandler(meusChamados))
 
 export default roteador
