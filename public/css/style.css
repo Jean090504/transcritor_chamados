@@ -1229,9 +1229,6 @@ body.modo-administrativo .campos-operacionais { grid-template-columns: repeat(2,
 .card-analista-topo { display: flex; align-items: center; justify-content: space-between; gap: .65rem; margin-bottom: .9rem; }
 .avatar-analista { width: 2.35rem; height: 2.35rem; display: grid; place-items: center; flex: 0 0 auto; border-radius: 11px; color: #1d4ed8; background: #dbeafe; font-size: .72rem; font-weight: 900; letter-spacing: .03em; }
 .card-analista strong { display: block; margin-bottom: .35rem; overflow-wrap: anywhere; }
-.filtros-card-analista { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; margin-top: .65rem; }
-.filtros-card-analista label { display: grid; gap: .2rem; color: #64748b; font-size: .62rem; font-weight: 700; }
-.campo-filtro-card-analista { width: 100%; box-sizing: border-box; min-width: 0; padding: .35rem; border: 1px solid #d7dde5; border-radius: 6px; color: #334155; background: #fff; font: inherit; font-size: .68rem; }
 .status-analista { display: inline-flex; align-items: center; gap: .35rem; color: #64748b; font-size: .72rem; white-space: nowrap; }
 .status-analista i { width: .42rem; height: .42rem; display: inline-block; border-radius: 50%; background: #94a3b8; }
 .status-analista.status-ativo i { background: #22c55e; box-shadow: 0 0 0 3px #dcfce7; }
@@ -1288,6 +1285,7 @@ body.dark-mode.modo-analista .card-metrica { background: linear-gradient(145deg,
 @media (max-width: 980px) { .card-analista { max-width: calc(33.333% - .55rem); } }
 @media (max-width: 680px) { .card-analista { max-width: calc(50% - .4rem); } }
 @media (max-width: 480px) { .card-analista { max-width: 100%; } }
+@media (max-width: 640px) { .filtros-periodo-detalhes-analista { grid-template-columns: 1fr; } }
 .modal-conteudo-detalhes { max-width: 850px; }
 .lista-geral-dashboard { max-width: 1100px; margin: 0 auto 1.5rem; padding: 1.1rem 1.25rem; border: 1px solid rgba(11, 103, 209, .2); border-radius: 8px; background: linear-gradient(145deg, #fff 0%, #fbfefd 100%); }
 .busca-assistencias-dashboard { display: grid; gap: .3rem; margin: .8rem 0 1rem; color: #64748b; font-size: .75rem; font-weight: 700; }
@@ -1329,6 +1327,9 @@ body.dark-mode .opcoes-seletor-status-dashboard button:hover, body.dark-mode .op
 body.dark-mode .item-lista-geral-topo time, body.dark-mode .item-lista-geral-detalhes, body.dark-mode .mensagem-lista-geral-dashboard { color: #94a3b8; }
 @media (max-width: 640px) { .filtros-assistencias-dashboard { grid-template-columns: 1fr; gap: 0; } }
 .resumo-detalhes-analista { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.filtros-periodo-detalhes-analista { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: .7rem; margin-bottom: 1rem; padding: .8rem; border: 1px solid #dbe5ee; border-radius: 10px; background: #f8fbff; }
+.filtros-periodo-detalhes-analista label { display: grid; gap: .3rem; color: #64748b; font-size: .72rem; font-weight: 700; }
+.campo-periodo-detalhes-analista { width: 100%; box-sizing: border-box; min-height: 2.7rem; padding: .65rem .7rem; border: 1px solid #bfdbfe; border-radius: 10px; color: #1e293b; background: #fff; font: inherit; font-size: .8rem; }
 .resumo-detalhes-item { flex: 1; min-width: 150px; padding: .85rem 1rem; border-radius: 10px; background: #eff6ff; color: #1e3a8a; }
 .resumo-detalhes-item strong { display: block; font-size: 1.2rem; margin-top: .2rem; }
 .lista-detalhes-analista { display: grid; gap: .65rem; max-height: 55vh; overflow-y: auto; }
@@ -1370,8 +1371,9 @@ body.dark-mode .metrica-dashboard, body.dark-mode .grafico-dashboard, body.dark-
 body.dark-mode .avatar-analista { color: #bfdbfe; background: #1e3a8a; }
 body.dark-mode .card-analista-rodape { border-color: #1e293b; color: #94a3b8; }
 body.dark-mode .card-analista-status { color: #94a3b8; }
-body.dark-mode .filtros-card-analista label { color: #94a3b8; }
-body.dark-mode .campo-filtro-card-analista { border-color: #475569; color: #e2e8f0; background: #1e293b; color-scheme: dark; }
+body.dark-mode .filtros-periodo-detalhes-analista { border-color: #334155; background: #172033; }
+body.dark-mode .filtros-periodo-detalhes-analista label { color: #94a3b8; }
+body.dark-mode .campo-periodo-detalhes-analista { border-color: #3b82f6; color: #e2e8f0; background: #111827; color-scheme: dark; }
 body.dark-mode .metrica-dashboard span, body.dark-mode .metrica-dashboard small, body.dark-mode .metrica-dashboard strong, body.dark-mode .item-detalhe-campos, body.dark-mode .barra-dia-dashboard { color: #cbd5e1; }
 body.dark-mode .metrica-dashboard strong { color: #f8fafc; }
 body.dark-mode .metrica-destaque, body.dark-mode .metrica-destaque strong, body.dark-mode .metrica-destaque span { color: #fff; }

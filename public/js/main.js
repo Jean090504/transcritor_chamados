@@ -747,49 +747,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         status.prepend(criarElemento('i'))
         topo.append(avatar, status)
         const nome = criarElemento('strong', [], analista.nome)
-        const filtros = criarElemento('div', ['filtros-card-analista'])
-        const campoData = criarElemento('input', ['campo-filtro-card-analista'])
-        campoData.type = 'date'
-        campoData.setAttribute('aria-label', `Filtrar ${analista.nome} por data`)
-        campoData.value = dataReferenciaDashboard
-        const campoMes = criarElemento('input', ['campo-filtro-card-analista'])
-        campoMes.type = 'month'
-        campoMes.setAttribute('aria-label', `Filtrar ${analista.nome} por mês`)
-        const rotuloData = criarElemento('label', [], 'Data')
-        const rotuloMes = criarElemento('label', [], 'Mês')
-        rotuloData.appendChild(campoData)
-        rotuloMes.appendChild(campoMes)
-        filtros.append(rotuloData, rotuloMes)
         const rodape = criarElemento('div', ['card-analista-rodape'])
         const statusHoje = analista.statusHoje || { acionados: 0, pendentes: 0, cancelados: 0 }
         const resumoStatus = criarElemento('small', ['card-analista-status'], `${statusHoje.acionados} acionados · ${statusHoje.pendentes} agendados · ${statusHoje.cancelados} cancelado${statusHoje.cancelados === 1 ? '' : 's'}`)
         rodape.append(criarElemento('span', [], 'Hoje'), criarElemento('b', [], String(analista.atendimentosHoje)), resumoStatus)
-        const atualizarResumo = () => {
-          const dataSelecionada = campoData.value
-          const mesSelecionado = campoMes.value
-          const filtrados = chamadosDashboard.filter((chamado) => {
-            if (chamado.username !== analista.username) return false
-            if (dataSelecionada) return chamado.dataAtendimento === dataSelecionada
-            if (mesSelecionado) return String(chamado.dataAtendimento || '').startsWith(mesSelecionado)
-            return true
-          })
-          const resumo = { acionados: 0, pendentes: 0, cancelados: 0 }
-          filtrados.forEach((chamado) => {
-            const status = classificarChamado(chamado).classe
-            const categoria = status === 'status-verde' ? 'acionados' : status === 'status-vermelho' ? 'cancelados' : 'pendentes'
-            resumo[categoria] += 1
-          })
-          rodape.querySelector('span').textContent = dataSelecionada ? formatarDataPtBr(dataSelecionada) : mesSelecionado || 'Todos'
-          rodape.querySelector('b').textContent = String(filtrados.length)
-          resumoStatus.textContent = `${resumo.acionados} acionados · ${resumo.pendentes} agendados · ${resumo.cancelados} cancelados`
-        }
-        campoData.addEventListener('click', (evento) => evento.stopPropagation())
-        campoMes.addEventListener('click', (evento) => evento.stopPropagation())
-        filtros.addEventListener('click', (evento) => evento.stopPropagation())
-        campoData.addEventListener('input', () => { campoMes.value = ''; atualizarResumo() })
-        campoMes.addEventListener('input', () => { campoData.value = ''; atualizarResumo() })
-        card.append(topo, nome, filtros, rodape)
-        atualizarResumo()
+        card.append(topo, nome, rodape)
         return card
       }))
       listaAnalistas.querySelectorAll('.card-analista').forEach((card) => {
@@ -923,18 +885,62 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!resposta.ok) { mostrarModalMensagem('Não foi possível carregar', 'Tente novamente em instantes.'); return }
       const dados = await resposta.json()
       document.getElementById('tituloDetalhesAnalista').textContent = dados.analista.nome
+      modalDetalhes.querySelector('.filtros-periodo-detalhes-analista')?.remove()
+      const filtrosPeriodo = criarElemento('div', ['filtros-periodo-detalhes-analista'])
+      const grupoData = criarElemento('label', [], 'Data específica')
+      const campoDataPeriodo = criarElemento('input')
+      campoDataPeriodo.type = 'date'
+      campoDataPeriodo.className = 'campo-periodo-detalhes-analista'
+      grupoData.appendChild(campoDataPeriodo)
+      const grupoMes = criarElemento('label', [], 'Mês')
+      const campoMesPeriodo = criarElemento('select', ['campo-periodo-detalhes-analista'])
+      campoMesPeriodo.appendChild(criarElemento('option', [], 'Todos os meses'))
+      const mesesDisponiveis = [...new Set((dados.chamados || []).map((chamado) => String(chamado.dataAtendimento || '').slice(0, 7)).filter(Boolean))].sort().reverse()
+      mesesDisponiveis.forEach((mes) => campoMesPeriodo.appendChild(new Option(new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: fusoBrasilia }).format(new Date(`${mes}-15T12:00:00Z`)), mes)))
+      grupoMes.appendChild(campoMesPeriodo)
+      const limparPeriodo = criarElemento('button', ['botao-secundario'], 'Limpar filtro')
+      limparPeriodo.type = 'button'
+      filtrosPeriodo.append(grupoData, grupoMes, limparPeriodo)
+      criarCalendarioData(campoDataPeriodo)
+      resumoDetalhes.parentNode.insertBefore(filtrosPeriodo, resumoDetalhes)
       const totalResumo = criarElemento('div', ['resumo-detalhes-item'], 'Total de chamados')
       totalResumo.append(criarElemento('strong', [], String(dados.total)))
-      const hojeResumo = criarElemento('div', ['resumo-detalhes-item'], 'Atendidos hoje')
+      const hojeResumo = criarElemento('div', ['resumo-detalhes-item'], 'Atendimentos no período')
       hojeResumo.append(criarElemento('strong', [], String(dados.atendimentosHoje)))
       const statusHoje = dados.statusHoje || { acionados: 0, pendentes: 0, cancelados: 0 }
-      const acionadosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Acionados hoje')
+      const acionadosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Acionados no período')
       acionadosResumo.append(criarElemento('strong', [], String(statusHoje.acionados)))
-      const agendadosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Agendados hoje')
+      const agendadosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Agendados no período')
       agendadosResumo.append(criarElemento('strong', [], String(statusHoje.pendentes)))
-      const canceladosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Cancelados hoje')
+      const canceladosResumo = criarElemento('div', ['resumo-detalhes-item'], 'Cancelados no período')
       canceladosResumo.append(criarElemento('strong', [], String(statusHoje.cancelados)))
       resumoDetalhes.replaceChildren(totalResumo, hojeResumo, acionadosResumo, agendadosResumo, canceladosResumo)
+      const filtrarChamadosPeriodo = () => {
+        const dataSelecionada = campoDataPeriodo.value
+        const mesSelecionado = campoMesPeriodo.value
+        return dados.chamados.filter((chamado) => {
+          if (dataSelecionada) return chamado.dataAtendimento === dataSelecionada
+          if (mesSelecionado) return String(chamado.dataAtendimento || '').startsWith(mesSelecionado)
+          return true
+        })
+      }
+      const atualizarResumoPeriodo = () => {
+        const chamadosFiltrados = filtrarChamadosPeriodo()
+        const resumo = { acionados: 0, pendentes: 0, cancelados: 0 }
+        chamadosFiltrados.forEach((chamado) => {
+          const classe = classificarChamado(chamado).classe
+          resumo[classe === 'status-verde' ? 'acionados' : classe === 'status-vermelho' ? 'cancelados' : 'pendentes'] += 1
+        })
+        totalResumo.querySelector('strong').textContent = String(dados.chamados.length)
+        hojeResumo.querySelector('strong').textContent = String(chamadosFiltrados.length)
+        acionadosResumo.querySelector('strong').textContent = String(resumo.acionados)
+        agendadosResumo.querySelector('strong').textContent = String(resumo.pendentes)
+        canceladosResumo.querySelector('strong').textContent = String(resumo.cancelados)
+        listaDetalhes.querySelectorAll('.item-detalhe-chamado').forEach((item) => { item.hidden = !chamadosFiltrados.includes(dados.chamados[Number(item.dataset.chamadoIndice)]) })
+      }
+      campoDataPeriodo.addEventListener('change', () => { campoMesPeriodo.value = ''; atualizarResumoPeriodo() })
+      campoMesPeriodo.addEventListener('change', () => { campoDataPeriodo.value = ''; campoDataPeriodo._atualizarCalendario?.(); atualizarResumoPeriodo() })
+      limparPeriodo.addEventListener('click', () => { campoDataPeriodo.value = ''; campoDataPeriodo._atualizarCalendario?.(); campoMesPeriodo.value = ''; atualizarResumoPeriodo() })
       listaDetalhes.replaceChildren(...(dados.chamados.length ? dados.chamados.map((chamado, indice) => {
         const status = classificarChamado(chamado)
         const item = criarElemento('article', ['item-detalhe-chamado', status.classe])
@@ -953,6 +959,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.addEventListener('click', abrir)
         item.addEventListener('keydown', (evento) => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); abrir() } })
       })
+      atualizarResumoPeriodo()
       modalDetalhes.classList.remove('oculto')
     }
     const sairSarah = () => { sessionStorage.removeItem('token_jwt'); window.location.reload() }
@@ -1183,22 +1190,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const historico = Array.isArray(historicoBanco) ? historicoBanco : []
     const hoje = formatarDataBrasilia()
     const atendimentosHoje = historico.filter((item) => !item.dataDia || item.dataDia === hoje)
-    const acionadosHoje = atendimentosHoje.filter((item) => {
-      const base = String(item.baseAcionada || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-      const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-      const retratacaoFinal = String(item.retratacaoFinal || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-      if (texto.includes('cancel') || texto.includes('reembols') || texto.includes('agendad') || texto.includes('agendament') || /\bag\s*\d{1,2}\b/.test(retratacaoFinal) || texto.includes('sem base acionad') || texto.includes('nao acionad') || texto.includes('sem acionamento')) return false
-      const baseIgnorada = /nao acionad|nao informado|sem acionamento|sem base|nenhum|nenhuma|^na$|^n\/a$/.test(base)
-      return (base && !baseIgnorada && (base.length >= 3 || /^t\d+$/.test(base))) || (/\bacionad[oa]s?\b/.test(texto) && !/sem base acionad|nao acionad|sem acionamento/.test(texto)) || (/\bvouchers?\b/.test(texto) && !/sem vouchers?|nao vouchers?/.test(texto))
-    }).length
-    const canceladosHoje = atendimentosHoje.filter((item) => {
-      const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-      const retratacaoFinal = String(item.retratacaoFinal || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-      return texto.includes('cancel') || (texto.includes('reembols') && !/agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal))
-    }).length
+    const statusHoje = atendimentosHoje.map((item) => classificarHistorico(item).classe)
+    const acionadosHoje = statusHoje.filter((status) => status === 'status-verde').length
+    const canceladosHoje = statusHoje.filter((status) => status === 'status-vermelho').length
     const pendentesHoje = Math.max(atendimentosHoje.length - acionadosHoje - canceladosHoje, 0)
     const taxaAcionamento = atendimentosHoje.length
       ? Math.round((acionadosHoje / atendimentosHoje.length) * 100)
