@@ -48,7 +48,8 @@ export function classificarAtendimento(chamado) {
   if (agendamentoConfirmado) return 'pendentes'
   if (/reembols/.test(estado)) return 'cancelados'
   if (/agendad|agendament|\bagenda\b/.test(estado)) return 'pendentes'
-  const baseAcionada = base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)
+  const baseIgnorada = /nao acionad|nao informado|sem acionamento|sem base|nenhum|nenhuma|^na$|^n\/a$/.test(base)
+  const baseAcionada = base && !baseIgnorada && (base.length >= 3 || /^t\d+$/.test(base))
   const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
   const voucherConfirmado = /\bvouchers?\b/.test(estado) && !/sem vouchers?|nao vouchers?/.test(estado)
   if (baseAcionada || acionamentoConfirmado || voucherConfirmado) return 'acionados'

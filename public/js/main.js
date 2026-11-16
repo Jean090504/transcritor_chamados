@@ -824,7 +824,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const base = normalizar(chamado.baseAcionada)
       const estado = normalizar([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas, chamado.observacao].filter(Boolean).join(' '))
       const retratacaoFinal = normalizar(chamado.retratacaoFinal)
-      const baseAcionada = base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)
+      const baseIgnorada = /nao acionad|nao informado|sem acionamento|sem base|nenhum|nenhuma|^na$|^n\/a$/.test(base)
+      const baseAcionada = base && !baseIgnorada && (base.length >= 3 || /^t\d+$/.test(base))
       const cancelamentoExplicito = /cancel/.test(estado)
       const agendamentoConfirmado = /agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)
       if (cancelamentoExplicito) return { classe: 'status-vermelho', texto: 'Cancelado' }
@@ -1152,7 +1153,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       const retratacaoFinal = String(item.retratacaoFinal || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       if (texto.includes('cancel') || texto.includes('reembols') || texto.includes('agendad') || texto.includes('agendament') || /\bag\s*\d{1,2}\b/.test(retratacaoFinal) || texto.includes('sem base acionad') || texto.includes('nao acionad') || texto.includes('sem acionamento')) return false
-      return (base && !base.includes('nao acionad') && !base.includes('nao informado') && !base.includes('sem acionamento') && !base.includes('sem base')) || (/\bacionad[oa]s?\b/.test(texto) && !/sem base acionad|nao acionad|sem acionamento/.test(texto)) || (/\bvouchers?\b/.test(texto) && !/sem vouchers?|nao vouchers?/.test(texto))
+      const baseIgnorada = /nao acionad|nao informado|sem acionamento|sem base|nenhum|nenhuma|^na$|^n\/a$/.test(base)
+      return (base && !baseIgnorada && (base.length >= 3 || /^t\d+$/.test(base))) || (/\bacionad[oa]s?\b/.test(texto) && !/sem base acionad|nao acionad|sem acionamento/.test(texto)) || (/\bvouchers?\b/.test(texto) && !/sem vouchers?|nao vouchers?/.test(texto))
     }).length
     const canceladosHoje = atendimentosHoje.filter((item) => {
       const texto = [item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -1208,7 +1210,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const base = normalizar(item.baseAcionada)
     const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
     const voucherConfirmado = /\bvouchers?\b/.test(estado) && !/sem vouchers?|nao vouchers?/.test(estado)
-    if ((base && !/nao acionad|nao informado|sem acionamento|sem base/.test(base)) || acionamentoConfirmado || voucherConfirmado) return { classe: 'status-verde', texto: 'Acionado' }
+    const baseIgnorada = /nao acionad|nao informado|sem acionamento|sem base|nenhum|nenhuma|^na$|^n\/a$/.test(base)
+    if ((base && !baseIgnorada && (base.length >= 3 || /^t\d+$/.test(base))) || acionamentoConfirmado || voucherConfirmado) return { classe: 'status-verde', texto: 'Acionado' }
     return { classe: 'status-laranja', texto: 'Agendamento' }
   }
 
