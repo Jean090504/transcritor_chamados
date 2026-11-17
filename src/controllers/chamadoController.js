@@ -2,7 +2,7 @@ import { extrairDadosChamado, extrairDadosOperacionais } from '../services/aiSer
 import { esquemaChamadoEstruturado, esquemaDadosOperacionais } from '../schemas/chamadoSchema.js'
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
-import { classificarAtendimento, contarChamadosHoje, contarStatusChamadosHoje, existeProtocolo, listarChamados, listarChamadosPorUsuarios, salvarChamado, apagarChamado, atualizarChamado } from '../services/siteStore.js'
+import { classificarAtendimento, contarChamadosHoje, contarStatusChamadosHoje, existeProtocolo, listarChamados, listarChamadosPorUsuarios, buscarChamado, obterCacheDashboard, salvarCacheDashboard, invalidarCacheDashboard, salvarChamado, apagarChamado, atualizarChamado } from '../services/siteStore.js'
 import { prepararRegistroOperacional } from '../services/operacionalService.js'
 import { listarHistoricoOperacional, salvarRegistroOperacionalSeguro } from '../services/operacionalRegistroService.js'
 
@@ -73,6 +73,7 @@ export const gravarChamado = async (requisicao, resposta) => {
     if (!analista) return resposta.status(400).json({ sucesso: false, erro: 'Selecione um analista vÃ¡lido.' })
     const dados = esquemaChamadoEstruturado.parse(requisicao.body.dados)
     const chamado = await salvarChamado(username, analista.nome, dados, dataAtualSaoPaulo())
+    invalidarCacheDashboard()
     return resposta.json({ sucesso: true, mensagem: 'Chamado salvo no sistema.', dados: chamado, id: chamado.id, dataAtendimento: chamado.dataAtendimento })
   } catch (erro) { console.error('Falha ao salvar chamado:', erro); return resposta.status(500).json({ sucesso: false, erro: 'Falha ao salvar o chamado.' }) }
 }
@@ -81,6 +82,7 @@ export const desfazerGravacao = async (requisicao, resposta) => {
   try {
     const username = usernameAlvo(requisicao, requisicao.body.username)
     if (!await apagarChamado(username, requisicao.body.id)) return resposta.status(404).json({ sucesso: false, erro: 'Chamado nÃ£o encontrado.' })
+    invalidarCacheDashboard()
     return resposta.json({ sucesso: true, mensagem: 'Chamado removido do sistema.' })
   } catch (erro) { console.error('Falha ao desfazer chamado:', erro); return resposta.status(500).json({ sucesso: false, erro: 'Falha ao desfazer.' }) }
 }
@@ -107,6 +109,9 @@ export const dashboardSarah = async (requisicao, resposta) => {
     const inicio = requisicao.query.inicio || dataSaoPauloComDeslocamento(6)
     const fim = requisicao.query.fim || data
     const usernamesVisiveis = obterAnalistasVisiveis(requisicao.usuario).map((analista) => analista.username)
+    const chaveCache = `${requisicao.usuario.sub}|${inicio}|${fim}|${usernamesVisiveis.join(',')}`
+    const dashboardEmCache = obterCacheDashboard(chaveCache)
+    if (dashboardEmCache) return resposta.json(dashboardEmCache)
     const chamadosVisiveis = await listarChamadosPorUsuarios(usernamesVisiveis)
     const status = obterStatusAnalistas()
       .filter((analista) => obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username))
@@ -148,8 +153,18 @@ export const dashboardSarah = async (requisicao, resposta) => {
     }
     // TODO(performance): não carregar todos os chamados e filtrá-los em memória.
     // Criar uma contagem agrupada no banco usando apenas os usernames visíveis.
-    return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral: chamadosVisiveis.length, chamados: chamadosVisiveis, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo: { serieDiaria, resumo: resumoPeriodo }, ultimosSeteDias, analistas })
+    const resultado = { data, totalHoje, statusAtendimentosHoje, totalGeral: chamadosVisiveis.length, chamados: chamadosVisiveis, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo: { serieDiaria, resumo: resumoPeriodo }, ultimosSeteDias, analistas }
+    salvarCacheDashboard(chaveCache, resultado)
+    return resposta.json(resultado)
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
+}
+
+export const detalhesChamadoDashboard = async (requisicao, resposta) => {
+  const username = usernameAlvo(requisicao, requisicao.params.username)
+  if (!username || !obterAnalista(username)) return resposta.status(404).json({ erro: 'Analista nÃ£o encontrado.' })
+  const chamado = await buscarChamado(username, requisicao.params.id)
+  if (!chamado) return resposta.status(404).json({ erro: 'Chamado nÃ£o encontrado.' })
+  return resposta.json({ chamado })
 }
 
 export const detalhesAnalista = async (requisicao, resposta) => {
@@ -170,6 +185,7 @@ export const editarChamado = async (requisicao, resposta) => {
     const dados = esquemaChamadoEstruturado.parse(requisicao.body.dados)
     const chamado = await atualizarChamado(username, requisicao.params.id, dados)
     if (!chamado) return resposta.status(404).json({ erro: 'Chamado não encontrado.' })
+    invalidarCacheDashboard()
     return resposta.json({ sucesso: true, dados: chamado })
   } catch (erro) {
     console.error('Falha ao editar chamado:', erro)
@@ -182,5 +198,6 @@ export const excluirChamado = async (requisicao, resposta) => {
   if (!username || !obterAnalista(username)) return resposta.status(404).json({ erro: 'Analista não encontrado.' })
   const removido = await apagarChamado(username, requisicao.params.id)
   if (!removido) return resposta.status(404).json({ erro: 'Chamado não encontrado.' })
+  invalidarCacheDashboard()
   return resposta.json({ sucesso: true })
 }

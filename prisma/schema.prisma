@@ -44,8 +44,7 @@ model Chamado {
 
   @@index([username])
   @@index([dataAtendimento])
-  // TODO(performance): o dashboard filtra por usuário(s) e data; medir e avaliar
-  // um índice composto [username, dataAtendimento] quando o volume crescer.
+  @@index([username, dataAtendimento])
   @@index([username, protocolo])
 }
 

@@ -839,7 +839,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (baseAcionada || acionamentoConfirmado || voucherConfirmado) return { classe: 'status-verde', texto: 'Acionado' }
       return { classe: 'status-laranja', texto: 'Agendamento' }
     }
-    function abrirDetalhesChamado(chamado) {
+    async function abrirDetalhesChamado(chamado) {
+      if (chamado?.username && !Object.prototype.hasOwnProperty.call(chamado, 'dataMarcada')) {
+        const respostaDetalhes = await requisicaoAutenticada(`/api/dashboard/analistas/${encodeURIComponent(chamado.username)}/chamados/${encodeURIComponent(chamado.id)}`)
+        if (!respostaDetalhes.ok) {
+          mostrarModalMensagem('NÃ£o foi possÃ­vel carregar', 'Tente novamente em instantes.')
+          return
+        }
+        const dadosDetalhes = await respostaDetalhes.json()
+        chamado = dadosDetalhes.chamado
+      }
       chamadoEmEdicao = chamado
       const status = classificarChamado(chamado)
       const campos = [

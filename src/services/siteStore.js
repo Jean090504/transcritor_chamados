@@ -1,6 +1,9 @@
 import { prisma } from './prisma.js'
 import { classificarChamado } from './statusChamado.js'
 
+const CACHE_DASHBOARD_TTL_MS = 30 * 1000
+const cacheDashboard = new Map()
+
 function serializarChamado(chamado) {
   return { ...chamado, criadoEm: chamado.criadoEm.toISOString(), classificacao: classificarChamado(chamado) }
 }
@@ -20,9 +23,37 @@ export async function listarChamadosPorUsuarios(usernames) {
   if (!usernames?.length) return []
   const chamados = await prisma.chamado.findMany({
     where: { username: { in: usernames } },
+    select: {
+      id: true, username: true, nome: true, protocolo: true, seguradora: true,
+      servico: true, previaServico: true, localidade: true, baseAcionada: true,
+      retratacaoInicial: true, retratacaoFinal: true, resumoTentativas: true,
+      observacao: true, dataAtendimento: true, criadoEm: true
+    },
     orderBy: { criadoEm: 'desc' }
   })
   return chamados.map(serializarChamado)
+}
+
+export async function buscarChamado(username, id) {
+  const chamado = await prisma.chamado.findFirst({ where: { username, id } })
+  return chamado ? serializarChamado(chamado) : null
+}
+
+export function obterCacheDashboard(chave) {
+  const entrada = cacheDashboard.get(chave)
+  if (!entrada || entrada.expiraEm <= Date.now()) {
+    cacheDashboard.delete(chave)
+    return null
+  }
+  return entrada.valor
+}
+
+export function salvarCacheDashboard(chave, valor) {
+  cacheDashboard.set(chave, { valor, expiraEm: Date.now() + CACHE_DASHBOARD_TTL_MS })
+}
+
+export function invalidarCacheDashboard() {
+  cacheDashboard.clear()
 }
 
 export async function todosChamados() {
