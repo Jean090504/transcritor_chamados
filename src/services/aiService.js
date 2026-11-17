@@ -67,8 +67,8 @@ export async function extrairDadosChamado(textoBruto) {
     - baseAcionada: Nome da base que aceitou ou confirmou o agendamento (indicada na seção "BASE ACIONADA"). Se não houver base confirmada, coloca "Nao acionada".
     - dataMarcada: Data agendada com a base acionada (ex: se na prévia da base acionada constar "24/10 - 18H00", a data é "24/10"). Se for imediato ou sem data futura, coloca "Imediato". Se não houver, "Nao informado".
     - horarioMarcado: Horário agendado com a base acionada (ex: se constar "24/10 - 18H00", o horário é "18H00"; se constar "QQ HORARIO", coloca "QQ HORARIO"). Se não houver, "Nao informado".
-    - retratacaoInicial: Texto exato presente em "RETRATACAO -> INICIAL". Se estiver vazio, sem preenchimento ou ausente, preenche obrigatoriamente como "AGENDAMENTO".
-    - retratacaoFinal: Texto presente em "[ RETRATACAO ] -> FINAL :". Se vazio ou ausente, retorne "AGENDAMENTO".
+    - retratacaoInicial: Texto exato presente em "RETRATACAO -> INICIAL". Se estiver vazio, sem preenchimento ou ausente, retorne string vazia.
+    - retratacaoFinal: Texto exato presente em "[ RETRATACAO ] -> FINAL :". Se estiver vazio, sem preenchimento ou ausente, retorne string vazia. Não use "AGENDAMENTO" como valor padrão.
     - resumoTentativas: Resumo de todas as bases contactadas. Cada base DEVE começar obrigatoriamente numa nova linha usando quebra de linha real (\\n). Formato por linha:
       NOME DA BASE: T1 STATUS, T2 STATUS
     - observacao: Informações adicionais importantes que não se encaixem nos outros campos. Se não houver, retorne texto vazio.

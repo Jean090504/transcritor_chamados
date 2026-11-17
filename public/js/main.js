@@ -822,6 +822,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     modalDetalhes.addEventListener('click', (evento) => { if (evento.target === modalDetalhes) fecharDetalhes() })
     modalDetalhesChamado.addEventListener('click', (evento) => { if (evento.target === modalDetalhesChamado) fecharDetalhesChamado() })
     function classificarChamado(chamado) {
+      if (chamado.classificacao === 'acionados') return { classe: 'status-verde', texto: 'Acionado' }
+      if (chamado.classificacao === 'cancelados') return { classe: 'status-vermelho', texto: 'Cancelado' }
+      if (chamado.classificacao === 'pendentes') return { classe: 'status-laranja', texto: 'Agendamento' }
       const normalizar = (valor) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
       const base = normalizar(chamado.baseAcionada)
       const estado = normalizar([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas, chamado.observacao].filter(Boolean).join(' '))
@@ -829,9 +832,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const baseIgnorada = /nao acionad|nao informado|sem acionamento|sem base|nenhum|nenhuma|^na$|^n\/a$/.test(base)
       const baseAcionada = base && !baseIgnorada && (base.length >= 3 || /^t\d+$/.test(base))
       const cancelamentoExplicito = /cancel/.test(estado)
-      const agendamentoConfirmado = /agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)
       if (cancelamentoExplicito) return { classe: 'status-vermelho', texto: 'Cancelado' }
-      if (agendamentoConfirmado) return { classe: 'status-laranja', texto: 'Agendamento' }
       if (/reembols/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
       const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
       const voucherConfirmado = /\bvouchers?\b/.test(estado) && !/sem vouchers?|nao vouchers?/.test(estado)
@@ -1223,11 +1224,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 6. Histórico e Consulta Rápida (Filtro Dinâmico + Botão Excluir)
   function classificarHistorico(item) {
+      if (item.classificacao === 'acionados') return { classe: 'status-verde', texto: 'Acionado' }
+      if (item.classificacao === 'cancelados') return { classe: 'status-vermelho', texto: 'Cancelado' }
+      if (item.classificacao === 'pendentes') return { classe: 'status-laranja', texto: 'Agendamento' }
     const normalizar = (valor) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     const estado = normalizar([item.servico, item.previaServico, item.baseAcionada, item.retratacaoInicial, item.retratacaoFinal, item.resumoTentativas, item.observacao].filter(Boolean).join(' '))
     const retratacaoFinal = normalizar(item.retratacaoFinal)
     if (/cancel/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
-    if (/agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)) return { classe: 'status-laranja', texto: 'Agendamento' }
     if (/reembols/.test(estado)) return { classe: 'status-vermelho', texto: 'Cancelado' }
     const base = normalizar(item.baseAcionada)
     const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)

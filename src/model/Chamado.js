@@ -81,8 +81,8 @@ export class Chamado {
     this.baseAcionada = padronizarTextoGeral(dados.baseAcionada || dados.base_acionada || dados.base || 'NAO ACIONADA')
     this.dataMarcada = limparEspacos(dados.dataMarcada || dados.data_marcada || dados.data || 'Nao informado')
     this.horarioMarcado = padronizarTextoGeral(dados.horarioMarcado || dados.horario_marcado || dados.horario || 'Nao informado')
-    this.retratacaoInicial = limparEspacos(dados.retratacaoInicial || dados.retratacao_inicial || 'AGENDAMENTO')
-    this.retratacaoFinal = limparEspacos(dados.retratacaoFinal || dados.retratacao_final || 'AGENDAMENTO')
+    this.retratacaoInicial = limparEspacos(dados.retratacaoInicial || dados.retratacao_inicial || '')
+    this.retratacaoFinal = limparEspacos(dados.retratacaoFinal || dados.retratacao_final || '')
     this.resumoTentativas = String(dados.resumoTentativas || dados.resumo_tentativas || 'Nao informado').trim()
     this.observacao = String(dados.observacao || '').trim()
   }

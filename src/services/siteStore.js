@@ -1,7 +1,8 @@
 import { prisma } from './prisma.js'
+import { classificarChamado } from './statusChamado.js'
 
 function serializarChamado(chamado) {
-  return { ...chamado, criadoEm: chamado.criadoEm.toISOString() }
+  return { ...chamado, criadoEm: chamado.criadoEm.toISOString(), classificacao: classificarChamado(chamado) }
 }
 
 export async function listarChamados(username) {
@@ -30,31 +31,8 @@ export async function contarChamadosHoje(username, data) {
   return prisma.chamado.count({ where: { username, dataAtendimento: data } })
 }
 
-function normalizarStatus(valor) {
-  return String(valor || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-}
-
 export function classificarAtendimento(chamado) {
-  const base = normalizarStatus(chamado.baseAcionada)
-  const estado = normalizarStatus([chamado.servico, chamado.previaServico, chamado.baseAcionada, chamado.retratacaoFinal, chamado.retratacaoInicial, chamado.resumoTentativas, chamado.observacao].filter(Boolean).join(' '))
-  const retratacaoFinal = normalizarStatus(chamado.retratacaoFinal)
-  const cancelamentoExplicito = /cancel/.test(estado)
-  const agendamentoConfirmado = /agendad|agendament|\bagenda\b|\bag\s*\d{1,2}\b/.test(retratacaoFinal)
-  if (cancelamentoExplicito) return 'cancelados'
-  if (agendamentoConfirmado) return 'pendentes'
-  if (/reembols/.test(estado)) return 'cancelados'
-  // Agendamento na retração inicial, na prévia ou na previsão não confirma
-  // o resultado final. Nesses casos, uma base acionada válida deve prevalecer.
-  const baseIgnorada = /nao acionad|nao informado|sem acionamento|sem base|nenhum|nenhuma|^na$|^n\/a$/.test(base)
-  const baseAcionada = base && !baseIgnorada && (base.length >= 3 || /^t\d+$/.test(base))
-  const acionamentoConfirmado = /\bacionad[oa]s?\b/.test(estado) && !/sem base acionad|nao acionad|sem acionamento/.test(estado)
-  const voucherConfirmado = /\bvouchers?\b/.test(estado) && !/sem vouchers?|nao vouchers?/.test(estado)
-  if (baseAcionada || acionamentoConfirmado || voucherConfirmado) return 'acionados'
-  return 'pendentes'
+  return classificarChamado(chamado)
 }
 
 async function contarStatusChamados(where) {

@@ -29,8 +29,8 @@ export const esquemaChamadoEstruturado = zodValidacao.object({
   baseAcionada: textoCampo.default('Nao acionada'),
   dataMarcada: textoCampo.default('Nao informado'),
   horarioMarcado: textoCampo.default('Nao informado'),
-  retratacaoInicial: textoCampo.default('AGENDAMENTO'),
-  retratacaoFinal: textoCampo.default('AGENDAMENTO'),
+  retratacaoInicial: textoCampo.default(''),
+  retratacaoFinal: textoCampo.default(''),
   resumoTentativas: zodValidacao.string().trim().max(2000).default('Nao informado'),
   observacao: zodValidacao.string().trim().max(2000).default('')
 })
