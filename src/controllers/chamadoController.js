@@ -2,7 +2,7 @@ import { extrairDadosChamado, extrairDadosOperacionais } from '../services/aiSer
 import { esquemaChamadoEstruturado, esquemaDadosOperacionais } from '../schemas/chamadoSchema.js'
 import { obterAnalista, ANALISTAS, obterAnalistasVisiveis } from '../config/analistas.js'
 import { obterStatusAnalistas } from '../services/authService.js'
-import { contarChamadosHoje, contarStatusChamadosHoje, contarStatusAtendimentosHoje, obterResumoPeriodo, contarPorData, existeProtocolo, listarChamados, salvarChamado, apagarChamado, atualizarChamado, todosChamados } from '../services/siteStore.js'
+import { classificarAtendimento, contarChamadosHoje, contarStatusChamadosHoje, existeProtocolo, listarChamados, listarChamadosPorUsuarios, salvarChamado, apagarChamado, atualizarChamado } from '../services/siteStore.js'
 import { prepararRegistroOperacional } from '../services/operacionalService.js'
 import { listarHistoricoOperacional, salvarRegistroOperacionalSeguro } from '../services/operacionalRegistroService.js'
 
@@ -107,29 +107,48 @@ export const dashboardSarah = async (requisicao, resposta) => {
     const inicio = requisicao.query.inicio || dataSaoPauloComDeslocamento(6)
     const fim = requisicao.query.fim || data
     const usernamesVisiveis = obterAnalistasVisiveis(requisicao.usuario).map((analista) => analista.username)
+    const chamadosVisiveis = await listarChamadosPorUsuarios(usernamesVisiveis)
     const status = obterStatusAnalistas()
       .filter((analista) => obterAnalistasVisiveis(requisicao.usuario).some((visivel) => visivel.username === analista.username))
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
     // TODO(performance): esta montagem faz 2 consultas por analista. Substituir por
     // agregações agrupadas por username/data para evitar N+1 quando a equipe crescer.
-    const analistas = await Promise.all(status.map(async (analista) => ({
-      ...analista,
-      totalChamados: (await listarChamados(analista.username)).length,
-      atendimentosHoje: await contarChamadosHoje(analista.username, data),
-      statusHoje: await contarStatusChamadosHoje(analista.username, data)
-    })))
-    const ultimosSeteDias = await Promise.all(Array.from({ length: 7 }, async (_, indice) => {
+    const chamadosPorUsuario = new Map(usernamesVisiveis.map((username) => [username, []]))
+    chamadosVisiveis.forEach((chamado) => chamadosPorUsuario.get(chamado.username)?.push(chamado))
+    const resumirStatus = (chamados) => chamados.reduce((resumo, chamado) => {
+      const categoria = classificarAtendimento(chamado)
+      resumo[categoria] += 1
+      return resumo
+    }, { acionados: 0, pendentes: 0, cancelados: 0 })
+    const analistas = status.map((analista) => {
+      const chamados = chamadosPorUsuario.get(analista.username) || []
+      const chamadosHoje = chamados.filter((chamado) => chamado.dataAtendimento === data)
+      return { ...analista, totalChamados: chamados.length, atendimentosHoje: chamadosHoje.length, statusHoje: resumirStatus(chamadosHoje) }
+    })
+    const ultimosSeteDias = Array.from({ length: 7 }, (_, indice) => {
       const dia = dataSaoPauloComDeslocamento(6 - indice)
-      return { data: dia, total: await contarPorData(dia, usernamesVisiveis) }
-    }))
+      return { data: dia, total: chamadosVisiveis.filter((chamado) => chamado.dataAtendimento === dia).length }
+    })
     const totalHoje = analistas.reduce((total, analista) => total + analista.atendimentosHoje, 0)
-    const statusAtendimentosHoje = await contarStatusAtendimentosHoje(usernamesVisiveis, data)
-    const resumoPeriodo = await obterResumoPeriodo(usernamesVisiveis, inicio, fim)
-    const usernames = new Set(analistas.map((analista) => analista.username))
+    const chamadosHoje = chamadosVisiveis.filter((chamado) => chamado.dataAtendimento === data)
+    const statusAtendimentosHoje = resumirStatus(chamadosHoje)
+    const serieDiaria = []
+    const resumoPeriodo = { total: 0, acionados: 0, agendados: 0, cancelados: 0 }
+    for (let atual = inicio; atual <= fim;) {
+      const chamadosDoDia = chamadosVisiveis.filter((chamado) => chamado.dataAtendimento === atual)
+      const statusDoDia = resumirStatus(chamadosDoDia)
+      serieDiaria.push({ data: atual, total: chamadosDoDia.length, acionados: statusDoDia.acionados, agendados: statusDoDia.pendentes, cancelados: statusDoDia.cancelados })
+      resumoPeriodo.total += chamadosDoDia.length
+      resumoPeriodo.acionados += statusDoDia.acionados
+      resumoPeriodo.agendados += statusDoDia.pendentes
+      resumoPeriodo.cancelados += statusDoDia.cancelados
+      const proximo = new Date(`${atual}T12:00:00Z`)
+      proximo.setUTCDate(proximo.getUTCDate() + 1)
+      atual = proximo.toISOString().slice(0, 10)
+    }
     // TODO(performance): não carregar todos os chamados e filtrá-los em memória.
     // Criar uma contagem agrupada no banco usando apenas os usernames visíveis.
-    const chamadosVisiveis = (await todosChamados()).filter((chamado) => usernames.has(chamado.username))
-    return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral: chamadosVisiveis.length, chamados: chamadosVisiveis, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo, ultimosSeteDias, analistas })
+    return resposta.json({ data, totalHoje, statusAtendimentosHoje, totalGeral: chamadosVisiveis.length, chamados: chamadosVisiveis, analistasAtivos: analistas.filter((analista) => analista.status.startsWith('Ativo')).length, periodo: { inicio, fim }, resumoPeriodo: { serieDiaria, resumo: resumoPeriodo }, ultimosSeteDias, analistas })
   } catch (erro) { return resposta.status(500).json({ erro: 'Falha ao carregar o dashboard.' }) }
 }
 

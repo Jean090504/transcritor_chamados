@@ -16,6 +16,15 @@ export async function listarChamados(username) {
   return chamados.map(serializarChamado)
 }
 
+export async function listarChamadosPorUsuarios(usernames) {
+  if (!usernames?.length) return []
+  const chamados = await prisma.chamado.findMany({
+    where: { username: { in: usernames } },
+    orderBy: { criadoEm: 'desc' }
+  })
+  return chamados.map(serializarChamado)
+}
+
 export async function todosChamados() {
   // TODO(performance): usado hoje apenas para contar no dashboard, mas retorna
   // todas as colunas e linhas. Preferir count/groupBy quando esse uso for mantido.
